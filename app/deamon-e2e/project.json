@@ -1,0 +1,17 @@
+{
+  "name": "deamon-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "implicitDependencies": ["deamon"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "app/deamon-e2e/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "dependsOn": ["deamon:build"]
+    }
+  }
+}
