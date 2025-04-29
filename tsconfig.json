@@ -8,6 +8,12 @@
     },
     {
       "path": "./app/deamon"
+    },
+    {
+      "path": "./lib/common"
+    },
+    {
+      "path": "./lib/intrig-openapi"
     }
   ]
 }

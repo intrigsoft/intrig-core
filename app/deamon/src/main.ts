@@ -29,8 +29,15 @@ async function bootstrap() {
       // .addBearerAuth()       // uncomment if you need JWT auth in Swagger
       .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.get('/api/swagger.json', (_req: any, res: any) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(document);
+  });
+
   SwaggerModule.setup('docs', app, document);
-  let server = await app.listen(0);
+  let server = await app.listen(3000);
 
   const { port } = server.address() as AddressInfo;
   const url = `http://localhost:${port}`;

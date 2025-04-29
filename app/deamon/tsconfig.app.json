@@ -19,5 +19,13 @@
     "eslint.config.js",
     "eslint.config.cjs",
     "eslint.config.mjs"
+  ],
+  "references": [
+    {
+      "path": "../../lib/intrig-openapi/tsconfig.lib.json"
+    },
+    {
+      "path": "../../lib/common/tsconfig.lib.json"
+    }
   ]
 }
