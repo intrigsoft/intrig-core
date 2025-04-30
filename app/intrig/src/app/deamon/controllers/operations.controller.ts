@@ -1,16 +1,16 @@
 import {Controller, MessageEvent, Query, Sse} from '@nestjs/common';
-import {OperationsService} from "./operations.service";
+import {ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
+import {OperationsService} from "../services/operations.service";
+import {SyncDoneEventDto, SyncEventContext, SyncStatusEventDto} from "@intrig/common";
 import {Subject} from "rxjs";
-import {ApiExtraModels, ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
-import {SyncDoneEventDto, SyncStatusEventDto, SyncEventContext} from "@intrig/common";
 
 @ApiTags('Operations')
-@ApiExtraModels(SyncStatusEventDto, SyncDoneEventDto)
 @Controller('operations')
 export class OperationsController {
   constructor(private operationsService: OperationsService) {
+
   }
-  
+
   @Sse('sync')
   @ApiResponse({
     status: 200,

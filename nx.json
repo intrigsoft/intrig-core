@@ -51,7 +51,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["app/deamon-e2e/**/*"]
+      "exclude": ["app/deamon-e2e/**/*", "app/intrig-e2e/**/*"]
     }
   ],
   "targetDefaults": {

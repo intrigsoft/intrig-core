@@ -1,13 +1,12 @@
-import {Injectable} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {IntrigOpenapiService} from "@intrig/openapi";
-import {ConfigService} from "../config/config.service";
-import {SpecManagementService, SyncEventContext, GenerateEventContext} from "@intrig/common";
+import {GenerateEventContext, SpecManagementService, SyncEventContext} from "@intrig/common";
+import {IntrigConfigService} from "./intrig-config.service";
 
 @Injectable()
 export class OperationsService {
-
   constructor(private openApiService: IntrigOpenapiService,
-              private configService: ConfigService,
+              private configService: IntrigConfigService,
               private specManagementService: SpecManagementService) {
   }
 

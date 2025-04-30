@@ -3,11 +3,11 @@ import {Subject} from "rxjs";
 import {MessageEvent} from "@nestjs/common";
 
 
-type Step = 'getConfig' | 'fetch' | 'decode' | 'normalize' | 'save';
+type Step = 'getConfig' | 'read' | 'generate';
 
 type Status = 'started' | 'success' | 'error';
 
-export interface ISyncStatusEventDto {
+export interface IGenerateStatusEventDto {
   sourceId: string;
   step: Step;
   status: Status;
@@ -15,11 +15,11 @@ export interface ISyncStatusEventDto {
   error?: string;
 }
 
-export class SyncStatusEventDto implements ISyncStatusEventDto {
+export class GenerateStatusEventDto implements IGenerateStatusEventDto {
   @ApiProperty({ example: 'alpha' })
   sourceId: string;
 
-  @ApiProperty({ enum: ['getConfig', 'fetch', 'decode', 'normalize', 'save'] })
+  @ApiProperty({ enum: ['getConfig', 'read', 'generate'] })
   step: Step;
 
   @ApiProperty({ enum: ['started','success','error'] })
@@ -39,16 +39,16 @@ export class SyncStatusEventDto implements ISyncStatusEventDto {
     this.error = error;
   }
 
-  public static from(event: ISyncStatusEventDto) {
-    return new SyncStatusEventDto(event.sourceId, event.step, event.status, event.info, event.error);
+  public static from(event: IGenerateStatusEventDto) {
+    return new GenerateStatusEventDto(event.sourceId, event.step, event.status, event.info, event.error);
   }
 }
 
-export interface ISyncDoneEventDto {
+export interface IGenerateDoneEventDto {
   allSources: boolean;
 }
 
-export class SyncDoneEventDto implements ISyncDoneEventDto {
+export class GenerateDoneEventDto implements IGenerateDoneEventDto {
   @ApiProperty({ example: true })
   allSources: boolean;
 
@@ -56,20 +56,20 @@ export class SyncDoneEventDto implements ISyncDoneEventDto {
     this.allSources = allSources;
   }
 
-  public static from(event: ISyncDoneEventDto) {
-    return new SyncDoneEventDto(event.allSources);
+  public static from(event: IGenerateDoneEventDto) {
+    return new GenerateDoneEventDto(event.allSources);
   }
 }
 
-export class SyncEventContext {
+export class GenerateEventContext {
   constructor(private events$: Subject<MessageEvent>) {
   }
 
-  status(event: ISyncStatusEventDto) {
-    this.events$.next({ data: SyncStatusEventDto.from(event) });
+  status(event: IGenerateStatusEventDto) {
+    this.events$.next({ data: GenerateStatusEventDto.from(event) });
   }
 
-  done(event: ISyncDoneEventDto) {
-    this.events$.next({ data: SyncDoneEventDto.from(event) });
+  done(event: IGenerateDoneEventDto) {
+    this.events$.next({ data: GenerateDoneEventDto.from(event) });
   }
 }
