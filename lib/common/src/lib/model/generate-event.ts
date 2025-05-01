@@ -3,7 +3,7 @@ import {Subject} from "rxjs";
 import {MessageEvent} from "@nestjs/common";
 
 
-type Step = 'getConfig' | 'read' | 'generate';
+type Step = 'getConfig' | 'clear' | 'read' | 'generate' | 'install' | 'build' | 'copy' | 'postBuild';
 
 type Status = 'started' | 'success' | 'error';
 

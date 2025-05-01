@@ -1,7 +1,13 @@
 import {Controller, MessageEvent, Query, Sse} from '@nestjs/common';
 import {ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
 import {OperationsService} from "../services/operations.service";
-import {SyncDoneEventDto, SyncEventContext, SyncStatusEventDto} from "@intrig/common";
+import {
+  GenerateDoneEventDto, GenerateEventContext,
+  GenerateStatusEventDto,
+  SyncDoneEventDto,
+  SyncEventContext,
+  SyncStatusEventDto
+} from "@intrig/common";
 import {Subject} from "rxjs";
 
 @ApiTags('Operations')
@@ -31,6 +37,29 @@ export class OperationsController {
     let syncEventContext = new SyncEventContext(events$);
     await this.operationsService.sync(id, syncEventContext);
     syncEventContext.done(new SyncDoneEventDto(true));
+    return events$;
+  }
+
+  @Sse('generate')
+  @ApiResponse({
+    status: 200,
+    description: 'Generate events',
+    content: {
+      'text/event-stream': {
+        schema: {
+          oneOf: [
+            { $ref: getSchemaPath(GenerateStatusEventDto) },
+            { $ref: getSchemaPath(GenerateDoneEventDto) },
+          ]
+        }
+      }
+    }
+  })
+  async generate() {
+    const events$ = new Subject<MessageEvent>()
+    let generateEventContext = new GenerateEventContext(events$);
+    await this.operationsService.generate(generateEventContext);
+    generateEventContext.done(new GenerateDoneEventDto(true));
     return events$;
   }
 }

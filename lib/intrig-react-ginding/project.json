@@ -1,0 +1,20 @@
+{
+  "name": "@intrig/react-binding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/intrig-react-ginding/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/intrig-react-ginding",
+        "tsConfig": "lib/intrig-react-ginding/tsconfig.lib.json",
+        "packageJson": "lib/intrig-react-ginding/package.json",
+        "main": "lib/intrig-react-ginding/src/index.ts",
+        "assets": ["lib/intrig-react-ginding/*.md"]
+      }
+    }
+  }
+}

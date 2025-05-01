@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as path from 'path'
 import * as fs from 'fs'
 import compareSwaggerDocs from "./util/openapi3-diff";
+import {OpenAPIV3_1} from "openapi-types";
 
 @Injectable()
 export class SpecManagementService {
@@ -11,7 +12,7 @@ export class SpecManagementService {
     let currentContent = await this.read(apiName);
     if (currentContent) {
       let differences = compareSwaggerDocs(
-        JSON.parse(currentContent),
+        currentContent,
         JSON.parse(content),
       );
 
@@ -23,12 +24,13 @@ export class SpecManagementService {
     fs.writeFileSync(path.join(this.specsDir, `${apiName}-latest.json`), content, 'utf-8');
   }
 
-  async read(apiName: string) {
+  async read(apiName: string): Promise<OpenAPIV3_1.Document> {
     let fileName = `${apiName}-latest.json`
     let specPath = path.join(this.specsDir, fileName);
     if (fs.existsSync(specPath)) {
-      return fs.readFileSync(specPath, 'utf-8')
+      let content = fs.readFileSync(specPath, 'utf-8');
+      return JSON.parse(content)
     }
-    return undefined;
+    throw new Error(`Spec ${fileName} not found`)
   }
 }

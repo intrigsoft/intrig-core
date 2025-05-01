@@ -3,6 +3,7 @@ import {produce} from 'immer'
 import {pascalCase, camelCase} from '@intrig/common'
 import ReferenceObject = OpenAPIV3.ReferenceObject;
 import ExampleObject = OpenAPIV3_1.ExampleObject;
+import {deref, isRef} from "./ref-management";
 
 function generateTypeName(operationOb: OpenAPIV3_1.OperationObject, postFix: string) {
   return [operationOb.tags?.[0], operationOb.operationId, postFix].filter(Boolean)
@@ -119,19 +120,4 @@ export function normalize(spec: OpenAPIV3_1.Document) {
     }
     //TODO implement fix schema types.
   })
-}
-
-export function isRef(ob: any): ob is ReferenceObject {
-  return ob?.$ref !== undefined;
-}
-
-export function deref(spec: OpenAPIV3_1.Document): <T> (ob: ReferenceObject | T) => T | undefined {
-  return <T> (ob: ReferenceObject | T) => {
-    if (isRef(ob)) {
-      return ob.$ref.split('/').slice(1).reduce((acc: any, curr) => {
-        return acc?.[curr];
-      }, spec);
-    }
-    return ob;
-  }
 }

@@ -1,11 +1,21 @@
 import {Injectable, Logger} from '@nestjs/common';
-import {IntrigConfig, IntrigSourceConfig, SpecManagementService, SyncEventContext} from '@intrig/common'
+import {
+  camelCase,
+  IntrigConfig,
+  IntrigSourceConfig,
+  ResourceDescriptor, RestData, Schema,
+  SpecManagementService,
+  SyncEventContext
+} from '@intrig/common'
 import {lastValueFrom} from "rxjs";
 import {HttpService} from "@nestjs/axios";
 import {load as yamlLoad} from "js-yaml";
 import RefParser from '@apidevtools/json-schema-ref-parser';
 import {OpenAPIV3_1} from "openapi-types";
 import {normalize} from "./util/normalize";
+import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
+import {extractSchemas} from "./util/extractSchemas";
+import * as path from 'path'
 
 @Injectable()
 export class IntrigOpenapiService {
@@ -65,5 +75,29 @@ export class IntrigOpenapiService {
     ctx?.status({ status: 'started', step: 'save', sourceId: source.id})
     await this.specManagementService.save(source.id, JSON.stringify(normalized, null, 2))
     ctx?.status({ status: 'success', step: 'save', sourceId: source.id})
+  }
+
+  async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {
+    let document = await this.specManagementService.read(id);
+    let restData = extractRequestsFromSpec(document);
+    let schemas = extractSchemas(document);
+    return [
+      ...restData.map(restData => ResourceDescriptor.from({
+        id: `${id}_${restData.paths.join('_')}_${restData.operationId}`,
+        name: camelCase(restData.operationId),
+        source: id,
+        type: 'rest',
+        data: restData,
+        path: path.join(id, ...restData.paths, camelCase(restData.operationId))
+      })),
+      ...schemas.map(schema => ResourceDescriptor.from({
+        id: `${id}_schema_${schema.name}`,
+        name: schema.name,
+        source: id,
+        type: 'schema',
+        path: path.join(id, "components", "schemas"),
+        data: schema
+      }))
+    ]
   }
 }
