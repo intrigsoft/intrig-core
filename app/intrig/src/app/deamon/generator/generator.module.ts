@@ -9,8 +9,9 @@ export class GeneratorModule {
   static register(): DynamicModule {
     return {
       module: GeneratorModule,
-      imports: [IntrigConfigService],
+      imports: [],
       providers: [
+        IntrigConfigService,
         IntrigReactBindingService,
         IntrigNextBindingService,
         {

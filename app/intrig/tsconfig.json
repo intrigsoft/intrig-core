@@ -4,6 +4,18 @@
   "include": [],
   "references": [
     {
+      "path": "../../lib/intrig-openapi"
+    },
+    {
+      "path": "../../lib/intrig-next-binding"
+    },
+    {
+      "path": "../../lib/intrig-react-binding"
+    },
+    {
+      "path": "../../lib/common"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {

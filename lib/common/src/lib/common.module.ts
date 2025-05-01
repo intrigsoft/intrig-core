@@ -6,6 +6,6 @@ import { SourceManagementService } from './source-management.service';
 @Module({
   controllers: [],
   providers: [SpecManagementService, SourceManagementService],
-  exports: [SpecManagementService],
+  exports: [SpecManagementService, SourceManagementService],
 })
 export class CommonModule {}

@@ -4,12 +4,6 @@
   "files": [],
   "references": [
     {
-      "path": "./app/deamon-e2e"
-    },
-    {
-      "path": "./app/deamon"
-    },
-    {
       "path": "./lib/common"
     },
     {
@@ -25,7 +19,7 @@
       "path": "./lib/intrig-next-binding"
     },
     {
-      "path": "./lib/intrig-react-ginding"
+      "path": "./lib/intrig-react-binding"
     }
   ]
 }

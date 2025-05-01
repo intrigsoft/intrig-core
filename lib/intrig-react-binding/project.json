@@ -1,0 +1,20 @@
+{
+  "name": "@intrig/react-binding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/intrig-react-binding/src",
+  "projectType": "library",
+  "tags": ["react", "intrig"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/intrig-react-binding",
+        "tsConfig": "lib/intrig-react-binding/tsconfig.lib.json",
+        "packageJson": "lib/intrig-react-binding/package.json",
+        "main": "lib/intrig-react-binding/src/index.ts",
+        "assets": ["lib/intrig-react-binding/*.md"]
+      }
+    }
+  }
+}

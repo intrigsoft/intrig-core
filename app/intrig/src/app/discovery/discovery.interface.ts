@@ -4,4 +4,5 @@ export interface DiscoveryMetadata {
     port: number;
     pid: number;
     timestamp: string;
+    path: string;
 }

@@ -72,6 +72,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
             port,
             pid: process.pid,
             timestamp: new Date().toISOString(),
+            path: this.config.get('rootDir') ?? __dirname,
         };
 
         fs.writeFileSync(

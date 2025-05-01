@@ -3,10 +3,15 @@ import * as path from 'path'
 import * as fs from 'fs'
 import compareSwaggerDocs from "./util/openapi3-diff";
 import {OpenAPIV3_1} from "openapi-types";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class SpecManagementService {
-  private specsDir: string =  path.join(process.cwd(), '.intrig', 'specs');
+
+  constructor(private config: ConfigService) {
+  }
+
+  private specsDir: string = this.config.get('specsDir') ?? path.resolve(__dirname, '.intrig', 'specs');
 
   async save(apiName: string, content: string) {
     let currentContent = await this.read(apiName);
