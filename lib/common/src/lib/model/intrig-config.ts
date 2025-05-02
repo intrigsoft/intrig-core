@@ -1,18 +1,18 @@
-import {IntrigSourceConfig} from "./intrig-config-source";
+import {IIntrigSourceConfig} from "./intrig-source-config";
 
 export interface RestOptions {
 
 }
 
 export interface IntrigConfig {
-  sources: IntrigSourceConfig[];
-  generator: 'react' | 'next';
+  sources: IIntrigSourceConfig[];
+  generator: string;
   restOptions?: RestOptions;
 }
 
 export class IntrigConfigImpl implements IntrigConfig {
-  sources: IntrigSourceConfig[];
-  generator: 'react' | 'next';
+  sources: IIntrigSourceConfig[];
+  generator: string;
   restOptions?: RestOptions;
 
   constructor(config: IntrigConfig) {

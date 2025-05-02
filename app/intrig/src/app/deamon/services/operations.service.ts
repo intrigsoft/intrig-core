@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {IntrigOpenapiService} from "@intrig/openapi";
-import {GenerateEventContext, GeneratorBinding, SyncEventContext} from "@intrig/common";
+import {GenerateEventContext, GeneratorBinding, PackageManagerService, SyncEventContext} from "@intrig/common";
 import {IntrigConfigService} from "./intrig-config.service";
-import {PackageManagerService} from "./package-manager.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
 import {logger} from "nx/src/utils/logger";

@@ -8,14 +8,14 @@ import configuration from "./config/configuration";
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration]
+    }),
     CommonModule,
     CliModule,
     DiscoveryModule,
     DeamonModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [configuration]
-    })
   ],
   controllers: [],
   providers: [],

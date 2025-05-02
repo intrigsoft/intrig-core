@@ -1,5 +1,5 @@
 import {Controller, MessageEvent, Query, Sse} from '@nestjs/common';
-import {ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
+import {ApiExtraModels, ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
 import {OperationsService} from "../services/operations.service";
 import {
   GenerateDoneEventDto, GenerateEventContext,
@@ -11,6 +11,7 @@ import {
 import {Subject} from "rxjs";
 
 @ApiTags('Operations')
+@ApiExtraModels(SyncStatusEventDto, SyncDoneEventDto, GenerateStatusEventDto, GenerateDoneEventDto)
 @Controller('operations')
 export class OperationsController {
   constructor(private operationsService: OperationsService) {

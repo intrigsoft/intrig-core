@@ -1,15 +1,17 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {join} from "path";
 import {existsSync, readFileSync, writeFileSync} from "fs";
-import {IntrigConfig, IntrigConfigSource} from "@intrig/common";
+import {IntrigConfig, IntrigSourceConfig} from "@intrig/common";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class IntrigConfigService {
   private readonly configPath: string;
   private readonly logger = new Logger(IntrigConfigService.name);
 
-  constructor() {
-    this.configPath = join(process.cwd(), 'intrig.config.json');
+  constructor(config: ConfigService) {
+    console.log(config.get('rootDir'))
+    this.configPath = join(config.get('rootDir')!, 'intrig.config.json');
     this.logger.log(`Initializing config service with path: ${this.configPath}`);
     if (!existsSync(this.configPath)) {
       this.logger.error(`Configuration file not found at: ${this.configPath}`);
@@ -27,7 +29,7 @@ export class IntrigConfigService {
     writeFileSync(this.configPath, JSON.stringify(config, null, 2));
   }
 
-  add(source: IntrigConfigSource) {
+  add(source: IntrigSourceConfig) {
     this.logger.log(`Adding new source with ID: ${source.id}`);
     const config = this.readConfig();
     config.sources = config.sources || [];
@@ -49,7 +51,7 @@ export class IntrigConfigService {
     }
   }
 
-  list(): IntrigConfigSource[] {
+  list(): IntrigSourceConfig[] {
     this.logger.log('Retrieving list of sources');
     const config = this.readConfig();
     const sources = config.sources || [];

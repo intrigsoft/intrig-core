@@ -1,6 +1,11 @@
 import {Command, CommandRunner, SubCommand} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
-import * as inquirer from 'inquirer';
+import inquirer from 'inquirer';
+import {HttpService} from '@nestjs/axios'
+import {lastValueFrom} from "rxjs";
+import {Logger} from "@nestjs/common";
+
+const logger: Logger = new Logger('SourcesCommand');
 
 @SubCommand({
   name: 'add',
@@ -8,7 +13,7 @@ import * as inquirer from 'inquirer';
 })
 export class SourcesAddCommand extends CommandRunner {
 
-  constructor(private pm: ProcessManagerService) {
+  constructor(private pm: ProcessManagerService, private httpService: HttpService) {
     super();
   }
 
@@ -25,14 +30,51 @@ export class SourcesAddCommand extends CommandRunner {
           type: 'input',
           name: 'specUrl',
           message: 'Enter the URL of your OpenAPI/Swagger spec:',
-          validate: (v) =>
+          validate: (v: any) =>
             v.startsWith('http') ? true : 'Must be a valid HTTP URL',
         },
       ]);
       specUrl = ans.specUrl;
     }
 
-    //TODO call add function.
+    let host = metadata.url;
+    let url = `${host}/api/config/sources/transform`;
+    logger.debug(`Sending request to ${url} with specUrl=${specUrl}`);
+    let response = await lastValueFrom(this.httpService.post(url, {
+      specUrl
+    }));
+
+    const source = response.data;
+
+    console.log(source)
+
+    console.log('\nSource details:');
+    console.log(`Name: ${source.name || 'N/A'}`);
+    console.log(`Spec URL: ${source.specUrl || 'N/A'}`);
+
+    const ans = await inquirer.prompt<{ id: string }>([
+      {
+        type: 'input',
+        name: 'id',
+        message: 'Enter an ID for this source (used as directory name):',
+        validate: (v: string) => {
+          if (!v.match(/^[a-zA-Z0-9\-_]+$/)) {
+            return 'ID must contain only letters, numbers, hyphens, and underscores';
+          }
+          return true;
+        },
+      },
+    ]);
+
+    source.id = ans.id;
+    url = `${host}/api/config/sources/add`;
+    let addResponse = await lastValueFrom(this.httpService.post(url, source, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }));
+    console.log(addResponse.data);
+    console.log(`\nSource "${ans.id}" added successfully!`);
   }
 }
 
@@ -50,7 +92,7 @@ export class SourceListCommand extends CommandRunner {
       throw new Error("No metadata found");
     }
 
-    //TODO call list function.
+
   }
 }
 
@@ -84,7 +126,6 @@ export class SourceRemoveCommand extends CommandRunner {
   ]
 })
 export class SourcesCommand extends CommandRunner {
-
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
     this.command.outputHelp();
   }

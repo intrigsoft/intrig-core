@@ -2,7 +2,7 @@ import {Injectable, Logger} from '@nestjs/common';
 import {
   camelCase,
   IntrigConfig,
-  IntrigSourceConfig,
+  IIntrigSourceConfig,
   ResourceDescriptor, RestData, Schema,
   SpecManagementService,
   SyncEventContext
@@ -44,7 +44,7 @@ export class IntrigOpenapiService {
     logger.log('OpenAPI sync process completed');
   }
 
-  private async doSync(source: IntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext | undefined) {
+  private async doSync(source: IIntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext | undefined) {
     this.logger.debug(`Resolving OpenAPI spec from URL: ${source.specUrl}`);
     ctx?.status({ status: 'started', step: 'fetch', sourceId: source.id})
     const response = await lastValueFrom(

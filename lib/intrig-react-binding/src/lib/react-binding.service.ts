@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {GeneratorBinding, IntrigSourceConfig, ResourceDescriptor} from "@intrig/common";
+import {GeneratorBinding, IIntrigSourceConfig, ResourceDescriptor} from "@intrig/common";
 
 @Injectable()
 export class IntrigReactBindingService extends GeneratorBinding {
@@ -7,7 +7,7 @@ export class IntrigReactBindingService extends GeneratorBinding {
     return Promise.resolve(undefined);
   }
 
-  generateSource(descriptors: ResourceDescriptor<any>[], source: IntrigSourceConfig): Promise<void> {
+  generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
     return Promise.resolve(undefined);
   }
 

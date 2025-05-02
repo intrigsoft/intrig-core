@@ -1,126 +1,159 @@
 import {
-    Injectable,
-    Logger,
-    OnModuleInit,
-    OnApplicationShutdown,
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnApplicationShutdown,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryMetadata } from './discovery.interface';
 import * as fs from 'fs';
+import * as fsx from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
+import { createHash } from 'crypto';
 import tcpPortUsed from 'tcp-port-used';
 
 @Injectable()
 export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
-    private readonly logger = new Logger(DiscoveryService.name);
-    private discoveryDir: string | undefined;
-    private filePath?: string;
-    private projectName: string | undefined;
+  private readonly logger = new Logger(DiscoveryService.name);
+  private discoveryDir!: string;
+  private projectName!: string;
 
-    constructor(private readonly config: ConfigService) {}
+  onModuleInit() {
+    // determine projectName
+    let name = 'intrig-daemon';
+    try {
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
+      ) as { name?: string };
+      if (pkg.name) name = pkg.name;
+    } catch {
+      this.logger.warn(
+        `Could not read package.json in ${process.cwd()}, using "${name}"`,
+      );
+    }
+    this.projectName = this.sanitizeName(name);
 
-    private sanitizeName(raw: string): string {
-        // allow letters, numbers, dash, underscore; turn everything else into '_'
-        return raw.replace(/[^a-zA-Z0-9\-_]/g, '_');
+    // setup discovery directory
+    const baseDir = this.config.get<string>('discovery.dir') || os.tmpdir();
+    const me = this.sanitizeName(os.userInfo().username);
+    this.discoveryDir = path.join(baseDir, `${me}.intrig`);
+    fs.mkdirSync(this.discoveryDir, { recursive: true });
+
+    this.logger.log(
+      `🔍 DiscoveryService initialized for "${this.projectName}" in ${this.discoveryDir}`,
+    );
+  }
+
+  /** deterministic filename based on SHA-1 of absolute rootDir */
+  private getMetadataFileName(): string {
+    const rootDir = this.config.get<string>('rootDir') ?? __dirname;
+    const abs = path.resolve(rootDir);
+    return createHash('sha1').update(abs).digest('hex') + '.json';
+  }
+
+  /** full path to the metadata file */
+  public getMetadataFilePath(): string {
+    return path.join(this.discoveryDir, this.getMetadataFileName());
+  }
+
+  register(port: number, url?: string) {
+    const resolvedUrl =
+      url ||
+      this.config.get<string>('discovery.url') ||
+      `http://localhost:${port}`;
+
+    const payload: DiscoveryMetadata = {
+      projectName: this.projectName,
+      url: resolvedUrl,
+      port,
+      pid: process.pid,
+      timestamp: new Date().toISOString(),
+      path: this.config.get<string>('rootDir') ?? __dirname,
+    };
+
+    const filePath = this.getMetadataFilePath();
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+    this.logger.log(`✅ Service registered: ${filePath}`);
+  }
+
+  async isRunning(): Promise<boolean> {
+    const filePath = this.getMetadataFilePath();
+    if (!fs.existsSync(filePath)) return false;
+
+    try {
+      const meta = JSON.parse(
+        fs.readFileSync(filePath, 'utf-8'),
+      ) as DiscoveryMetadata;
+      return tcpPortUsed.check(meta.port);
+    } catch {
+      return false;
+    }
+  }
+
+  getMetadata(): DiscoveryMetadata | null {
+    const filePath = this.getMetadataFilePath();
+    if (!fs.existsSync(filePath)) {
+      this.logger.warn('No discovery metadata file found');
+      return null;
     }
 
-    onModuleInit() {
-        // --- 1) figure out projectName from package.json or fallback ---
-        let name = 'intrig-deamon';
-        try {
-            const pkg = JSON.parse(
-                fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
-            ) as { name?: string };
-            if (pkg.name) name = pkg.name;
-        } catch {
-            this.logger.warn(
-                `Could not read package.json in ${process.cwd()}, using "${name}"`,
-            );
-        }
+    try {
+      return JSON.parse(
+        fs.readFileSync(filePath, 'utf-8'),
+      ) as DiscoveryMetadata;
+    } catch (err) {
+      this.logger.error('Failed to read or parse discovery metadata', err as any);
+      return null;
+    }
+  }
 
-        this.projectName = this.sanitizeName(name);
+  async waitForMetadata(): Promise<DiscoveryMetadata> {
+    const filePath = this.getMetadataFilePath();
 
-        const baseDir =
-            this.config.get<string>('discovery.dir') || os.tmpdir();
-        const me = this.sanitizeName(os.userInfo().username);
-        this.discoveryDir = path.join(baseDir, `${me}.intrig`);
-        if (!fs.existsSync(this.discoveryDir)) {
-            fs.mkdirSync(this.discoveryDir, { recursive: true });
-        }
-
-        this.logger.log(
-            `🔍 DiscoveryService initialized for "${this.projectName}" in ${this.discoveryDir}`,
-        );
+    // if already there
+    if (fs.existsSync(filePath)) {
+      return this.getMetadata()!;
     }
 
-    /**
-     * Call this after your app.listen() so you know the actual port (and URL).
-     */
-    register(port: number, url?: string) {
-        const resolvedUrl =
-            url ||
-            this.config.get<string>('discovery.url') ||
-            `http://localhost:${port}`;
+    this.logger.log('Waiting for metadata file to appear…');
+    return new Promise((resolve, reject) => {
+      const watcher = fs.watch(this.discoveryDir, (event, fname) => {
+        if (event === 'rename' && fname === this.getMetadataFileName()) {
+          watcher.close();
+          try {
+            const meta = JSON.parse(
+              fs.readFileSync(filePath, 'utf-8'),
+            ) as DiscoveryMetadata;
+            resolve(meta);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      });
+      watcher.on('error', reject);
+    });
+  }
 
-        const filename = `${this.projectName}-${process.pid}.json`;
-        this.filePath = path.join(this.discoveryDir ?? '', filename);
-
-        const payload: DiscoveryMetadata = {
-            projectName: this.projectName ?? '',
-            url: resolvedUrl,
-            port,
-            pid: process.pid,
-            timestamp: new Date().toISOString(),
-            path: this.config.get('rootDir') ?? __dirname,
-        };
-
-        fs.writeFileSync(
-            this.filePath,
-            JSON.stringify(payload, null, 2),
-            'utf-8',
-        );
-        this.logger.log(`✅ Service registered: ${this.filePath}`);
+  onApplicationShutdown(signal: string) {
+    const filePath = this.getMetadataFilePath();
+    if (fs.existsSync(filePath)) {
+      let metadata: DiscoveryMetadata = fsx.readJsonSync(filePath, 'utf-8');
+      if (metadata.pid !== process.pid) {
+        return
+      }
+      try {
+        fs.unlinkSync(filePath);
+        this.logger.log(`🗑️ Service deregistered (${signal})`);
+      } catch (err) {
+        this.logger.error('Failed to delete discovery file', err as any);
+      }
     }
+  }
 
-    async isRunning(): Promise<boolean> {
-        if (!this.filePath || !fs.existsSync(this.filePath)) {
-            return false;
-        }
+  private sanitizeName(raw: string): string {
+    return raw.replace(/[^a-zA-Z0-9\-_]/g, '_');
+  }
 
-        try {
-            const metadata = JSON.parse(fs.readFileSync(this.filePath, 'utf-8')) as DiscoveryMetadata;
-            return await tcpPortUsed.check(metadata.port);
-        } catch {
-            return false;
-        }
-    }
-
-    getMetadata(): DiscoveryMetadata | null {
-        if (!this.filePath || !fs.existsSync(this.filePath)) {
-            this.logger.warn('No discovery metadata file found');
-            return null;
-        }
-        try {
-            const raw = fs.readFileSync(this.filePath, 'utf-8');
-            return JSON.parse(raw) as DiscoveryMetadata;
-        } catch (err) {
-            this.logger.error('Failed to read or parse discovery metadata', err as any);
-            return null;
-        }
-    }
-
-    onApplicationShutdown(signal: string) {
-        if (this.filePath && fs.existsSync(this.filePath)) {
-            try {
-                fs.unlinkSync(this.filePath);
-                this.logger.log(`🗑️ Service deregistered (${signal})`);
-            } catch (err) {
-                this.logger.error(
-                    `Failed to delete discovery file`,
-                    err as any,
-                );
-            }
-        }
-    }
+  constructor(private readonly config: ConfigService) {}
 }

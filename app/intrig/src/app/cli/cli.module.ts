@@ -7,9 +7,27 @@ import {SyncCommand} from "./commands/sync.command";
 import {SourcesCommand} from "./commands/sources.command";
 import {CommonModule} from "@intrig/common";
 import {DiscoveryModule} from "../discovery/discovery.module";
+import {HttpModule} from "@nestjs/axios";
+import {NextCliModule, NextCliService} from "@intrig/next-binding";
+import {GENERATORS} from "./tokens";
 
 @Module({
-  imports: [CommonModule, DiscoveryModule],
-  providers: [ProcessManagerService, DeamonCommand, GenerateCommand, InitCommand, SourcesCommand, SyncCommand],
+  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule],
+  providers: [
+    ProcessManagerService,
+    DeamonCommand,
+    GenerateCommand,
+    InitCommand,
+    ...SourcesCommand.registerWithSubCommands(),
+    SyncCommand,
+    HttpModule,
+    {
+      provide: GENERATORS,
+      inject: [NextCliService],
+      useFactory(nextCliService: NextCliService) {
+        return [nextCliService]
+      }
+    }
+  ],
 })
 export class CliModule {}

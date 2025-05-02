@@ -23,7 +23,8 @@
       "dependsOn": ["build"],
       "options": {
         "buildTarget": "intrig:build",
-        "runBuildTargetDependencies": false
+        "runBuildTargetDependencies": false,
+        "watch": false
       },
       "configurations": {
         "development": {

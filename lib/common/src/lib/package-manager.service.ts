@@ -1,7 +1,8 @@
 import {Injectable, Logger} from '@nestjs/common';
+//@ts-ignore
+import {PackageManager} from "nypm";
 import {promisify} from "util";
 import {exec} from "child_process";
-import {PackageManager} from "nypm";
 
 const execAsync = promisify(exec);
 
@@ -46,6 +47,32 @@ export class PackageManagerService {
   /** Shortcut for `install` */
   install(cwd?: string) {
     return this.runScript('install', cwd);
+  }
+
+  async installDependency(dep: string, dev: boolean = false, legacy: boolean = true, cwd?: string) {
+    try {
+      switch ((await this.getPM()).name) {
+        case "npm":
+          await this.runScript(`install ${dev ? '-D' : ''} ${dep} ${legacy ? '--legacy-peer-deps' : ''}`, cwd);
+          break;
+        case "yarn":
+          await this.runScript(`add ${dev ? '-D' : ''} ${dep} ${legacy ? '--legacy-peer-deps' : ''}`, cwd);
+          break;
+        case "pnpm":
+          await this.runScript(`add ${dev ? '-D' : ''} ${dep} ${legacy ? '--legacy-peer-deps' : ''}`, cwd);
+          break;
+        case "bun":
+          await this.runScript(`install ${dev ? '-d' : ''} ${dep} ${legacy ? '--legacy-peer-deps' : ''}`, cwd);
+          break;
+        case "deno":
+          await this.runScript(`install ${dep} ${legacy ? '--legacy-peer-deps' : ''}`, cwd);
+          break;
+      }
+    } catch (e: any) {
+      if (e.stderr.includes('--legacy-peer-deps')) {
+        await this.installDependency(dep, dev, true, cwd);
+      }
+    }
   }
 
   /** Shortcut for `build` (npm run build, yarn build, etc.) */

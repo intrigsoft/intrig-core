@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {
   GeneratorBinding,
-  IntrigSourceConfig, isRestDescriptor, isSchemaDescriptor,
+  IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor,
   ResourceDescriptor,
   RestData, Schema,
   SourceManagementService
@@ -66,7 +66,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(loggerTemplate(this._path))
   }
 
-  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IntrigSourceConfig): Promise<void> {
+  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
     const groupedByPath: Record<string, ResourceDescriptor<RestData>[]> = {}
     for (let descriptor of descriptors) {
       if (isRestDescriptor(descriptor)) {
@@ -82,7 +82,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     }
   }
 
-  private async generateRestSource(source: IntrigSourceConfig, descriptor: ResourceDescriptor<RestData>): Promise<void> {
+  private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>): Promise<void> {
     const clientExports: string[] = [];
     const serverExports: string[] = [];
     await this.dump(paramsTemplate(descriptor, clientExports, serverExports, this._path))
@@ -96,7 +96,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(serverIndexTemplate([descriptor], serverExports, this._path))
   }
 
-  private async generateSchemaSource(source: IntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
+  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
     await this.dump(typeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
