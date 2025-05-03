@@ -27,6 +27,7 @@ import {serverIndexTemplate} from "./templates/source/controller/method/serverIn
 import {typeTemplate} from "./templates/source/type/typeTemplate";
 import {requestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
 import {ConfigService} from "@nestjs/config";
+import {swcrcTemplate} from "./templates/swcrc.template";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -64,6 +65,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(contextTemplate(this._path))
     await this.dump(extraTemplate(this._path))
     await this.dump(loggerTemplate(this._path))
+    await this.dump(swcrcTemplate(this._path))
   }
 
   override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {

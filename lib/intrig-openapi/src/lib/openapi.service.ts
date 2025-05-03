@@ -1,17 +1,20 @@
 import {Injectable, Logger} from '@nestjs/common';
+import type {IIntrigSourceConfig} from '@intrig/common'
 import {
   camelCase,
   IntrigConfig,
-  IIntrigSourceConfig,
-  ResourceDescriptor, RestData, Schema,
+  ResourceDescriptor,
+  RestData,
+  Schema,
   SpecManagementService,
-  SyncEventContext
+  SyncEventContext,
+  WithStatus
 } from '@intrig/common'
 import {lastValueFrom} from "rxjs";
 import {HttpService} from "@nestjs/axios";
 import {load as yamlLoad} from "js-yaml";
 import RefParser from '@apidevtools/json-schema-ref-parser';
-import {OpenAPIV3_1} from "openapi-types";
+import type {OpenAPIV3_1} from "openapi-types";
 import {normalize} from "./util/normalize";
 import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
 import {extractSchemas} from "./util/extractSchemas";
@@ -23,7 +26,7 @@ export class IntrigOpenapiService {
 
   constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {}
 
-  async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext | undefined) {
+  async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
     const logger = new Logger(IntrigOpenapiService.name);
     logger.log('Starting OpenAPI sync process');
 
@@ -44,18 +47,30 @@ export class IntrigOpenapiService {
     logger.log('OpenAPI sync process completed');
   }
 
-  private async doSync(source: IIntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext | undefined) {
+  private async doSync(source: IIntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext) {
     this.logger.debug(`Resolving OpenAPI spec from URL: ${source.specUrl}`);
-    ctx?.status({ status: 'started', step: 'fetch', sourceId: source.id})
-    const response = await lastValueFrom(
-      this.httpService.get<string>(source.specUrl, {responseType: 'text'}),
-    );
-    ctx?.status({ status: 'success', step: 'fetch', sourceId: source.id})
+    const response = await this.fetchSwaggerDoc(ctx, source);
 
     const raw = response.data;
-    let spec: any;
+    let spec = this.decodeSwaggerDoc(ctx, source, raw);
+    let normalized = await this.normalize(ctx, source, spec);
+    await this.saveContent(ctx, source, normalized);
+  }
 
-    ctx?.status({ status: 'started', step: 'decode', sourceId: source.id})
+  @WithStatus((source, normalize) => ({step: 'save', sourceId: source.id}))
+  private async saveContent(ctx: SyncEventContext, source: IIntrigSourceConfig, normalized: OpenAPIV3_1.Document) {
+    await this.specManagementService.save(source.id, JSON.stringify(normalized, null, 2))
+  }
+
+  @WithStatus((source, spec) => ({step: 'normalize', sourceId: source.id}))
+  private async normalize(ctx: SyncEventContext, source: IIntrigSourceConfig, spec: any) {
+    let document = await RefParser.bundle(spec) as OpenAPIV3_1.Document;
+    return normalize(document);
+  }
+
+  @WithStatus((source, row) => ({step: 'decode', sourceId: source.id}))
+  private decodeSwaggerDoc(ctx: SyncEventContext, source: IIntrigSourceConfig, raw: string) {
+    let spec: any;
     try {
       spec = JSON.parse(raw);
       this.logger.debug('Successfully parsed OpenAPI spec as JSON');
@@ -64,17 +79,14 @@ export class IntrigOpenapiService {
       spec = yamlLoad(raw);
       this.logger.debug('Successfully parsed OpenAPI spec as YAML');
     }
+    return spec;
+  }
 
-    ctx?.status({ status: 'success', step: 'decode', sourceId: source.id})
-
-    ctx?.status({ status: 'started', step: 'normalize', sourceId: source.id})
-    let document = await RefParser.bundle(spec) as OpenAPIV3_1.Document;
-    let normalized = normalize(document);
-    ctx?.status({ status: 'success', step: 'normalize', sourceId: source.id})
-
-    ctx?.status({ status: 'started', step: 'save', sourceId: source.id})
-    await this.specManagementService.save(source.id, JSON.stringify(normalized, null, 2))
-    ctx?.status({ status: 'success', step: 'save', sourceId: source.id})
+  @WithStatus((source) => ({step: 'fetch', sourceId: source.id}))
+  private async fetchSwaggerDoc(ctx: SyncEventContext, source: IIntrigSourceConfig) {
+    return await lastValueFrom(
+      this.httpService.get<string>(source.specUrl, {responseType: 'text'}),
+    );
   }
 
   async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {

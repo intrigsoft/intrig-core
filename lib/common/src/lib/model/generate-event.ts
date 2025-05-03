@@ -1,13 +1,14 @@
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger'
 import {Subject} from "rxjs";
 import {MessageEvent} from "@nestjs/common";
+import {EventContext, EventDto} from "./event-context";
 
 
-type Step = 'getConfig' | 'clear' | 'read' | 'generate' | 'install' | 'build' | 'copy' | 'postBuild';
+type Step = 'getConfig' | 'clear' | 'read' | 'generate' | 'install' | 'build' | 'copy-to-node-modules' | 'postBuild';
 
 type Status = 'started' | 'success' | 'error';
 
-export interface IGenerateStatusEventDto {
+export interface IGenerateStatusEventDto extends EventDto<Step> {
   sourceId: string;
   step: Step;
   status: Status;
@@ -61,16 +62,16 @@ export class GenerateDoneEventDto implements IGenerateDoneEventDto {
   }
 }
 
-export class GenerateEventContext {
-  constructor(private events$: Subject<MessageEvent>) {
+export class GenerateEventContext implements EventContext<IGenerateStatusEventDto> {
+  constructor(public events$: Subject<MessageEvent>) {
   }
 
   status(event: IGenerateStatusEventDto) {
-    this.events$.next({ data: GenerateStatusEventDto.from(event) });
+    this.events$.next({data: GenerateStatusEventDto.from(event)});
   }
 
   done(event: IGenerateDoneEventDto) {
-    this.events$.next({ data: GenerateDoneEventDto.from(event) });
+    this.events$.next({data: GenerateDoneEventDto.from(event)});
     this.events$.complete();
   }
 }

@@ -17,6 +17,7 @@ export * from './lib/model/resource-descriptor';
 export * from './lib/model/rest-resource-data';
 export * from './lib/model/schema';
 export * from './lib/model/sync-event';
+export * from './lib/model/event-context';
 
 // Templates
 export * from './lib/template/json-literal';

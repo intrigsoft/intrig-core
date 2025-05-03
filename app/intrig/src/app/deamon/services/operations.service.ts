@@ -1,15 +1,20 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {IntrigOpenapiService} from "@intrig/openapi";
-import {GenerateEventContext, GeneratorBinding, PackageManagerService, SyncEventContext} from "@intrig/common";
+import {
+  GeneratorBinding,
+  PackageManagerService,
+  ResourceDescriptor, RestData, Schema,
+  SyncEventContext,
+  WithStatus
+} from "@intrig/common";
+import type {GenerateEventContext, IIntrigSourceConfig} from "@intrig/common";
 import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
-import {logger} from "nx/src/utils/logger";
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OperationsService {
-  private logger = new Logger(OperationsService.name);
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
               private generatorBinding: GeneratorBinding,
@@ -18,83 +23,96 @@ export class OperationsService {
   ) {
   }
 
-  async sync(id?: string | undefined, ctx?: SyncEventContext) {
-    ctx?.status({ status: 'started', sourceId: '', step: 'getConfig' })
-    let config = this.configService.get();
-    ctx?.status({ status: 'success', sourceId: '', step: 'getConfig' })
+  @WithStatus(event => ({sourceId: '', step: 'getConfig'}))
+  async getConfig(ctx: any) {
+    return this.configService.get();
+  }
 
+  async sync(ctx: SyncEventContext, id?: string | undefined) {
+    let config = await this.getConfig(ctx)
     await this.openApiService.sync(config, id, ctx)
   }
 
-  async generate(ctx?: GenerateEventContext) {
-    ctx?.status({ status: 'started', sourceId: '', step: 'getConfig' })
-    let config = this.configService.get();
-    ctx?.status({ status: 'success', sourceId: '', step: 'getConfig' })
+  async generate(ctx: GenerateEventContext) {
 
-    ctx?.status({ status: "started", sourceId: '', step: 'clear'})
+    let config = await this.getConfig(ctx)
+    console.log(config)
+    await this.clearGenerateDir(ctx);
+    for (const source of config.sources) {
+      let descriptors = await this.getDescriptors(ctx, source);
+      await this.generateSourceContent(ctx, descriptors, source);
+    }
+
+    await this.generateGlobalContent(ctx);
+    await this.installDependencies(ctx);
+    await this.buildContent(ctx);
+    await this.copyContentToNodeModules(ctx);
+    await this.executePostBuild(ctx);
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'postBuild'}))
+  private async executePostBuild(ctx: GenerateEventContext) {
+    await this.generatorBinding.postBuild()
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
+  private async copyContentToNodeModules(ctx: GenerateEventContext) {
+    const generateDir = this.config.get("generatedDir") ?? __dirname;
+    const targetLibDir = path.join(this.config.get('rootDir') ?? __dirname, 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
+
+    if (await fs.pathExists(targetLibDir)) {
+      let files = fs.readdirSync(targetLibDir)
+      for (const file of files) {
+        if (file !== 'package.json' && !file.endsWith('.md')) {
+          await fs.remove(path.join(targetLibDir, file))
+        }
+      }
+    }
+    fs.copySync(generateDir, targetLibDir)
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'build'}))
+  private async buildContent(ctx: GenerateEventContext) {
+    const generateDir = this.config.get("generatedDir") ?? __dirname;
+    return await this.packageManagerService.build(generateDir);
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'install'}))
+  private async installDependencies(ctx: GenerateEventContext) {
+    const generateDir = this.config.get("generatedDir") ?? __dirname;
+    await this.packageManagerService.install(generateDir)
+    await this.packageManagerService.installDependency("@swc/core", true, false, generateDir)
+    await this.packageManagerService.installDependency("@swc/cli", true, false, generateDir)
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'generate'}))
+  private async generateGlobalContent(ctx: GenerateEventContext) {
+    await this.generatorBinding.generateGlobal()
+  }
+
+  @WithStatus((a, source) => ({sourceId: source.id, step: 'generate'}))
+  private async generateSourceContent(ctx: GenerateEventContext, descriptors: ResourceDescriptor<RestData | Schema>[], source: IIntrigSourceConfig) {
+    await this.generatorBinding.generateSource(descriptors, source)
+  }
+
+  @WithStatus(source => ({sourceId: source.id, step: 'clear'}))
+  private async getDescriptors(ctx: GenerateEventContext, source: IIntrigSourceConfig) {
+    return await this.openApiService.getResourceDescriptors(source.id);
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'clear'}))
+  private async clearGenerateDir(ctx: GenerateEventContext) {
     const generateDir = this.config.get("generatedDir") ?? __dirname;
     if (fs.pathExistsSync(generateDir)) {
       const files = await fs.readdir(generateDir)
       for (const file of files) {
-        if (file !== 'node_modules') {
+        if (!['node_modules', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'].includes(file)) {
           await fs.remove(path.join(generateDir, file))
         }
       }
     }
 
     fs.ensureDirSync(generateDir)
-    ctx?.status({ status: "success", sourceId: '', step: 'clear'})
-
-    //TODO generate data.
-    for (const source of config.sources) {
-      ctx?.status({ status: 'started', sourceId: source.id, step: 'read'})
-      let descriptors = await this.openApiService.getResourceDescriptors(source.id);
-      ctx?.status({ status: 'success', sourceId: source.id, step: 'read'})
-
-      ctx?.status({ status: 'started', sourceId: source.id, step: 'generate'})
-      await this.generatorBinding.generateSource(descriptors, source)
-      ctx?.status({ status: 'success', sourceId: source.id, step: 'generate'})
-    }
-
-    await this.generatorBinding.generateGlobal()
-
-    ctx?.status({ status: 'started', sourceId: '', step: 'install'})
-    await this.packageManagerService.install(generateDir)
-    ctx?.status({ status: 'success', sourceId: '', step: 'install'})
-
-    ctx?.status({ status: 'started', sourceId: '', step: 'build'})
-    try {
-      let result = await this.packageManagerService.build(generateDir);
-      this.logger.log("Result: " + result)
-    } catch (e) {
-      ctx?.status({ status: 'error', sourceId: '', step: 'build', error: JSON.stringify(e) })
-      return
-    }
-    ctx?.status({ status: 'success', sourceId: '', step: 'build'})
-
-    ctx?.status({ status: 'started', sourceId: '', step: 'copy'})
-    const targetLibDir = path.join(this.config.get('rootDir') ?? __dirname, 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
-
-    if (await fs.pathExists(targetLibDir)) {
-      try {
-        await fs.readdir(targetLibDir).then(async (files) => {
-          for (const file of files) {
-            if (file !== 'package.json' && !file.endsWith('.md')) {
-              await fs.remove(path.join(targetLibDir, file))
-            }
-          }
-        })
-      } catch (e) {
-        logger.error(`Failed to remove existing target library files ${e}`)
-      } finally {
-
-      }
-    }
-    fs.copySync(generateDir, targetLibDir)
-    ctx?.status({ status: 'success', sourceId: '', step: 'copy'})
-
-    ctx?.status({status: 'started', sourceId: '', step: 'postBuild'})
-    this.generatorBinding.postBuild()
-    ctx?.status({status: 'success', sourceId: '', step: 'postBuild'})
+    return generateDir;
   }
 }

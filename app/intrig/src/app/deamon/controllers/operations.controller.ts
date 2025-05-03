@@ -40,7 +40,7 @@ export class OperationsController {
     const events$ = new Subject<MessageEvent>();
     setTimeout(async () => {
       let syncEventContext = new SyncEventContext(events$);
-      await this.operationsService.sync(id, syncEventContext);
+      await this.operationsService.sync(syncEventContext, id);
       syncEventContext.done(new SyncDoneEventDto(true));
       this.logger.log('Sync operation completed');
     }, 0)

@@ -1,13 +1,14 @@
 import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger'
 import {Subject} from "rxjs";
 import {MessageEvent} from "@nestjs/common";
+import {EventContext, EventDto} from "./event-context";
 
 
 type Step = 'getConfig' | 'fetch' | 'decode' | 'normalize' | 'save';
 
 type Status = 'started' | 'success' | 'error';
 
-export interface ISyncStatusEventDto {
+export interface ISyncStatusEventDto extends EventDto<Step> {
   sourceId: string;
   step: Step;
   status: Status;
@@ -61,8 +62,8 @@ export class SyncDoneEventDto implements ISyncDoneEventDto {
   }
 }
 
-export class SyncEventContext {
-  constructor(private events$: Subject<MessageEvent>) {
+export class SyncEventContext implements EventContext<ISyncStatusEventDto>{
+  constructor(public events$: Subject<MessageEvent>) {
   }
 
   status(event: ISyncStatusEventDto) {

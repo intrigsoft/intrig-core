@@ -6,7 +6,7 @@ export abstract class GeneratorBinding {
   abstract generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void>;
   abstract getLibName(): string
 
-  postBuild() {
+  async postBuild() {
 
   }
 }
