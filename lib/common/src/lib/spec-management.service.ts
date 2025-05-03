@@ -26,16 +26,18 @@ export class SpecManagementService {
       }
     }
 
+    fs.mkdirSync(this.specsDir, {recursive: true});
+
     fs.writeFileSync(path.join(this.specsDir, `${apiName}-latest.json`), content, 'utf-8');
   }
 
-  async read(apiName: string): Promise<OpenAPIV3_1.Document> {
+  async read(apiName: string): Promise<OpenAPIV3_1.Document | undefined> {
     let fileName = `${apiName}-latest.json`
     let specPath = path.join(this.specsDir, fileName);
     if (fs.existsSync(specPath)) {
       let content = fs.readFileSync(specPath, 'utf-8');
       return JSON.parse(content)
     }
-    throw new Error(`Spec ${fileName} not found`)
+    return undefined
   }
 }

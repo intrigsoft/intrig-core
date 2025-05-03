@@ -3,6 +3,7 @@ import {
   typescript
 } from '@intrig/common';
 import * as path from 'path'
+import * as _ from "lodash";
 
 export function serverIndexTemplate(
   requestProperties: ResourceDescriptor<RestData>[],
@@ -23,18 +24,7 @@ export function serverIndexTemplate(
     ),
   );
 
-  // if (requestProperties.length === 1)
-  //   return ts`
-  //   export { ${camelCase(operationId)} } from './${camelCase(operationId)}${generatePostfix(contentType, responseType)}'
-  // `;
-  //
-  // const exports = requestProperties
-  //   .map(({ contentType, responseType }) => {
-  //     return `export { ${camelCase(operationId)} as ${camelCase(operationId)}${generatePostfix(contentType, responseType)} } from './${camelCase(operationId)}${generatePostfix(contentType, responseType)}'`;
-  //   })
-  //   .join('\n');
-
   return ts`
-    ${serverExports.join('\n')}
+    ${_.uniq(serverExports).join('\n')}
   `;
 }

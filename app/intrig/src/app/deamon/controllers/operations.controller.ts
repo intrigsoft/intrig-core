@@ -1,4 +1,4 @@
-import {Controller, MessageEvent, Query, Sse} from '@nestjs/common';
+import {Controller, Logger, MessageEvent, Query, Sse} from '@nestjs/common';
 import {ApiExtraModels, ApiResponse, ApiTags, getSchemaPath} from "@nestjs/swagger";
 import {OperationsService} from "../services/operations.service";
 import {
@@ -14,6 +14,8 @@ import {Subject} from "rxjs";
 @ApiExtraModels(SyncStatusEventDto, SyncDoneEventDto, GenerateStatusEventDto, GenerateDoneEventDto)
 @Controller('operations')
 export class OperationsController {
+  private readonly logger = new Logger(OperationsController.name);
+
   constructor(private operationsService: OperationsService) {
 
   }
@@ -34,10 +36,14 @@ export class OperationsController {
     }
   })
   async sync(@Query('id') id?: string) {
+    this.logger.log(`Starting sync operation${id ? ` for id: ${id}` : ''}`);
     const events$ = new Subject<MessageEvent>();
-    let syncEventContext = new SyncEventContext(events$);
-    await this.operationsService.sync(id, syncEventContext);
-    syncEventContext.done(new SyncDoneEventDto(true));
+    setTimeout(async () => {
+      let syncEventContext = new SyncEventContext(events$);
+      await this.operationsService.sync(id, syncEventContext);
+      syncEventContext.done(new SyncDoneEventDto(true));
+      this.logger.log('Sync operation completed');
+    }, 0)
     return events$;
   }
 
@@ -57,10 +63,14 @@ export class OperationsController {
     }
   })
   async generate() {
+    this.logger.log('Starting generate operation');
     const events$ = new Subject<MessageEvent>()
-    let generateEventContext = new GenerateEventContext(events$);
-    await this.operationsService.generate(generateEventContext);
-    generateEventContext.done(new GenerateDoneEventDto(true));
+    setTimeout(async () => {
+      let generateEventContext = new GenerateEventContext(events$);
+      await this.operationsService.generate(generateEventContext);
+      generateEventContext.done(new GenerateDoneEventDto(true));
+      this.logger.log('Generate operation completed');
+    })
     return events$;
   }
 }

@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {IntrigOpenapiService} from "@intrig/openapi";
 import {GenerateEventContext, GeneratorBinding, PackageManagerService, SyncEventContext} from "@intrig/common";
 import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
 import {logger} from "nx/src/utils/logger";
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OperationsService {
+  private logger = new Logger(OperationsService.name);
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
               private generatorBinding: GeneratorBinding,
-              private packageManagerService: PackageManagerService
+              private packageManagerService: PackageManagerService,
+              private config: ConfigService,
   ) {
   }
 
@@ -29,7 +32,7 @@ export class OperationsService {
     ctx?.status({ status: 'success', sourceId: '', step: 'getConfig' })
 
     ctx?.status({ status: "started", sourceId: '', step: 'clear'})
-    const generateDir = path.join(process.cwd(), '.intrig', 'generated');
+    const generateDir = this.config.get("generatedDir") ?? __dirname;
     if (fs.pathExistsSync(generateDir)) {
       const files = await fs.readdir(generateDir)
       for (const file of files) {
@@ -60,11 +63,17 @@ export class OperationsService {
     ctx?.status({ status: 'success', sourceId: '', step: 'install'})
 
     ctx?.status({ status: 'started', sourceId: '', step: 'build'})
-    await this.packageManagerService.build(generateDir)
+    try {
+      let result = await this.packageManagerService.build(generateDir);
+      this.logger.log("Result: " + result)
+    } catch (e) {
+      ctx?.status({ status: 'error', sourceId: '', step: 'build', error: JSON.stringify(e) })
+      return
+    }
     ctx?.status({ status: 'success', sourceId: '', step: 'build'})
 
     ctx?.status({ status: 'started', sourceId: '', step: 'copy'})
-    const targetLibDir = path.join(process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
+    const targetLibDir = path.join(this.config.get('rootDir') ?? __dirname, 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
 
     if (await fs.pathExists(targetLibDir)) {
       try {

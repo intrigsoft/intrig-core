@@ -3,6 +3,7 @@ import {
   typescript
 } from '@intrig/common';
 import * as path from 'path'
+import * as _ from "lodash";
 
 export function clientIndexTemplate(
   requestProperties: ResourceDescriptor<RestData>[],
@@ -35,6 +36,6 @@ export function clientIndexTemplate(
   //   .join('\n');
 
   return ts`
-    ${clientExports.join('\n')}
+    ${_.uniq(clientExports).join('\n')}
   `;
 }

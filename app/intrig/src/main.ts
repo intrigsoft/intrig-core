@@ -48,8 +48,6 @@ async function bootstrap() {
   const cmd = process.argv[2];
   const cliCommands = ['init','sources','sync','generate','daemon'];
 
-  console.log(cmd);
-
   if (cliCommands.includes(cmd)) {
     await CommandFactory.run(AppModule, new ConsoleLogger());
   } else {

@@ -3,9 +3,7 @@ import {ProcessManagerService} from "../process-manager.service";
 import inquirer from 'inquirer';
 import {HttpService} from '@nestjs/axios'
 import {lastValueFrom} from "rxjs";
-import {Logger} from "@nestjs/common";
-
-const logger: Logger = new Logger('SourcesCommand');
+import chalk from 'chalk';
 
 @SubCommand({
   name: 'add',
@@ -20,61 +18,74 @@ export class SourcesAddCommand extends CommandRunner {
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
     let metadata = await this.pm.getMetadata();
     if (!metadata) {
-      throw new Error("No metadata found");
+      console.error(chalk.red.bold('Error:'), chalk.red('No metadata found.'));
+      process.exit(1);
     }
 
     let specUrl = passedParams[0];
     if (!specUrl) {
-      const ans = await inquirer.prompt<{ specUrl: string }>([
+      const { specUrl: ansUrl } = await inquirer.prompt<{
+        specUrl: string;
+      }>([
         {
           type: 'input',
           name: 'specUrl',
-          message: 'Enter the URL of your OpenAPI/Swagger spec:',
-          validate: (v: any) =>
-            v.startsWith('http') ? true : 'Must be a valid HTTP URL',
+          message: chalk.yellow('Enter the URL of your OpenAPI/Swagger spec:'),
+          validate: (v: string) =>
+            v.startsWith('http') || 'Must be a valid HTTP URL',
         },
       ]);
-      specUrl = ans.specUrl;
+      specUrl = ansUrl;
     }
 
-    let host = metadata.url;
-    let url = `${host}/api/config/sources/transform`;
-    logger.debug(`Sending request to ${url} with specUrl=${specUrl}`);
-    let response = await lastValueFrom(this.httpService.post(url, {
-      specUrl
-    }));
+    // 3) Transform endpoint
+    const transformUrl = `${metadata.url}/api/config/sources/transform`;
+    console.log(chalk.gray(`\n→ Sending transform request to ${transformUrl}`));
+    const { data: source } = await lastValueFrom(
+      this.httpService.post(transformUrl, { specUrl })
+    );
 
-    const source = response.data;
+    // 4) Show raw JSON (optional)
+    console.log(chalk.blue('\nRaw source object:'));
+    console.log(chalk.blue(JSON.stringify(source, null, 2)));
 
-    console.log(source)
+    // 5) Pretty-print details
+    console.log(chalk.bold.cyan('\nSource details:'));
+    console.log(
+      `${chalk.green('Name:')}    ${chalk.white(source.name ?? 'N/A')}`
+    );
+    console.log(
+      `${chalk.green('Spec:')}    ${chalk.white(source.specUrl ?? 'N/A')}`
+    );
 
-    console.log('\nSource details:');
-    console.log(`Name: ${source.name || 'N/A'}`);
-    console.log(`Spec URL: ${source.specUrl || 'N/A'}`);
-
-    const ans = await inquirer.prompt<{ id: string }>([
+    // 6) Ask for ID
+    const { id } = await inquirer.prompt<{ id: string }>([
       {
         type: 'input',
         name: 'id',
-        message: 'Enter an ID for this source (used as directory name):',
-        validate: (v: string) => {
-          if (!v.match(/^[a-zA-Z0-9\-_]+$/)) {
-            return 'ID must contain only letters, numbers, hyphens, and underscores';
-          }
-          return true;
-        },
+        message: chalk.yellow(
+          'Enter an ID for this source (letters/numbers/-/_):'
+        ),
+        validate: (v: string) =>
+          /^[\w-]+$/.test(v) ||
+          'ID must contain only letters, numbers, hyphens, or underscores',
       },
     ]);
+    source.id = id;
 
-    source.id = ans.id;
-    url = `${host}/api/config/sources/add`;
-    let addResponse = await lastValueFrom(this.httpService.post(url, source, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }));
-    console.log(addResponse.data);
-    console.log(`\nSource "${ans.id}" added successfully!`);
+    // 7) Add endpoint
+    const addUrl = `${metadata.url}/api/config/sources/add`;
+    const spinner = chalk.green('✔');
+    console.log(chalk.gray(`\n→ Adding source at ${addUrl}`));
+    const { data: addRes } = await lastValueFrom(
+      this.httpService.post(addUrl, source, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    // 8) Final output
+    console.log(chalk.green.bold(`\n${spinner} Source "${id}" added!`));
+    console.log(chalk.whiteBright('Response:'), chalk.white(JSON.stringify(addRes)));
   }
 }
 
@@ -83,16 +94,41 @@ export class SourcesAddCommand extends CommandRunner {
   description: 'List all sources',
 })
 export class SourceListCommand extends CommandRunner {
-  constructor(private pm: ProcessManagerService) {
+  constructor(private pm: ProcessManagerService, private httpService: HttpService) {
     super();
   }
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
-    let metadata = await this.pm.getMetadata();
+    // 1) Get metadata
+    const metadata = await this.pm.getMetadata();
     if (!metadata) {
-      throw new Error("No metadata found");
+      console.error(chalk.red.bold('Error:'), chalk.red('No metadata found.'));
+      process.exit(1);
     }
 
+    // 2) Fetch list
+    const listUrl = `${metadata.url}/api/config/sources/list`;
+    console.log(chalk.gray(`\n→ Fetching sources from ${listUrl}`));
+    const { data: sources } = await lastValueFrom(
+      this.httpService.get(listUrl, {
+        headers: { 'Accept': 'application/json' },
+      }),
+    );
 
+    // 3) Handle empty
+    if (!Array.isArray(sources) || sources.length === 0) {
+      console.log(chalk.yellow('No sources found.'));
+      return;
+    }
+
+    // 4) Pretty‐print
+    console.log(chalk.bold.cyan('\nAvailable sources:'));
+    sources.forEach((src: any) => {
+      console.log(
+        `${chalk.green(src.id)}  ${chalk.white(src.name ?? 'N/A')}  →  ${chalk.magenta(
+          src.specUrl ?? 'N/A',
+        )}`,
+      );
+    });
   }
 }
 
@@ -102,17 +138,65 @@ export class SourceListCommand extends CommandRunner {
 })
 export class SourceRemoveCommand extends CommandRunner {
 
-  constructor(private pm: ProcessManagerService) {
+  constructor(private pm: ProcessManagerService, private httpService: HttpService) {
     super();
   }
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
-    let metadata = await this.pm.getMetadata();
+    // 1) fetch metadata
+    const metadata = await this.pm.getMetadata();
     if (!metadata) {
-      throw new Error("No metadata found");
+      console.error(chalk.red.bold('Error:'), chalk.red('No metadata found.'));
+      process.exit(1);
     }
 
-    //TODO call remove function.
+    // 2) fetch list of sources
+    const listUrl = `${metadata.url}/api/config/sources/list`;
+    console.log(chalk.gray(`\n→ Fetching sources from ${listUrl}`));
+    const { data: sources } = await lastValueFrom(
+      this.httpService.get(listUrl, { headers: { Accept: 'application/json' } }),
+    );
+
+    if (!Array.isArray(sources) || sources.length === 0) {
+      console.log(chalk.yellow('No sources found.'));
+      return;
+    }
+
+    // 3) prompt user to choose one
+    const choices = sources.map((src: any) => ({
+      name: `${src.id} — ${src.name ?? 'N/A'} (${src.specUrl})`,
+      value: src.id,
+    }));
+    const { id } = await inquirer.prompt<{ id: string }>([
+      {
+        type: 'list',
+        name: 'id',
+        message: chalk.yellow('Select a source to remove:'),
+        choices,
+      },
+    ]);
+
+    // 4) confirm deletion
+    const { confirm } = await inquirer.prompt<{ confirm: boolean }>([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: chalk.red(`Are you sure you want to delete "${id}"?`),
+        default: false,
+      },
+    ]);
+    if (!confirm) {
+      console.log(chalk.gray('Aborted.'));
+      return;
+    }
+
+    // 5) call DELETE /remove/:id
+    const removeUrl = `${metadata.url}/api/config/sources/remove/${encodeURIComponent(id)}`;
+    console.log(chalk.gray(`\n→ Sending DELETE to ${removeUrl}`));
+    await lastValueFrom(this.httpService.delete(removeUrl));
+
+    // 6) success
+    console.log(chalk.green.bold(`\n✔ Source "${id}" removed!`));
   }
 }
 

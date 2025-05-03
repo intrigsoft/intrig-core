@@ -71,5 +71,6 @@ export class GenerateEventContext {
 
   done(event: IGenerateDoneEventDto) {
     this.events$.next({ data: GenerateDoneEventDto.from(event) });
+    this.events$.complete();
   }
 }

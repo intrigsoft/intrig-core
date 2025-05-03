@@ -46,8 +46,8 @@ export function useAsPromise<P, B, T, E>(
   hook: IntrigHook<P, B, T, E>,
   options?: IntrigHookOptions<P, B>
 ): [(...args: any[]) => Promise<T>, () => void] {  // <- Compatible return type
-  const resolveRef = useRef<(value: T) => void>();
-  const rejectRef = useRef<(reason?: any) => void>();
+  const resolveRef = useRef<(value: T) => void>(() => {});
+  const rejectRef = useRef<(reason?: any) => void>(() => {});
 
   const [state, dispatch, clear] = hook(options as any);
 

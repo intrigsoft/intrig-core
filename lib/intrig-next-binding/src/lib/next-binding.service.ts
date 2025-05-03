@@ -71,8 +71,8 @@ export class IntrigNextBindingService extends GeneratorBinding {
     for (let descriptor of descriptors) {
       if (isRestDescriptor(descriptor)) {
         await this.generateRestSource(source, descriptor)
-        groupedByPath[descriptor.data.paths.join('/')] = groupedByPath[descriptor.data.paths.join('/')] || []
-        groupedByPath[descriptor.data.paths.join('/')].push(descriptor)
+        groupedByPath[descriptor.data.requestUrl!] = groupedByPath[descriptor.data.requestUrl!] || []
+        groupedByPath[descriptor.data.requestUrl!].push(descriptor)
       } else if (isSchemaDescriptor(descriptor)) {
         await this.generateSchemaSource(source, descriptor)
       }

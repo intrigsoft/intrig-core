@@ -10,7 +10,6 @@ export class IntrigConfigService {
   private readonly logger = new Logger(IntrigConfigService.name);
 
   constructor(config: ConfigService) {
-    console.log(config.get('rootDir'))
     this.configPath = join(config.get('rootDir')!, 'intrig.config.json');
     this.logger.log(`Initializing config service with path: ${this.configPath}`);
     if (!existsSync(this.configPath)) {

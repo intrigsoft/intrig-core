@@ -79,6 +79,9 @@ export class IntrigOpenapiService {
 
   async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {
     let document = await this.specManagementService.read(id);
+    if (!document) {
+      throw new Error(`Spec ${id} not found`)
+    }
     let restData = extractRequestsFromSpec(document);
     let schemas = extractSchemas(document);
     return [

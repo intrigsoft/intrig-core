@@ -44,6 +44,12 @@ export class PackageManagerService {
     return stdout.trim();
   }
 
+  async exec(cmd: string, cwd = process.cwd()): Promise<string> {
+    let {stdout, stderr} = await execAsync(cmd, { cwd });
+    if (stderr) this.logger.warn(stderr.trim());
+    return stdout.trim();
+  }
+
   /** Shortcut for `install` */
   install(cwd?: string) {
     return this.runScript('install', cwd);
@@ -78,6 +84,14 @@ export class PackageManagerService {
   /** Shortcut for `build` (npm run build, yarn build, etc.) */
   build(cwd?: string) {
     return this.runScript('run build', cwd);
+  }
+
+  ls(cwd?: string) {
+    return this.runScript('ls', cwd);
+  }
+
+  prefix(cwd?: string) {
+    return this.runScript('prefix', cwd);
   }
 
   /** Run any npm‐style script by name (e.g. 'test', 'lint') */

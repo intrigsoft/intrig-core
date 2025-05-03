@@ -57,6 +57,9 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
     if (path.responseType === "application/octet-stream") {
       return `new NextResponse(response, { status: 200, headers })`
     }
+    if (path.responseType === "application/xml") {
+      return `new NextResponse(response, { status: 200, headers })`
+    }
     return `NextResponse.json(response, { status: 200, headers})`
   }
 
@@ -67,19 +70,22 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
         imports.add(createImport(data))
         //TODO fix xml handling.
         getBlocks.add((await ts`
-        let { data: response, headers } = await ${getFunctionName(data)}({
+        // ${JSON.stringify(data)}
+        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${data.responseType}") {
+        const { data: response, headers } = await ${getFunctionName(data)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
         return ${getNextResponse(data)}
+        }
         `).content)
         break;
       case "post":
         imports.add(createImport(data))
         postBlocks.add((await ts`
-        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${data.contentType}") {
+        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${data.responseType}") {
           ${getRequestBodyTransformerBlock(data)}
-          let { data: response, headers } = await ${getFunctionName(data)}(${data.requestBody ? "body," : ""} {
+          const { data: response, headers } = await ${getFunctionName(data)}(${data.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
@@ -90,7 +96,7 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
       case "delete":
         imports.add(createImport(data))
         deleteBlocks.add((await ts`
-        let { data: response, headers } = await ${getFunctionName(data)}({
+        const { data: response, headers } = await ${getFunctionName(data)}({
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
@@ -100,9 +106,9 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
       case "put":
         imports.add(createImport(data))
         putBlocks.add((await ts`
-        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${data.contentType}") {
+        if (!request.headers.get('Content-Type') || request.headers.get('Content-Type')?.split(';')?.[0] === "${data.responseType}") {
           ${getRequestBodyTransformerBlock(data)}
-          let { data: response, headers } = await ${getFunctionName(data)}(${data.requestBody ? "body," : ""} {
+          const { data: response, headers } = await ${getFunctionName(data)}(${data.requestBody ? "body," : ""} {
           ...(params ?? {}) as any,
           ...Object.fromEntries(request.nextUrl.searchParams.entries())
         } as any)
@@ -119,15 +125,15 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
         export async function ${name}(request: NextRequest, paramOb: { params: Record<string, string> }): Promise<NextResponse> {
           logger.info("Request received to ${name}")
           try {
-            let params = paramOb?.params;
+            const params = paramOb?.params;
             ${[...blocks].join('\n')}
-            ${["POST", "PUT"].includes(name) ? `return new NextResponse(null, { status: 204 });` : ``}
+            ${["GET", "POST", "PUT"].includes(name) ? `return new NextResponse(null, { status: 204 });` : ``}
           } catch (e: any) {
             if (isAxiosError(e)) {
               logger.error("Error in response", e as any)
-              let status = e.response?.status ?? 500;
-              let statusText = e.response?.statusText;
-              let data = e.response?.data;
+              const status = e.response?.status ?? 500;
+              const statusText = e.response?.statusText;
+              const data = e.response?.data;
 
               return NextResponse.json(data, { status, statusText })
             } else if (e instanceof ZodError) {

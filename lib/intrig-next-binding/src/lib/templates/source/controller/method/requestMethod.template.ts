@@ -168,7 +168,7 @@ export function requestMethodTemplate(
 
     const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
 
-    export const execute${pascalCase(operationId)}: (${paramType}, options?: AsyncRequestOptions) => Promise<{data: Response, headers: any}> = async (${paramExpression}, options) => {
+    export const execute${pascalCase(operationId)}: (${paramType}, options?: AsyncRequestOptions) => Promise<{data: any, headers: any}> = async (${paramExpression}, options) => {
           ${requestBody ? `requestBodySchema.parse(data);` : ''}
           let {${paramExplode}} = p
 
@@ -192,7 +192,7 @@ export function requestMethodTemplate(
           logger.debug("⇦", {responseData, headers})
 
           if (options?.hydrate) {
-            addResponseToHydrate(\`${source}:\${operation}:\${options?.key ?? "default"}\`, responseData);
+            await addResponseToHydrate(\`${source}:\${operation}:\${options?.key ?? "default"}\`, responseData);
           }
 
           return {

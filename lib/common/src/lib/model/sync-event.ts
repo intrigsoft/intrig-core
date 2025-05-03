@@ -71,5 +71,6 @@ export class SyncEventContext {
 
   done(event: ISyncDoneEventDto) {
     this.events$.next({ data: SyncDoneEventDto.from(event) });
+    this.events$.complete();
   }
 }
