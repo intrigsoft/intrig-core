@@ -14,4 +14,8 @@ export class IntrigReactBindingService extends GeneratorBinding {
   getLibName(): string {
     return "react";
   }
+
+  postBuild(): Promise<void> {
+    return Promise.resolve(undefined);
+  }
 }

@@ -28,6 +28,8 @@ import {typeTemplate} from "./templates/source/type/typeTemplate";
 import {requestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
 import {ConfigService} from "@nestjs/config";
 import {swcrcTemplate} from "./templates/swcrc.template";
+import path from "path";
+import fs from "fs-extra";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -38,11 +40,19 @@ const nonDownloadMimePatterns = picomatch([
 
 @Injectable()
 export class IntrigNextBindingService extends GeneratorBinding {
-
   constructor(private sourceManagementService: SourceManagementService,
               private config: ConfigService
   ) {
     super();
+  }
+
+  async postBuild(): Promise<void> {
+    let rootDir = this.config.get('rootDir') ?? __dirname;
+    const sourceDir = path.resolve(rootDir, '.intrig/generated/dist/api/(generated)');
+    const destDir = path.resolve(rootDir, 'src/app/api/(generated)');
+
+    fs.removeSync(destDir);
+    fs.copySync(sourceDir, destDir, {overwrite: true});
   }
 
   getLibName(): string {
