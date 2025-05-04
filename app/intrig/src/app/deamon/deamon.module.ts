@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { SourcesController } from './controllers/sources.controller';
-import { CommonModule } from '@intrig/common';
+import { CommonModule } from 'common';
 import { IntrigConfigService } from './services/intrig-config.service';
 import { OpenapiService } from './services/openapi.service';
 import { OperationsController } from './controllers/operations.controller';
 import { OperationsService } from './services/operations.service';
 import { GeneratorModule } from './generator/generator.module';
-import { IntrigOpenapiModule } from '@intrig/openapi';
+import { OpenapiSourceModule } from 'openapi-source';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     CommonModule,
     GeneratorModule.register(),
-    IntrigOpenapiModule,
+    OpenapiSourceModule,
     HttpModule,
   ],
   controllers: [SourcesController, OperationsController],

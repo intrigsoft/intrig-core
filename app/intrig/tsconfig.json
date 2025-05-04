@@ -4,13 +4,13 @@
   "include": [],
   "references": [
     {
-      "path": "../../lib/intrig-openapi"
+      "path": "../../lib/react-binding"
     },
     {
-      "path": "../../lib/intrig-next-binding"
+      "path": "../../lib/openapi-source"
     },
     {
-      "path": "../../lib/intrig-react-binding"
+      "path": "../../lib/next-binding"
     },
     {
       "path": "../../lib/common"

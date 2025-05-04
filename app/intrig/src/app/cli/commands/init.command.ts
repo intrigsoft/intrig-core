@@ -6,7 +6,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as fsx from 'fs-extra'
 import {GENERATORS} from "../tokens";
-import {GeneratorCli, IntrigConfig} from "@intrig/common";
+import {GeneratorCli, IntrigConfig} from "common";
 import {PackageJson} from "nx/src/utils/package-json";
 
 @Command({name: "init", description: "Initialize Intrig"})

@@ -1,0 +1,9 @@
+{
+  "name": "openapi-source",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/openapi-source/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project openapi-source --web",
+  "targets": {}
+}

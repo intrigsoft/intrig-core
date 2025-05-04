@@ -5,10 +5,10 @@ import {GenerateCommand} from "./commands/generate.command";
 import {InitCommand} from "./commands/init.command";
 import {SyncCommand} from "./commands/sync.command";
 import {SourcesCommand} from "./commands/sources.command";
-import {CommonModule} from "@intrig/common";
+import {CommonModule} from "common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "@intrig/next-binding";
+import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 
 @Module({
