@@ -4,7 +4,7 @@ import {
   pascalCase,
   ResourceDescriptor, RestData,
   typescript
-} from '@intrig/common';
+} from 'common';
 import * as path from "path";
 
 export async function requestRouteTemplate(requestUrl: string, paths: ResourceDescriptor<RestData>[], _path: string) {

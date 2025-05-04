@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {GeneratorBinding, IIntrigSourceConfig, ResourceDescriptor} from "@intrig/common";
+import {GeneratorBinding, IIntrigSourceConfig, ResourceDescriptor} from "common";
 
 @Injectable()
 export class ReactBindingService extends GeneratorBinding {

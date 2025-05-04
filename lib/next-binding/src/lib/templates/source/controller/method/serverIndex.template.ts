@@ -1,7 +1,7 @@
 import {
   camelCase, ResourceDescriptor, RestData,
   typescript
-} from '@intrig/common';
+} from 'common';
 import * as path from 'path'
 import * as _ from "lodash";
 

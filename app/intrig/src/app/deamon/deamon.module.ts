@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SourcesController } from './controllers/sources.controller';
-import { CommonModule } from '@intrig/common';
+import { CommonModule } from 'common';
 import { IntrigConfigService } from './services/intrig-config.service';
 import { OpenapiService } from './services/openapi.service';
 import { OperationsController } from './controllers/operations.controller';

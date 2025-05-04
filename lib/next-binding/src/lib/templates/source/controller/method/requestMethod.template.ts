@@ -4,7 +4,7 @@ import {
   pascalCase,
   ResourceDescriptor, RestData,
   typescript, Variable
-} from '@intrig/common';
+} from 'common';
 import path from 'path';
 
 function extractParamDeconstruction(variables: Variable[] | undefined, requestBody: string | undefined) {

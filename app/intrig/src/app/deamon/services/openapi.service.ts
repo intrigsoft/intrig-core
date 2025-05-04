@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {HttpService} from "@nestjs/axios";
-import {IntrigSourceConfig} from "@intrig/common";
+import {IntrigSourceConfig} from "common";
 import {lastValueFrom} from "rxjs";
 import {load as yamlLoad} from "js-yaml";
 

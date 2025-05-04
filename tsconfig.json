@@ -4,12 +4,6 @@
   "files": [],
   "references": [
     {
-      "path": "./lib/common"
-    },
-    {
-      "path": "./lib/intrig-openapi"
-    },
-    {
       "path": "./app/intrig"
     },
     {
@@ -20,6 +14,12 @@
     },
     {
       "path": "./lib/openapi-source"
+    },
+    {
+      "path": "./lib/shared"
+    },
+    {
+      "path": "./lib/common"
     }
   ]
 }

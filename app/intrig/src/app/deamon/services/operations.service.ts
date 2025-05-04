@@ -5,8 +5,8 @@ import {
   ResourceDescriptor, RestData, Schema,
   SyncEventContext,
   WithStatus
-} from "@intrig/common";
-import type {GenerateEventContext, IIntrigSourceConfig} from "@intrig/common";
+} from "common";
+import type {GenerateEventContext, IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'

@@ -32,7 +32,9 @@
       "exclude": [
         "lib/react-binding/*",
         "lib/next-binding/*",
-        "lib/openapi-source/*"
+        "lib/openapi-source/*",
+        "lib/shared/*",
+        "lib/common/*"
       ]
     },
     {
@@ -63,7 +65,9 @@
       "include": [
         "lib/react-binding/*",
         "lib/next-binding/*",
-        "lib/openapi-source/*"
+        "lib/openapi-source/*",
+        "lib/shared/*",
+        "lib/common/*"
       ],
       "options": {
         "typecheck": {

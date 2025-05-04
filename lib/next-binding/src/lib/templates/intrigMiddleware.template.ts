@@ -1,4 +1,4 @@
-import { typescript } from '@intrig/common';
+import { typescript } from 'common';
 import * as path from 'path'
 
 export function intrigMiddlewareTemplate(_path: string) {

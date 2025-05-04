@@ -1,4 +1,4 @@
-import {jsonLiteral} from "@intrig/common";
+import {jsonLiteral} from "common";
 import * as path from "path";
 
 export function tsConfigTemplate(_path: string) {
