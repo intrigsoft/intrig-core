@@ -10,16 +10,16 @@
       "path": "./lib/intrig-openapi"
     },
     {
-      "path": "./app/intrig-e2e"
-    },
-    {
       "path": "./app/intrig"
     },
     {
-      "path": "./lib/intrig-next-binding"
+      "path": "./lib/react-binding"
     },
     {
-      "path": "./lib/intrig-react-binding"
+      "path": "./lib/next-binding"
+    },
+    {
+      "path": "./lib/openapi-source"
     }
   ]
 }

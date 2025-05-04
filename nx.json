@@ -28,7 +28,12 @@
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }
-      }
+      },
+      "exclude": [
+        "lib/react-binding/*",
+        "lib/next-binding/*",
+        "lib/openapi-source/*"
+      ]
     },
     {
       "plugin": "@nx/webpack/plugin",
@@ -52,6 +57,19 @@
         "targetName": "test"
       },
       "exclude": ["app/deamon-e2e/**/*", "app/intrig-e2e/**/*"]
+    },
+    {
+      "plugin": "@nx/js/typescript",
+      "include": [
+        "lib/react-binding/*",
+        "lib/next-binding/*",
+        "lib/openapi-source/*"
+      ],
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        }
+      }
     }
   ],
   "targetDefaults": {

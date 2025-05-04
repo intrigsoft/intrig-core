@@ -6,14 +6,14 @@ import { OpenapiService } from './services/openapi.service';
 import { OperationsController } from './controllers/operations.controller';
 import { OperationsService } from './services/operations.service';
 import { GeneratorModule } from './generator/generator.module';
-import { IntrigOpenapiModule } from '@intrig/openapi';
+import { OpenapiSourceModule } from 'openapi-source';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     CommonModule,
     GeneratorModule.register(),
-    IntrigOpenapiModule,
+    OpenapiSourceModule,
     HttpModule,
   ],
   controllers: [SourcesController, OperationsController],

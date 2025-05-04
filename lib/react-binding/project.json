@@ -1,0 +1,9 @@
+{
+  "name": "react-binding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/react-binding/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project react-binding --web",
+  "targets": {}
+}

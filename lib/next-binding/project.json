@@ -1,0 +1,9 @@
+{
+  "name": "next-binding",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/next-binding/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project next-binding --web",
+  "targets": {}
+}

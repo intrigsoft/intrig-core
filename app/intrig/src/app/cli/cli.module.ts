@@ -8,7 +8,7 @@ import {SourcesCommand} from "./commands/sources.command";
 import {CommonModule} from "@intrig/common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "@intrig/next-binding";
+import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 
 @Module({

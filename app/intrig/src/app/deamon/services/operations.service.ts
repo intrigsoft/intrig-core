@@ -1,5 +1,4 @@
 import {Injectable} from '@nestjs/common';
-import {IntrigOpenapiService} from "@intrig/openapi";
 import {
   GeneratorBinding,
   PackageManagerService,
@@ -12,6 +11,7 @@ import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
 import { ConfigService } from '@nestjs/config';
+import {IntrigOpenapiService} from "openapi-source";
 
 @Injectable()
 export class OperationsService {
