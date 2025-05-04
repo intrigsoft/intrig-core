@@ -20,12 +20,12 @@ export class ProcessManagerService {
     }
 
     const child = spawn(
-      'node',
-      ['dist/main.js', 'daemon', 'up'],
+      'intrig',
+      ["run"],
       {
         detached: true,
         stdio: 'inherit',
-        cwd: this.config.get('rootDir') ?? __dirname,
+        cwd: this.config.get('rootDir') ?? process.cwd(),
       },
     );
     child.unref();
@@ -72,6 +72,6 @@ export class ProcessManagerService {
     if (!(await this.discovery.isRunning())) {
       setTimeout(async () => this.start(), 0);
     }
-    return this.discovery.getMetadata();
+    return this.discovery.waitForMetadata();
   }
 }

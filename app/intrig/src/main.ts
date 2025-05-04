@@ -5,7 +5,7 @@
 import {CommandFactory} from "nest-commander";
 import { AppModule } from './app/app.module';
 import { NestFactory } from "@nestjs/core";
-import {ConsoleLogger, Logger, ValidationPipe} from "@nestjs/common";
+import {Logger, ValidationPipe} from "@nestjs/common";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
@@ -46,14 +46,11 @@ async function bootstrapDeamon() {
 
 async function bootstrap() {
   const cmd = process.argv[2];
-  const cliCommands = ['init','sources','sync','generate','daemon'];
-
-  if (cliCommands.includes(cmd)) {
-    await CommandFactory.run(AppModule, new ConsoleLogger());
-  } else {
+  if (cmd === 'run') {
     await bootstrapDeamon()
   }
 
+  await CommandFactory.run(AppModule);
 }
 
 bootstrap();

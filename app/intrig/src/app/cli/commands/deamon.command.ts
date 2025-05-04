@@ -1,30 +1,50 @@
-import {Command, CommandRunner} from "nest-commander";
+import {Command, CommandRunner, SubCommand} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
-import {Logger} from "@nestjs/common";
 
-@Command({name: "deamon"})
-export class DeamonCommand extends CommandRunner {
-
-  private readonly logger: Logger = new Logger(DeamonCommand.name);
-
+@SubCommand({name: 'up', description: 'Start the deamon.'})
+export class UpSubCommand extends CommandRunner {
   constructor(private readonly pm: ProcessManagerService) {
     super();
   }
 
+  async run(): Promise<void> {
+    await this.pm.start();
+  }
+}
+
+@SubCommand({name: 'down', description: 'Stop the deamon.'})
+export class DownSubCommand extends CommandRunner {
+  constructor(private readonly pm: ProcessManagerService) {
+    super();
+  }
+
+  async run(): Promise<void> {
+    await this.pm.stop();
+  }
+}
+
+@SubCommand({name: 'restart', description: 'Restart the deamon.'})
+export class RestartSubCommand extends CommandRunner {
+  constructor(private readonly pm: ProcessManagerService) {
+    super();
+  }
+
+  async run(): Promise<void> {
+    await this.pm.restart();
+  }
+}
+
+@Command({
+  name: "deamon",
+  description: "Deamon related operations.",
+  subCommands: [
+    UpSubCommand,
+    DownSubCommand,
+    RestartSubCommand
+  ]
+})
+export class DeamonCommand extends CommandRunner {
   async run(passedParams: string[]): Promise<void> {
-    const action = passedParams[0]
-    switch (action) {
-      case 'up':
-        await this.pm.start();
-        break;
-      case 'down':
-        await this.pm.stop();
-        break;
-      case 'restart':
-        await this.pm.restart();
-        break;
-      default:
-        this.logger.error(`Usage: deamon [up|down|restart]`)
-    }
+    this.command.outputHelp();
   }
 }

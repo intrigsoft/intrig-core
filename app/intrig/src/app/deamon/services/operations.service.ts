@@ -36,7 +36,6 @@ export class OperationsService {
   async generate(ctx: GenerateEventContext) {
 
     let config = await this.getConfig(ctx)
-    console.log(config)
     await this.clearGenerateDir(ctx);
     for (const source of config.sources) {
       let descriptors = await this.getDescriptors(ctx, source);
@@ -55,10 +54,11 @@ export class OperationsService {
     await this.generatorBinding.postBuild()
   }
 
+  private generateDir = this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated");
+
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext) {
-    const generateDir = this.config.get("generatedDir") ?? __dirname;
-    const targetLibDir = path.join(this.config.get('rootDir') ?? __dirname, 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
 
     if (await fs.pathExists(targetLibDir)) {
       let files = fs.readdirSync(targetLibDir)
@@ -68,21 +68,19 @@ export class OperationsService {
         }
       }
     }
-    fs.copySync(generateDir, targetLibDir)
+    fs.copySync(this.generateDir, targetLibDir)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'build'}))
   private async buildContent(ctx: GenerateEventContext) {
-    const generateDir = this.config.get("generatedDir") ?? __dirname;
-    return await this.packageManagerService.build(generateDir);
+    return await this.packageManagerService.build(this.generateDir);
   }
 
   @WithStatus(event => ({sourceId: '', step: 'install'}))
   private async installDependencies(ctx: GenerateEventContext) {
-    const generateDir = this.config.get("generatedDir") ?? __dirname;
-    await this.packageManagerService.install(generateDir)
-    await this.packageManagerService.installDependency("@swc/core", true, false, generateDir)
-    await this.packageManagerService.installDependency("@swc/cli", true, false, generateDir)
+    await this.packageManagerService.install(this.generateDir)
+    await this.packageManagerService.installDependency("@swc/core", true, false, this.generateDir)
+    await this.packageManagerService.installDependency("@swc/cli", true, false, this.generateDir)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'generate'}))
@@ -102,17 +100,16 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'clear'}))
   private async clearGenerateDir(ctx: GenerateEventContext) {
-    const generateDir = this.config.get("generatedDir") ?? __dirname;
-    if (fs.pathExistsSync(generateDir)) {
-      const files = await fs.readdir(generateDir)
+    if (fs.pathExistsSync(this.generateDir)) {
+      const files = await fs.readdir(this.generateDir)
       for (const file of files) {
         if (!['node_modules', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'].includes(file)) {
-          await fs.remove(path.join(generateDir, file))
+          await fs.remove(path.join(this.generateDir, file))
         }
       }
     }
 
-    fs.ensureDirSync(generateDir)
-    return generateDir;
+    fs.ensureDirSync(this.generateDir)
+    return this.generateDir;
   }
 }

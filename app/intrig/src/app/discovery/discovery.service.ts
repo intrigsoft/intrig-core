@@ -47,7 +47,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
 
   /** deterministic filename based on SHA-1 of absolute rootDir */
   private getMetadataFileName(): string {
-    const rootDir = this.config.get<string>('rootDir') ?? __dirname;
+    const rootDir = this.config.get<string>('rootDir') ?? process.cwd();
     const abs = path.resolve(rootDir);
     return createHash('sha1').update(abs).digest('hex') + '.json';
   }
@@ -69,7 +69,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
       port,
       pid: process.pid,
       timestamp: new Date().toISOString(),
-      path: this.config.get<string>('rootDir') ?? __dirname,
+      path: this.config.get<string>('rootDir') ?? process.cwd(),
     };
 
     const filePath = this.getMetadataFilePath();

@@ -20,7 +20,7 @@ export class InitCommand extends CommandRunner {
     super();
   }
 
-  private rootDir = this.config.get('rootDir') ?? __dirname
+  private rootDir = this.config.get('rootDir') ?? process.cwd();
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
     this.logger.log('Initializing Intrig...');

@@ -1,5 +1,11 @@
 {
   "name": "@intrig-core/intrig",
   "version": "0.0.1",
-  "private": true
+  "private": false,
+  "bin": {
+    "intrig": "./main.js"
+  },
+  "files": [
+    "main.js"
+  ]
 }

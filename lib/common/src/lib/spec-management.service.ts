@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import compareSwaggerDocs from "./util/openapi3-diff";
 import {OpenAPIV3_1} from "openapi-types";
 import {ConfigService} from "@nestjs/config";
+import * as process from "node:process";
 
 @Injectable()
 export class SpecManagementService {
@@ -11,7 +12,7 @@ export class SpecManagementService {
   constructor(private config: ConfigService) {
   }
 
-  private specsDir: string = this.config.get('specsDir') ?? path.resolve(__dirname, '.intrig', 'specs');
+  private specsDir: string = this.config.get('specsDir') ?? path.resolve(process.cwd(), '.intrig', 'specs');
 
   async save(apiName: string, content: string) {
     let currentContent = await this.read(apiName);

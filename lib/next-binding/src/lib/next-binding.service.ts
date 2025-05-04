@@ -30,6 +30,7 @@ import {ConfigService} from "@nestjs/config";
 import {swcrcTemplate} from "./templates/swcrc.template";
 import path from "path";
 import fs from "fs-extra";
+import * as process from "node:process";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -47,7 +48,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
   }
 
   async postBuild(): Promise<void> {
-    let rootDir = this.config.get('rootDir') ?? __dirname;
+    let rootDir = this.config.get('rootDir') ?? process.cwd();
     const sourceDir = path.resolve(rootDir, '.intrig/generated/dist/api/(generated)');
     const destDir = path.resolve(rootDir, 'src/app/api/(generated)');
 
@@ -61,7 +62,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
 
   private dump = this.sourceManagementService.dump
 
-  private _path = this.config.get("generatedDir") ?? __dirname
+  private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
   override async generateGlobal(): Promise<any> {
     await this.dump(networkStateTemplate(this._path))

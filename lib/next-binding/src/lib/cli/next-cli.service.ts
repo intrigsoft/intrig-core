@@ -4,6 +4,7 @@ import { PackageJson } from 'nx/src/utils/package-json';
 import {ConfigService} from "@nestjs/config";
 import path from "path";
 import fs from "fs-extra";
+import * as process from "node:process";
 
 @Injectable()
 export class NextCliService extends GeneratorCli {
@@ -13,7 +14,7 @@ export class NextCliService extends GeneratorCli {
     super();
   }
 
-  private rootDir = this.config.get('rootDir') ?? __dirname
+  private rootDir = this.config.get('rootDir') ?? process.cwd()
 
   override name(): string {
     return "next"
@@ -35,7 +36,7 @@ export class NextCliService extends GeneratorCli {
   }
 
   async preBuild(): Promise<void> {
-    let rootDir = this.config.get('rootDir') ?? __dirname;
+    let rootDir = this.config.get('rootDir') ?? process.cwd();
     const sourceDir = path.resolve(rootDir, '.intrig/generated/dist/api/(generated)');
     const destDir = path.resolve(rootDir, 'src/app/api/(generated)');
 
