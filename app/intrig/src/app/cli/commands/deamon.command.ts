@@ -34,13 +34,27 @@ export class RestartSubCommand extends CommandRunner {
   }
 }
 
+@SubCommand({name: 'status', description: 'Check the deamon status.'})
+export class StatusSubCommand extends CommandRunner {
+  constructor(private readonly pm: ProcessManagerService) {
+    super();
+  }
+
+  async run(): Promise<void> {
+    const isRunning = await this.pm.isRunning();
+    console.log(`Daemon is ${isRunning ? 'running' : 'not running'}`);
+  }
+}
+
+
 @Command({
   name: "deamon",
   description: "Deamon related operations.",
   subCommands: [
     UpSubCommand,
     DownSubCommand,
-    RestartSubCommand
+    RestartSubCommand,
+    StatusSubCommand
   ]
 })
 export class DeamonCommand extends CommandRunner {
