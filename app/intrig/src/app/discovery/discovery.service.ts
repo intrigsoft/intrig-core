@@ -113,14 +113,16 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
 
     // if already there
     if (fs.existsSync(filePath)) {
-      return this.getMetadata()!;
+      return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as DiscoveryMetadata;
     }
 
     this.logger.log('Waiting for metadata file to appear…');
     return new Promise((resolve, reject) => {
-      const watcher = fs.watch(this.discoveryDir, (event, fname) => {
-        if (event === 'rename' && fname === this.getMetadataFileName()) {
-          watcher.close();
+      fs.watchFile(filePath, { interval: 500 }, (curr, prev) => {
+        if (curr.size > 0) {
+          // stop watching
+          fs.unwatchFile(filePath);
+
           try {
             const meta = JSON.parse(
               fs.readFileSync(filePath, 'utf-8'),
@@ -131,7 +133,6 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
           }
         }
       });
-      watcher.on('error', reject);
     });
   }
 

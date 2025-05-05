@@ -48,9 +48,9 @@ async function bootstrap() {
   const cmd = process.argv[2];
   if (cmd === 'run') {
     await bootstrapDeamon()
+  } else {
+    await CommandFactory.run(AppModule);
   }
-
-  await CommandFactory.run(AppModule);
 }
 
 bootstrap();
