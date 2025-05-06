@@ -1,5 +1,4 @@
 import {Injectable, Logger} from '@nestjs/common';
-//@ts-ignore
 import {PackageManager} from "nypm";
 import {promisify} from "util";
 import {exec} from "child_process";
