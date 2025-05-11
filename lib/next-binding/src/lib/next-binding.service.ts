@@ -102,7 +102,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(requestHookTemplate(descriptor, clientExports, serverExports, this._path))
     await this.dump(requestMethodTemplate(descriptor, clientExports, serverExports, this._path))
     //TODO incorporate rest options.
-    if (descriptor.data.method.toUpperCase() === 'GET' && nonDownloadMimePatterns(descriptor.data.responseType!)) {
+    if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
       await this.dump(downloadHookTemplate(descriptor, clientExports, serverExports, this._path))
     }
     await this.dump(clientIndexTemplate([descriptor], clientExports, this._path))

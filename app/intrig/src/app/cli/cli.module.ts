@@ -11,9 +11,10 @@ import {HttpModule} from "@nestjs/axios";
 import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
+import {ReactCliModule, ReactCliService} from "react-binding";
 
 @Module({
-  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule],
+  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
   providers: [
     ProcessManagerService,
     ...DeamonCommand.registerWithSubCommands(),
@@ -25,9 +26,9 @@ import {SearchCommand} from "./commands/search.command";
     HttpModule,
     {
       provide: GENERATORS,
-      inject: [NextCliService],
-      useFactory(nextCliService: NextCliService) {
-        return [nextCliService]
+      inject: [NextCliService, ReactCliService],
+      useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
+        return [nextCliService, reactCliService]
       }
     }
   ],
