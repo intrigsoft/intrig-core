@@ -4,7 +4,7 @@ import {MessageEvent} from "@nestjs/common";
 import {EventContext, EventDto} from "./event-context";
 
 
-type Step = 'getConfig' | 'fetch' | 'decode' | 'normalize' | 'save';
+type Step = 'getConfig' | 'loadPreviousState' | 'fetch' | 'decode' | 'normalize' | 'save' | 'loadNewState' | 'indexDiff';
 
 type Status = 'started' | 'success' | 'error';
 

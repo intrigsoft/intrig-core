@@ -2,6 +2,7 @@
   "name": "@intrig-core/intrig",
   "version": "0.0.1",
   "private": false,
+  "type": "module",
   "bin": {
     "intrig": "./main.js"
   },

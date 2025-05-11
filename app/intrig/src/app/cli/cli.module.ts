@@ -10,16 +10,18 @@ import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
 import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
+import {SearchCommand} from "./commands/search.command";
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule],
   providers: [
     ProcessManagerService,
-    DeamonCommand,
+    ...DeamonCommand.registerWithSubCommands(),
     GenerateCommand,
     InitCommand,
     ...SourcesCommand.registerWithSubCommands(),
     SyncCommand,
+    SearchCommand,
     HttpModule,
     {
       provide: GENERATORS,

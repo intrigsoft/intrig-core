@@ -6,12 +6,15 @@ import {
   SyncEventContext,
   WithStatus
 } from "common";
+import type {IntrigConfig} from "common";
 import type {GenerateEventContext, IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
 import { ConfigService } from '@nestjs/config';
 import {IntrigOpenapiService} from "openapi-source";
+import _ from "lodash";
+import {SearchService} from "./search.service";
 
 @Injectable()
 export class OperationsService {
@@ -20,6 +23,7 @@ export class OperationsService {
               private generatorBinding: GeneratorBinding,
               private packageManagerService: PackageManagerService,
               private config: ConfigService,
+              private searchService: SearchService,
   ) {
   }
 
@@ -30,7 +34,64 @@ export class OperationsService {
 
   async sync(ctx: SyncEventContext, id?: string | undefined) {
     let config = await this.getConfig(ctx)
+    let prevDescriptors = await this.getPreviousState(ctx, config);
     await this.openApiService.sync(config, id, ctx)
+    let newDescriptors = await this.getNewState(ctx, config);
+    await this.indexDiff(ctx, prevDescriptors, newDescriptors);
+  }
+
+  @WithStatus((p1, p2) => ({sourceId: '', step: 'indexDiff'}))
+  private async indexDiff(ctx: SyncEventContext, prevDescriptors: ResourceDescriptor<RestData | Schema>[], newDescriptors: ResourceDescriptor<RestData | Schema>[]) {
+    let diff = await this.diffDescriptors(prevDescriptors, newDescriptors);
+
+    [...diff.added, ...diff.modified].forEach(descriptor => {
+      this.searchService.addDescriptor(descriptor);
+    })
+    diff.removed.forEach(descriptor => {
+      this.searchService.removeDescriptor(descriptor.id);
+    })
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'loadPreviousState'}))
+  private async getPreviousState(ctx: SyncEventContext, config: IntrigConfig) {
+    let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
+    for (let source of config.sources) {
+      let descriptors = await this.openApiService.getResourceDescriptors(source.id);
+      prevDescriptors = [...prevDescriptors, ...descriptors]
+    }
+    return prevDescriptors;
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'loadNewState'}))
+  private async getNewState(ctx: SyncEventContext, config: IntrigConfig) {
+    let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
+    for (let source of config.sources) {
+      let descriptors = await this.openApiService.getResourceDescriptors(source.id);
+      prevDescriptors = [...prevDescriptors, ...descriptors]
+    }
+    return prevDescriptors;
+  }
+
+  private async diffDescriptors<T>(
+    oldArr: ResourceDescriptor<T>[],
+    newArr: ResourceDescriptor<T>[]
+  ) {
+    // 1. Added: in newArr but not in oldArr (by id)
+    const added = _.differenceBy(newArr, oldArr, 'id');
+
+    // 2. Removed: in oldArr but not in newArr (by id)
+    const removed = _.differenceBy(oldArr, newArr, 'id');
+
+    // 3. Intersection: items present in both sets (by id)
+    const intersection = _.intersectionBy(newArr, oldArr, 'id');
+
+    // 4. Modified: same id but deep-shape differs (including data, or any other prop)
+    const modified = intersection.filter(newItem => {
+      const oldItem = _.find(oldArr, ['id', newItem.id])!;
+      return !_.isEqual(oldItem, newItem);
+    });
+
+    return { added, removed, modified };
   }
 
   async generate(ctx: GenerateEventContext) {

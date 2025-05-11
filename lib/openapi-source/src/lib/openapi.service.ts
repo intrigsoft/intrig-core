@@ -98,7 +98,7 @@ export class IntrigOpenapiService {
     let schemas = extractSchemas(document);
     return [
       ...restData.map(restData => ResourceDescriptor.from({
-        id: `${id}_${restData.paths.join('_')}_${restData.operationId}`,
+        id: `${id}_${restData.method}_${restData.paths.join('_')}_${restData.operationId}_${restData.contentType}_${restData.responseType}`,
         name: camelCase(restData.operationId),
         source: id,
         type: 'rest',

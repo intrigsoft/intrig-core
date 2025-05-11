@@ -16,14 +16,16 @@ export class ResourceDescriptor<T> implements IResourceDescriptor<T> {
   source: string;
   path: string;
   data: T;
+  lastAccessed?: number;
 
-  constructor(id: string, name: string, type: DescriptorType, source: string, path: string, data: T) {
+  constructor(id: string, name: string, type: DescriptorType, source: string, path: string, data: T, lastAccessed?: number) {
     this.id = id;
     this.name = name;
     this.type = type;
     this.source = source;
     this.path = path;
     this.data = data;
+    this.lastAccessed = lastAccessed;
   }
 
   public static from<T>(descriptor: IResourceDescriptor<T>) {

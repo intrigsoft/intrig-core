@@ -2,7 +2,7 @@ import { OpenAPIV3_1 } from 'openapi-types';
 import * as _ from 'lodash';
 import { produce } from 'immer';
 
-interface Differences {
+export interface Differences {
   paths?: {
     added?: string[];
     removed?: string[];

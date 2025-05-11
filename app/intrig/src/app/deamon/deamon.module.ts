@@ -8,6 +8,9 @@ import { OperationsService } from './services/operations.service';
 import { GeneratorModule } from './generator/generator.module';
 import { OpenapiSourceModule } from 'openapi-source';
 import { HttpModule } from '@nestjs/axios';
+import { DataSearchController } from './controllers/data-search.controller';
+import { DataSearchService } from './services/data-search.service';
+import { SearchService } from './services/search.service';
 
 @Module({
   imports: [
@@ -16,11 +19,13 @@ import { HttpModule } from '@nestjs/axios';
     OpenapiSourceModule,
     HttpModule,
   ],
-  controllers: [SourcesController, OperationsController],
+  controllers: [SourcesController, OperationsController, DataSearchController],
   providers: [
     IntrigConfigService,
     OpenapiService,
     OperationsService,
+    DataSearchService,
+    SearchService,
   ],
 })
 export class DeamonModule {}
