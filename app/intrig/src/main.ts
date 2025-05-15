@@ -9,6 +9,11 @@ import {Logger, ValidationPipe} from "@nestjs/common";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
+import {IntrigConfigService} from "./app/deamon/services/intrig-config.service";
+
+const isVerbose = process.argv.includes('--verbose');
+const logger = isVerbose ? new Logger('Main') : null;
+
 
 async function bootstrapDeamon() {
   const app = await NestFactory.create(AppModule);
@@ -38,10 +43,11 @@ async function bootstrapDeamon() {
   const url = `http://localhost:${actualPort}`;
 
   const discovery = app.get(DiscoveryService);
-  discovery.register(actualPort, url);
+  let intrigConfig = app.get(IntrigConfigService).get();
+  discovery.register(actualPort, url, intrigConfig.generator);
 
-  Logger.log(`🚀 Application is running on: ${url}/${globalPrefix}`);
-  Logger.log(`📖 Swagger docs available at: ${url}/docs`);
+  logger?.log(`🚀 Application is running on: ${url}/${globalPrefix}`);
+  logger?.log(`📖 Swagger docs available at: ${url}/docs`);
 }
 
 async function bootstrap() {
@@ -49,7 +55,23 @@ async function bootstrap() {
   if (cmd === 'run') {
     await bootstrapDeamon()
   } else {
-    await CommandFactory.run(AppModule);
+    try {
+      await CommandFactory.run(AppModule, {
+        logger: logger ?? undefined,
+        errorHandler(err: any) {
+          if (err.code === 'commander.help') {
+            return process.exit(0);
+          }
+          const code = typeof err.exitCode === 'number' ? err.exitCode : 1;
+          process.exit(code);
+        }
+      });
+      process.exit(0);
+    } catch (e) {
+      if (logger) {
+        logger.error('Failed to run command', e);
+      }
+    }
   }
 }
 

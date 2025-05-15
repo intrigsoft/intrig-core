@@ -60,9 +60,12 @@ export class SearchService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    for (const source of this.configService.get().sources) {
-      const descriptors = await this.openApiService.getResourceDescriptors(source.id);
-      descriptors.forEach(descriptor => this.addDescriptor(descriptor));
+    try {
+      for (const source of this.configService.get().sources) {
+        const descriptors = await this.openApiService.getResourceDescriptors(source.id);
+        descriptors.forEach(descriptor => this.addDescriptor(descriptor));
+      }
+    } catch (e) {
     }
   }
 

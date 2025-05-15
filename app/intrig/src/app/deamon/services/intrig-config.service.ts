@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {join} from "path";
-import {existsSync, readFileSync, writeFileSync} from "fs";
+import {readFileSync, writeFileSync} from "fs";
 import {IntrigConfig, IntrigSourceConfig} from "common";
 import {ConfigService} from "@nestjs/config";
 
@@ -11,16 +11,22 @@ export class IntrigConfigService {
 
   constructor(config: ConfigService) {
     this.configPath = join(config.get('rootDir')!, 'intrig.config.json');
-    this.logger.log(`Initializing config service with path: ${this.configPath}`);
-    if (!existsSync(this.configPath)) {
-      this.logger.error(`Configuration file not found at: ${this.configPath}`);
-      throw new Error('Current directory is not an intrig-enabled project directory');
-    }
-    this.logger.log('Config service initialized successfully');
+    // this.logger.log(`Initializing config service with path: ${this.configPath}`);
+    // if (!existsSync(this.configPath)) {
+    //   this.logger.error(`Configuration file not found at: ${this.configPath}`);
+    //   throw new Error('Current directory is not an intrig-enabled project directory');
+    // }
+    // this.logger.log('Config service initialized successfully');
   }
 
   private readConfig(): IntrigConfig {
-    const content = readFileSync(this.configPath, 'utf-8');
+    let content: string | undefined;
+    try {
+      content = readFileSync(this.configPath, 'utf-8');
+    } catch (e) {
+      this.logger.error(`Failed to read config file: ${this.configPath}`, e);
+      throw e
+    }
     return JSON.parse(content) as IntrigConfig;
   }
 

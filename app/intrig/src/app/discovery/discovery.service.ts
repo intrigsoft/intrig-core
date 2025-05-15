@@ -19,6 +19,9 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
   private discoveryDir!: string;
   private projectName!: string;
 
+  constructor(private readonly config: ConfigService) {
+  }
+
   onModuleInit() {
     // determine projectName
     let name = 'intrig-daemon';
@@ -57,7 +60,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
     return path.join(this.discoveryDir, this.getMetadataFileName());
   }
 
-  register(port: number, url?: string) {
+  register(port: number, url?: string, generator?: string) {
     const resolvedUrl =
       url ||
       this.config.get<string>('discovery.url') ||
@@ -70,6 +73,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
       pid: process.pid,
       timestamp: new Date().toISOString(),
       path: this.config.get<string>('rootDir') ?? process.cwd(),
+      type: generator!,
     };
 
     const filePath = this.getMetadataFilePath();
@@ -155,6 +159,4 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
   private sanitizeName(raw: string): string {
     return raw.replace(/[^a-zA-Z0-9\-_]/g, '_');
   }
-
-  constructor(private readonly config: ConfigService) {}
 }

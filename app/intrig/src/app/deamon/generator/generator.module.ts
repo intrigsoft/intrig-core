@@ -18,14 +18,16 @@ export class GeneratorModule {
           provide: GeneratorBinding,
           inject: [IntrigConfigService, ReactBindingService, IntrigNextBindingService],
           useFactory: (configService: IntrigConfigService, reactBinding: ReactBindingService, nextBinding: IntrigNextBindingService): GeneratorBinding => {
-            switch (configService.get().generator) {
-              case "react":
-                return reactBinding;
-              case "next":
-                return nextBinding;
-              default:
-                throw new Error("Unknown generator");
+            try {
+              switch (configService.get().generator) {
+                case "react":
+                  return reactBinding;
+                case "next":
+                  return nextBinding;
+              }
+            } catch (e) {
             }
+            return reactBinding;
           }
         }
       ],

@@ -1,90 +1,118 @@
-# IntrigCore
+# Intrig Core
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A powerful code generation tool for creating React and Next.js bindings from API specifications.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Overview
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+Intrig Core is a framework for generating type-safe API client code for React and Next.js applications. It takes API specifications (like OpenAPI) as input and generates fully typed client libraries that can be used in your frontend applications.
 
-## Finish your CI setup
+## Features
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/KMEJ7pDMrA)
+- **Multiple Framework Support**: Generate client code for both React and Next.js
+- **Type Safety**: Generate TypeScript interfaces from API schemas
+- **REST API Support**: Generate hooks and utilities for REST API endpoints
+- **File Download Support**: Special handling for file download endpoints
+- **Customizable Templates**: Flexible template system for code generation
+- **CLI and Server Modes**: Use as a CLI tool or run as a server with Swagger documentation
 
+## Installation
 
-## Generate a library
+```bash
+# Install globally
+npm install -g @intrig-core/source
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+# Or use with npx
+npx @intrig-core/source
 ```
 
-## Run tasks
+## Usage
 
-To build the library use:
+### Configuration
 
-```sh
-npx nx build pkg1
+Create an `intrig.config.json` file in your project root:
+
+```json
+{
+  "sources": [
+    {
+      "id": "my-api",
+      "url": "https://example.com/api/swagger.json",
+      "type": "openapi"
+    }
+  ],
+  "generator": "react"
+}
 ```
 
-To run any task with Nx use:
+You can set the generator to either "react" or "next" depending on your target framework.
 
-```sh
-npx nx <target> <project-name>
+### CLI Commands
+
+```bash
+# Generate code
+intrig generate
+
+# Run in server mode
+intrig run
+
+# Get help
+intrig --help
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### Server Mode
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+When running in server mode, Intrig Core provides a web interface for exploring and generating code from API specifications. The server is available at:
 
-## Versioning and releasing
+- API: http://localhost:{port}/api
+- Swagger Docs: http://localhost:{port}/docs
 
-To version and release the library use
+## Architecture
 
+Intrig Core is built as a monorepo with the following components:
+
+- **common**: Shared utilities, interfaces, and services
+- **openapi-source**: Parser for OpenAPI specifications
+- **react-binding**: Generator for React bindings
+- **next-binding**: Generator for Next.js bindings
+- **intrig**: CLI application
+
+The code generation process follows these steps:
+
+1. Parse API specifications into resource descriptors
+2. Generate code using templates based on the selected framework
+3. Output the generated code to the configured directory
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/intrig-core.git
+cd intrig-core
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
 ```
-npx nx release
+
+### Running Tests
+
+```bash
+npm test
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+## Contributing
 
-[Learn more about Nx release &raquo;](hhttps://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Keep TypeScript project references up to date
+## License
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This project is licensed under the MIT License - see the LICENSE file for details.
