@@ -12,7 +12,7 @@ import {DiscoveryService} from "./app/discovery/discovery.service";
 import {IntrigConfigService} from "./app/deamon/services/intrig-config.service";
 
 const isVerbose = process.argv.includes('--verbose');
-const logger = isVerbose ? new Logger('Main') : null;
+const logger = new Logger('Main');
 
 
 async function bootstrapDeamon() {
@@ -25,8 +25,8 @@ async function bootstrapDeamon() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('My API')
-    .setDescription('Auto-generated API docs')
+    .setTitle('Intrig Deamon API')
+    .setDescription('API for intrig deamon integrations')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);

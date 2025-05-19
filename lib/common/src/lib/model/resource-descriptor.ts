@@ -1,3 +1,5 @@
+import {ApiProperty} from '@nestjs/swagger';
+
 export type DescriptorType = 'rest' | 'schema'
 
 export interface IResourceDescriptor<T> {
@@ -10,12 +12,25 @@ export interface IResourceDescriptor<T> {
 }
 
 export class ResourceDescriptor<T> implements IResourceDescriptor<T> {
+  @ApiProperty({description: 'Unique identifier of the resource'})
   id: string;
+
+  @ApiProperty({description: 'Name of the resource'})
   name: string;
+
+  @ApiProperty({description: 'Type of the resource', enum: ['rest', 'schema']})
   type: DescriptorType;
+
+  @ApiProperty({description: 'Source of the resource'})
   source: string;
+
+  @ApiProperty({description: 'Path to the resource'})
   path: string;
+
+  @ApiProperty({description: 'Resource data'})
   data: T;
+
+  @ApiProperty({description: 'Last access timestamp', required: false})
   lastAccessed?: number;
 
   constructor(id: string, name: string, type: DescriptorType, source: string, path: string, data: T, lastAccessed?: number) {

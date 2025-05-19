@@ -13,8 +13,11 @@ export function tsConfigTemplate(_path: string) {
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
+      "@intrig/react": [
+        "./src"
+      ],
       "@intrig/react/*": [
         "./src/*"
       ],
@@ -24,6 +27,7 @@ export function tsConfigTemplate(_path: string) {
   },
   "exclude": [
     "node_modules",
+    "../../node_modules",
     "**/__tests__/*"
   ]
 }

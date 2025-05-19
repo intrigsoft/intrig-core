@@ -1,5 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
-import {PackageManager} from "nypm";
+import {PackageManager, detectPackageManager} from "nypm";
 import {promisify} from "util";
 import {exec} from "child_process";
 
@@ -13,7 +13,6 @@ export class PackageManagerService {
   /** Detect (and cache) the project’s package manager via nypm */
   private async getPM(): Promise<PackageManager> {
     if (!this.pm) {
-      const { detectPackageManager } = await import('nypm');
       const detectedPM = await detectPackageManager(process.cwd());
       if (!detectedPM) {
         throw new Error('Failed to detect package manager');

@@ -45,6 +45,8 @@ const createDynamicImportWrapper = () => {
               }
             );
 
+            content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("nypm")`, `await import("nypm")`)
+
             // Update the asset
             compilation.updateAsset('main.js', new webpack.sources.RawSource(content));
           }
@@ -69,7 +71,10 @@ module.exports = {
   },
   plugins: [
     new webpack.BannerPlugin({
-      banner: '#!/usr/bin/env node',
+      banner: `#!/usr/bin/env node
+      import { createRequire } from 'module';
+      const require = createRequire(import.meta.url);
+      `,
       raw: true,
       entryOnly: true,
     }),

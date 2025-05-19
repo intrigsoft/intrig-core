@@ -24,12 +24,7 @@ export function packageJsonTemplate(_path: string) {
   },
   "peerDependencies": {
     "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "next": ">=13.0.0",
-    "next/server": ">=13.0.0",
-  },
-  "devDependencies": {
-    "@types/glob": "^8.1.0"
+    "react-dom": "18.3.1"
   },
   "_moduleAliases": {
     "@intrig/react": "./src"

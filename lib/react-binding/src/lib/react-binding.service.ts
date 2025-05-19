@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {
   GeneratorBinding,
   IIntrigSourceConfig,
@@ -26,6 +26,7 @@ import {requestHookTemplate} from "./templates/source/controller/method/requestH
 import picomatch from "picomatch";
 import {downloadHookTemplate} from "./templates/source/controller/method/download.template";
 import {typeTemplate} from "./templates/source/type/typeTemplate";
+import {swcrcTemplate} from "./templates/swcrc.template";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -36,6 +37,8 @@ const nonDownloadMimePatterns = picomatch([
 
 @Injectable()
 export class ReactBindingService extends GeneratorBinding {
+
+  private readonly logger = new Logger(ReactBindingService.name);
 
   constructor(private sourceManagementService: SourceManagementService,
               private config: ConfigService
@@ -51,7 +54,8 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(contextTemplate(this._path))
     await this.dump(extraTemplate(this._path))
     await this.dump(indexTemplate(this._path))
-    await this.dump(intrigMiddlewareTemplate(this._path))
+    // await this.dump(intrigMiddlewareTemplate(this._path))
+    await this.dump(swcrcTemplate(this._path))
     await this.dump(loggerTemplate(this._path))
     await this.dump(mediaTypeUtilsTemplate(this._path))
     await this.dump(networkStateTemplate(this._path))
@@ -62,6 +66,7 @@ export class ReactBindingService extends GeneratorBinding {
 
   async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
     for (let descriptor of descriptors) {
+      this.logger.log(`Generating source: ${JSON.stringify(descriptor)}`)
       if (isRestDescriptor(descriptor)) {
         await this.generateRestSource(source, descriptor)
       } else if (isSchemaDescriptor(descriptor)) {

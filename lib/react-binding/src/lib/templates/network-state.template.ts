@@ -210,16 +210,26 @@ type HookWithKey = {
   key: string;
 }
 
-export type DeleteHook<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params: P) => void, () => void]) & HookWithKey;
-export type DeleteHookOp<P, E = unknown> = ((key?: string) => [NetworkState<never, E>, (params?: P) => void, () => void]) & HookWithKey;
-export type GetHook<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params: P) => void, () => void]) & HookWithKey;
-export type GetHookOp<P, T, E = unknown> = ((key?: string) => [NetworkState<T, E>, (params?: P) => void, () => void]) & HookWithKey;
-export type PostHook<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PostHookOp<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
-export type PutHook<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params: P) => void, () => void]) & HookWithKey;
-export type PutHookOp<P, T, B, E = unknown> = ((key?: string) => [NetworkState<T, E>, (body: B, params?: P) => void, () => void]) & HookWithKey;
 
-export type IntrigHook<P = undefined, B = undefined, T = any> = DeleteHook<P> | GetHook<P, T> | PostHook<P, T, B> | PutHook<P, T, B> | PostHookOp<P, T, B> | PutHookOp<P, T, B> | GetHookOp<P, T> | DeleteHookOp<P>;
+export type UnitHookOptions = { key?: string; fetchOnMount?: false; clearOnUnmount?: boolean } | { key?: string; fetchOnMount: true; params?: Record<string, any>; clearOnUnmount?: boolean };
+export type UnitHook<E = unknown> = ((options: UnitHookOptions) => [NetworkState<never, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
+export type ConstantHook<T, E = unknown> = ((options: UnitHookOptions) => [NetworkState<T, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
+
+export type UnaryHookOptions<P> = { key?: string, fetchOnMount?: false, clearOnUnmount?: boolean } | { key?: string, fetchOnMount: true, params: P, clearOnUnmount?: boolean };
+export type UnaryProduceHook<P, E = unknown> = ((options?: UnaryHookOptions<P>) => [NetworkState<never, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type UnaryFunctionHook<P, T, E = unknown> = ((options?: UnaryHookOptions<P>) => [NetworkState<T, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
+
+export type BinaryHookOptions<P, B> = { key?: string, fetchOnMount?: false, clearOnUnmount?: boolean } | { key?: string, fetchOnMount: true, params: P, body: B, clearOnUnmount?: boolean };
+export type BinaryProduceHook<P, B, E = unknown> = ((options?: BinaryHookOptions<P, B>) => [NetworkState<never, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type BinaryFunctionHook<P, B, T, E = unknown> = ((options?: BinaryHookOptions<P, B>) => [NetworkState<T, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
+
+export type IntrigHookOptions<P = undefined, B = undefined> = UnitHookOptions | UnaryHookOptions<P> | BinaryHookOptions<P, B>;
+export type IntrigHook<P = undefined, B = undefined, T = any, E = unknown> = UnitHook<E> | ConstantHook<T, E> | UnaryProduceHook<P, E> | UnaryFunctionHook<P, T, E> | BinaryProduceHook<P, B, E> | BinaryFunctionHook<P, B, T, E>;
+
+export interface AsyncRequestOptions {
+  hydrate?: boolean;
+  key?: string;
+}
 
 /**
  * Represents the dispatch state of a process.

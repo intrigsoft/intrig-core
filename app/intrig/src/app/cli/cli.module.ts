@@ -12,6 +12,8 @@ import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
 import {ReactCliModule, ReactCliService} from "react-binding";
+import {PrebuildCommand} from "./commands/prebuild.command";
+import {PostbuildCommand} from "./commands/postbuild.command";
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
@@ -24,6 +26,8 @@ import {ReactCliModule, ReactCliService} from "react-binding";
     SyncCommand,
     SearchCommand,
     HttpModule,
+    PrebuildCommand,
+    PostbuildCommand,
     {
       provide: GENERATORS,
       inject: [NextCliService, ReactCliService],

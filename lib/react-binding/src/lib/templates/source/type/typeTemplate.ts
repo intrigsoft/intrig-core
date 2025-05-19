@@ -2,6 +2,13 @@ import { OpenAPIV3_1 } from 'openapi-types';
 import { jsonLiteral, typescript } from 'common';
 import * as path from 'path'
 
+export interface SchemaConversionResult {
+  tsType: string;
+  zodSchema: string;
+  imports: Set<string>;
+  optional?: boolean;
+}
+
 export interface TypeTemplateParams {
   sourcePath: string;
   typeName: string;
@@ -43,7 +50,7 @@ function isRef(schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject): 
 }
 
 // Helper function to convert OpenAPI schema types to TypeScript types and Zod schemas
-function openApiSchemaToZod(schema: OpenAPIV3_1.SchemaObject, imports: Set<string> = new Set()): { tsType: string; zodSchema: string; imports: Set<string> } {
+function openApiSchemaToZod(schema: OpenAPIV3_1.SchemaObject, imports: Set<string> = new Set()): SchemaConversionResult {
   if (!schema) {
     return { tsType: 'any', zodSchema: 'z.any()', imports: new Set() };
   }
@@ -77,14 +84,14 @@ function openApiSchemaToZod(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
   }
 }
 
-function handleRefSchema(ref: string, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleRefSchema(ref: string, imports: Set<string>): SchemaConversionResult {
   const refParts = ref.split('/');
   const refName = refParts[refParts.length - 1];
   imports.add(`import { ${refName}, ${refName}Schema } from './${refName}';`);
   return { tsType: refName, zodSchema: `z.lazy(() => ${refName}Schema)`, imports };
 }
 
-function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
   if (schema.enum) {
     const enumValues = schema.enum.map(value => `'${value}'`).join(' | ');
     const zodEnum = `z.enum([${schema.enum.map(value => `'${value}'`).join(', ')}])`;
@@ -145,29 +152,29 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string;
   return { tsType, zodSchema, imports: new Set() };
 }
 
-function handleNumberSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleNumberSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
   let zodSchema = 'z.number()';
   if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
   if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
   return { tsType: 'number', zodSchema, imports: new Set() };
 }
 
-function handleIntegerSchema(schema: OpenAPIV3_1.SchemaObject): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleIntegerSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
   let zodSchema = 'z.number().int()';
   if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
   if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
   return { tsType: 'number', zodSchema, imports: new Set() };
 }
 
-function handleBooleanSchema(): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleBooleanSchema(): SchemaConversionResult {
   const zodSchema = 'z.boolean()';
   return { tsType: 'boolean', zodSchema, imports: new Set() };
 }
 
-function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<string>): SchemaConversionResult {
   if (schema.items) {
     const { tsType, zodSchema: itemZodSchema, imports: itemImports } = openApiSchemaToZod(schema.items as OpenAPIV3_1.SchemaObject, imports);
-    let zodSchema = `z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema}))`;
+    let zodSchema = `z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema})) as z.ZodType<${tsType}[], z.ZodTypeDef, ${tsType}[]>;`;
     if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
     if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
     return { tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };
@@ -175,13 +182,13 @@ function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<s
   throw new Error('Array schema must have an items property');
 }
 
-function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): SchemaConversionResult {
   const updatedRequiredFields = schema.required || [];
   if (schema.properties) {
     const propertiesTs = Object.entries(schema.properties).map(([key, value]) => {
-      const { tsType } = openApiSchemaToZod(value as OpenAPIV3_1.SchemaObject);
-      const isRequired = updatedRequiredFields.includes(key);
-      return `${key}${isRequired ? '' : '?'}: ${tsType};`;
+      const { tsType, optional } = openApiSchemaToZod(value as OpenAPIV3_1.SchemaObject);
+      const isRequired = !optional && updatedRequiredFields.includes(key);
+      return `${key}${isRequired ? '' : '?'}: ${tsType} ${isRequired ? '' : ' | null'};`;
     });
 
     const propertiesZod = Object.entries(schema.properties).map(([key, value]) => {
@@ -197,10 +204,10 @@ function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<strin
       imports,
     };
   }
-  return { tsType: 'any', zodSchema: 'z.any()', imports: new Set() };
+  return { tsType: 'any', zodSchema: 'z.any()', imports: new Set(), optional: true };
 }
 
-function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): { tsType: string; zodSchema: string; imports: Set<string> } {
+function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): SchemaConversionResult {
   if (schema.oneOf) {
     const options = schema.oneOf.map(subSchema => openApiSchemaToZod(subSchema as OpenAPIV3_1.SchemaObject));
     const zodSchemas = options.map(option => option.zodSchema);

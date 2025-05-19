@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {
   GeneratorBinding,
   PackageManagerService,
@@ -18,6 +18,9 @@ import {SearchService} from "./search.service";
 
 @Injectable()
 export class OperationsService {
+
+  private readonly logger = new Logger(OperationsService.name);
+
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
               private generatorBinding: GeneratorBinding,
@@ -56,8 +59,12 @@ export class OperationsService {
   private async getPreviousState(ctx: SyncEventContext, config: IntrigConfig) {
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
     for (let source of config.sources) {
-      let descriptors = await this.openApiService.getResourceDescriptors(source.id);
-      prevDescriptors = [...prevDescriptors, ...descriptors]
+      try {
+        let descriptors = await this.openApiService.getResourceDescriptors(source.id);
+        prevDescriptors = [...prevDescriptors, ...descriptors]
+      } catch (e: any) {
+
+      }
     }
     return prevDescriptors;
   }
@@ -117,19 +124,55 @@ export class OperationsService {
 
   private generateDir = this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated");
 
+  private async mergePackageJson(sourceFile: string, targetFile: string) {
+    try {
+      const sourcePackage = await fs.readJson(sourceFile);
+      const targetPackage = await fs.pathExists(targetFile)
+        ? await fs.readJson(targetFile)
+        : {};
+
+      const merged = {
+        ...targetPackage,
+        dependencies: {
+          ...targetPackage.dependencies,
+          ...sourcePackage.dependencies
+        },
+        devDependencies: {
+          ...targetPackage.devDependencies,
+          ...sourcePackage.devDependencies
+        }
+      };
+
+      await fs.writeJson(targetFile, merged, {spaces: 2});
+    } catch (error) {
+      this.logger.error(`Failed to merge package.json files: ${error}`);
+      throw error;
+    }
+  }
+
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName(), "src")
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName())
 
-    if (await fs.pathExists(targetLibDir)) {
-      let files = fs.readdirSync(targetLibDir)
-      for (const file of files) {
-        if (file !== 'package.json' && !file.endsWith('.md')) {
-          await fs.remove(path.join(targetLibDir, file))
-        }
+    try {
+      if (await fs.pathExists(path.join(targetLibDir, 'src'))) {
+        await fs.remove(path.join(targetLibDir, 'src'));
+        this.logger.log(`Removed existing ${targetLibDir}/src`);
       }
+
+      await fs.ensureDir(targetLibDir);
+      await fs.copy(path.join(this.generateDir, 'dist'), path.join(targetLibDir, 'src'));
+      this.logger.log(`Copied ${targetLibDir}`);
+
+      await this.mergePackageJson(
+        path.join(this.generateDir, 'package.json'),
+        path.join(targetLibDir, 'package.json')
+      );
+      this.logger.log(`Merged package.json files`);
+    } catch (error) {
+      this.logger.error(`Failed to copy content to node_modules: ${error}`);
+      throw error;
     }
-    fs.copySync(this.generateDir, targetLibDir)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'build'}))
@@ -142,6 +185,7 @@ export class OperationsService {
     await this.packageManagerService.install(this.generateDir)
     await this.packageManagerService.installDependency("@swc/core", true, false, this.generateDir)
     await this.packageManagerService.installDependency("@swc/cli", true, false, this.generateDir)
+    await this.packageManagerService.installDependency("@types/node", true, false, this.generateDir)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'generate'}))

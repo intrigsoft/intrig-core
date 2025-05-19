@@ -35,6 +35,7 @@ import axios, {
   isAxiosError,
 } from 'axios';
 import { ZodSchema } from 'zod';
+import logger from './logger';
 
 import {Context, RequestType, GlobalState} from './intrig-context';
 
@@ -363,7 +364,7 @@ export function useNetworkState<T, E = unknown>({
         signal: abortController.signal,
       };
 
-      await context.execute(requestConfig, dispatch, schema, errorSchema);
+      await context.execute(requestConfig, dispatch, schema, errorSchema as any);
     },
     [networkState, context.dispatch, axios]
   );

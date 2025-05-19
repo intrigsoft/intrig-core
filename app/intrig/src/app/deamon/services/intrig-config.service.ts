@@ -25,6 +25,7 @@ export class IntrigConfigService {
       content = readFileSync(this.configPath, 'utf-8');
     } catch (e) {
       this.logger.error(`Failed to read config file: ${this.configPath}`, e);
+      console.error(e);
       throw e
     }
     return JSON.parse(content) as IntrigConfig;

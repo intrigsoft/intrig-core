@@ -5,4 +5,7 @@ export abstract class GeneratorCli {
   abstract match(packageJson: PackageJson): boolean
   abstract postInit(): Promise<void>
   abstract preBuild(): Promise<void>
+  async postBuild() {
+
+  }
 }

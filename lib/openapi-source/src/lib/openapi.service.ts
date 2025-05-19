@@ -27,24 +27,23 @@ export class IntrigOpenapiService {
   constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {}
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
-    const logger = new Logger(IntrigOpenapiService.name);
-    logger.log('Starting OpenAPI sync process');
+    this.logger.log('Starting OpenAPI sync process');
 
     if (!id) {
       for (const source of config.sources) {
-        logger.log(`Processing source: ${source.id}`);
+        this.logger.log(`Processing source: ${source.id}`);
         await this.doSync(source, config, ctx)
       }
     } else {
       let source = config.sources.find(s => s.id === id);
       if (!source) {
-        logger.error(`Source ${id} not found`);
+        this.logger.error(`Source ${id} not found`);
         throw new Error(`Source ${id} not found`)
       }
-      logger.log(`Processing specific source: ${id}`);
+      this.logger.log(`Processing specific source: ${id}`);
       await this.doSync(source, config, ctx)
     }
-    logger.log('OpenAPI sync process completed');
+    this.logger.log('OpenAPI sync process completed');
   }
 
   private async doSync(source: IIntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext) {
@@ -52,7 +51,7 @@ export class IntrigOpenapiService {
     const response = await this.fetchSwaggerDoc(ctx, source);
 
     const raw = response.data;
-    let spec = this.decodeSwaggerDoc(ctx, source, raw);
+    let spec = await this.decodeSwaggerDoc(ctx, source, raw);
     let normalized = await this.normalize(ctx, source, spec);
     await this.saveContent(ctx, source, normalized);
   }
@@ -64,7 +63,7 @@ export class IntrigOpenapiService {
 
   @WithStatus((source, spec) => ({step: 'normalize', sourceId: source.id}))
   private async normalize(ctx: SyncEventContext, source: IIntrigSourceConfig, spec: any) {
-    let document = await RefParser.bundle(spec) as OpenAPIV3_1.Document;
+    let document = await RefParser.bundle(await spec) as OpenAPIV3_1.Document;
     return normalize(document);
   }
 
@@ -95,6 +94,7 @@ export class IntrigOpenapiService {
       throw new Error(`Spec ${id} not found`)
     }
     let restData = extractRequestsFromSpec(document);
+    console.log(restData)
     let schemas = extractSchemas(document);
     return [
       ...restData.map(restData => ResourceDescriptor.from({

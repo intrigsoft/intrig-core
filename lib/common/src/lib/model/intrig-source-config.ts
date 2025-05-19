@@ -1,3 +1,5 @@
+import {ApiProperty} from '@nestjs/swagger';
+
 export interface IIntrigSourceConfig {
   id: string;
   name: string;
@@ -5,8 +7,13 @@ export interface IIntrigSourceConfig {
 }
 
 export class IntrigSourceConfig implements IIntrigSourceConfig {
+  @ApiProperty({description: 'Unique identifier for the source config'})
   id: string;
+
+  @ApiProperty({description: 'Name of the source config'})
   name: string;
+
+  @ApiProperty({description: 'URL of the specification'})
   specUrl: string;
 
   constructor(id: string, name: string, specUrl: string) {
