@@ -174,7 +174,7 @@ function handleBooleanSchema(): SchemaConversionResult {
 function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<string>): SchemaConversionResult {
   if (schema.items) {
     const { tsType, zodSchema: itemZodSchema, imports: itemImports } = openApiSchemaToZod(schema.items as OpenAPIV3_1.SchemaObject, imports);
-    let zodSchema = `z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema})) as z.ZodType<${tsType}[], z.ZodTypeDef, ${tsType}[]>;`;
+    let zodSchema = `(z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema})) as z.ZodType<${tsType}[], z.ZodTypeDef, ${tsType}[]>)`;
     if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
     if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
     return { tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };
@@ -224,6 +224,7 @@ function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<stri
     const options = schema.allOf.map(subSchema => openApiSchemaToZod(subSchema as OpenAPIV3_1.SchemaObject));
     const zodSchemas = options.map(option => option.zodSchema);
     const tsTypes = options.map(option => option.tsType);
+    if (zodSchemas.length === 1) return { tsType: tsTypes.join(' & '), zodSchema: zodSchemas[0], imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
     return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection(${zodSchemas.join(', ')})`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
   }
   return { tsType: 'any', zodSchema: 'z.any()', imports };

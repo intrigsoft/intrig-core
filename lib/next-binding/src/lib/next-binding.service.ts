@@ -3,7 +3,7 @@ import {
   GeneratorBinding,
   IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor,
   ResourceDescriptor,
-  RestData, Schema,
+  RestData, RestDocumentation, Schema, SchemaDocumentation,
   SourceManagementService
 } from "common";
 import { networkStateTemplate } from './templates/network-state.template';
@@ -116,5 +116,17 @@ export class IntrigNextBindingService extends GeneratorBinding {
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
     }))
+  }
+
+  getDocumentation(result: ResourceDescriptor<any>): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  getSchemaDocumentation(result: ResourceDescriptor<any>): Promise<SchemaDocumentation> {
+    throw new Error("Method not implemented.");
+  }
+
+  getEndpointDocumentation(result: ResourceDescriptor<any>, schemas: ResourceDescriptor<any>[]): Promise<RestDocumentation> {
+    throw new Error("Method not implemented.");
   }
 }

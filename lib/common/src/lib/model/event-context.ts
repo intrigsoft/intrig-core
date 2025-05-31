@@ -36,6 +36,7 @@ export function WithStatus<Step, Args extends any[]>(
         return result
       } catch (e) {
         ctx.status({...event, status: 'error', error: JSON.stringify(e)})
+        console.error(e)
         throw e
       }
     }

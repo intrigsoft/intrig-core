@@ -18,6 +18,7 @@ const logger = new Logger('Main');
 async function bootstrapDeamon() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
+  app.enableCors();
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);

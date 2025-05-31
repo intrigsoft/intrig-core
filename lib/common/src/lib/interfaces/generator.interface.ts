@@ -1,10 +1,13 @@
 import {ResourceDescriptor} from "../model/resource-descriptor";
-import {IIntrigSourceConfig} from "../model/intrig-source-config";
+import {IIntrigSourceConfig, IntrigSourceConfig} from "../model/intrig-source-config";
+import {SchemaDocumentation} from "../model/schema";
+import {RestDocumentation} from "../model/rest-resource-data";
 
 export abstract class GeneratorBinding {
-  abstract generateGlobal(): Promise<any>;
+  abstract generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any>;
   abstract generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void>;
   abstract getLibName(): string
-
   abstract postBuild(): Promise<void>
+  abstract getSchemaDocumentation(result: ResourceDescriptor<any>): Promise<SchemaDocumentation>
+  abstract getEndpointDocumentation(result: ResourceDescriptor<any>, schemas: ResourceDescriptor<any>[]): Promise<RestDocumentation>
 }

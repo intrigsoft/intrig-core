@@ -1,5 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import type {IIntrigSourceConfig} from 'common'
+import * as crypto from 'crypto';
 import {
   camelCase,
   IntrigConfig,
@@ -94,11 +95,13 @@ export class IntrigOpenapiService {
       throw new Error(`Spec ${id} not found`)
     }
     let restData = extractRequestsFromSpec(document);
-    console.log(restData)
     let schemas = extractSchemas(document);
+
+    const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
+
     return [
       ...restData.map(restData => ResourceDescriptor.from({
-        id: `${id}_${restData.method}_${restData.paths.join('_')}_${restData.operationId}_${restData.contentType}_${restData.responseType}`,
+        id: sha1(`${id}_${restData.method}_${restData.paths.join('_')}_${restData.operationId}_${restData.contentType}_${restData.responseType}`),
         name: camelCase(restData.operationId),
         source: id,
         type: 'rest',
@@ -106,7 +109,7 @@ export class IntrigOpenapiService {
         path: path.join(id, ...restData.paths, camelCase(restData.operationId))
       })),
       ...schemas.map(schema => ResourceDescriptor.from({
-        id: `${id}_schema_${schema.name}`,
+        id: sha1(`${id}_schema_${schema.name}`),
         name: schema.name,
         source: id,
         type: 'schema',

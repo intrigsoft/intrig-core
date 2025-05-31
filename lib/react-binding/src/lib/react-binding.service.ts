@@ -1,10 +1,10 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
   GeneratorBinding,
-  IIntrigSourceConfig,
-  isRestDescriptor, isSchemaDescriptor,
+  IIntrigSourceConfig, IntrigSourceConfig,
+  isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
-  RestData, Schema,
+  RestData, RestDocumentation, Schema, SchemaDocumentation,
   SourceManagementService
 } from "common";
 import {ConfigService} from "@nestjs/config";
@@ -13,7 +13,6 @@ import process from "node:process";
 import {contextTemplate} from "./templates/context.template";
 import {extraTemplate} from "./templates/extra.template";
 import {indexTemplate} from "./templates/index.template";
-import {intrigMiddlewareTemplate} from "./templates/intrigMiddleware.template";
 import {loggerTemplate} from "./templates/logger.template";
 import {mediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
 import {networkStateTemplate} from "./templates/network-state.template";
@@ -27,6 +26,8 @@ import picomatch from "picomatch";
 import {downloadHookTemplate} from "./templates/source/controller/method/download.template";
 import {typeTemplate} from "./templates/source/type/typeTemplate";
 import {swcrcTemplate} from "./templates/swcrc.template";
+import fsx from "fs-extra";
+import {reactHookDocs} from "./templates/docs/react-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -50,7 +51,7 @@ export class ReactBindingService extends GeneratorBinding {
 
   private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
-  async generateGlobal(): Promise<any> {
+  async generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any> {
     await this.dump(contextTemplate(this._path))
     await this.dump(extraTemplate(this._path))
     await this.dump(indexTemplate(this._path))
@@ -60,7 +61,7 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(mediaTypeUtilsTemplate(this._path))
     await this.dump(networkStateTemplate(this._path))
     await this.dump(packageJsonTemplate(this._path))
-    await this.dump(providerTemplate(this._path))
+    await this.dump(providerTemplate(this._path, apisToSync))
     await this.dump(tsConfigTemplate(this._path))
   }
 
@@ -99,5 +100,79 @@ export class ReactBindingService extends GeneratorBinding {
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
     }))
+  }
+
+  async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
+    let tsFile = fsx.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
+    let collector: Record<string, string> = {}
+    let collectorType = "pre"
+    tsFile.split("\n").forEach(line => {
+      switch (line.trim()) {
+        case "//--- Zod Schemas  ---//":
+          collectorType = "Zod Schema"
+          break;
+        case "//--- Typescript Type  ---//":
+          collectorType = "Typescript Type"
+          break;
+        case "//--- JSON Schema  ---//":
+          collectorType = "JSON Schema"
+          break;
+        case "//--- Simple Type  ---//":
+          collectorType = "Simple Type"
+          break;
+        default:
+          collector[collectorType] = collector[collectorType] ?? ''
+          collector[collectorType] += line + "\n"
+      }
+    })
+    return SchemaDocumentation.from({
+      id: result.id,
+      name: result.data.name,
+      description: "", //TODO improvise description
+      jsonSchema: result.data.schema,
+      tabs: [
+        ["Typescript Type", 'TypeScript interface definition'],
+        ["JSON Schema", 'JSON Schema definition'],
+        ["Zod Schema", 'Zod schema for runtime validation']
+      ].map(([name, description]) => ({
+        name,
+        content: `
+# ${name}
+${description}
+${"```ts"}
+${collector[name]?.trim()}
+${"```"}
+        `
+      })),
+      relatedTypes: [],
+      relatedEndpoints: []
+    })
+  }
+
+  async getEndpointDocumentation(result: ResourceDescriptor<RestData>, schemas: ResourceDescriptor<Schema>[]): Promise<RestDocumentation> {
+    let mapping = Object.fromEntries(schemas.map(a => ([a.name, RelatedType.from({name: a.name, id: a.id})])));
+    return RestDocumentation.from({
+      id: result.id,
+      name: result.name,
+      method: result.data.method,
+      path: result.data.requestUrl!,
+      description: result.data.description,
+      requestBody: result.data.requestBody ? mapping[result.data.requestBody] : undefined,
+      contentType: result.data.contentType,
+      response: result.data.response ? mapping[result.data.response] : undefined,
+      responseType: result.data.responseType,
+      requestUrl: result.data.requestUrl!,
+      variables: result.data.variables?.map(a => ({
+        ...a,
+        relatedType: mapping[a.ref.split('/').pop()!],
+      })) ?? [],
+      responseExamples: result.data.responseExamples ?? {},
+      tabs: [
+        {
+          name: 'React Hook',
+          content: (await reactHookDocs(result)).content
+        }
+      ]
+    })
   }
 }

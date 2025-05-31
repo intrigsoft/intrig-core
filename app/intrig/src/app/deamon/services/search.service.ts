@@ -3,12 +3,19 @@ import MiniSearch from 'minisearch';
 import {isRestDescriptor, isSchemaDescriptor, ResourceDescriptor, RestData, Schema} from 'common';
 import {IntrigConfigService} from "./intrig-config.service";
 import {IntrigOpenapiService} from "openapi-source";
+import {SourceStats} from "../models/source-stats";
+import _ from "lodash";
 
 export interface SearchOptions {
   /** fuzzy tolerance: 0–1 */
   fuzzy?: number;
   /** maximum number of results */
   limit?: number;
+  type?: string;
+  pkg?: string;
+  source?: string;
+  dataTypes?: string[];
+  names?: string[];
 }
 
 @Injectable()
@@ -20,11 +27,12 @@ export class SearchService implements OnModuleInit {
     source: string;
     path: string;
     method?: string;
-    paths?: string[];
+    package?: string;
     operationId?: string;
     summary?: string;
     description?: string;
     lastAccessed: number;
+    dataTypes?: string[];
   }>;
 
   /** In-memory map of all descriptors */
@@ -42,10 +50,12 @@ export class SearchService implements OnModuleInit {
       fields: [
         'name',
         'method',
-        'paths',
+        'package',
         'operationId',
         'summary',
         'description',
+        '__all__',
+        'dataTypes'
       ],
       storeFields: [
         'id',
@@ -54,6 +64,8 @@ export class SearchService implements OnModuleInit {
         'source',
         'path',
         'lastAccessed',
+        '__all__',
+        'dataTypes',
       ],
       idField: 'id',
     });
@@ -128,17 +140,22 @@ export class SearchService implements OnModuleInit {
       source:       desc.source,
       path:         desc.path,
       lastAccessed: desc.lastAccessed ?? 0,
+      __all__: '__all__'
     };
 
     // enrich with REST-specific fields
     if (isRestDescriptor(desc)) {
       const d = desc.data as RestData;
+      let dataTypes: string[] = [d.requestBody, d.response, ...d.variables?.map(a => a.ref.split('/').pop()) ?? []]
+        .filter(a => !!a)
+        .map(a => a as string);
       Object.assign(base, {
         method:      d.method,
-        paths:       d.paths,
+        package:     d.paths?.join('/'),
         operationId: d.operationId,
         summary:     d.summary,
         description: d.description,
+        dataTypes
       });
     }
 
@@ -153,7 +170,7 @@ export class SearchService implements OnModuleInit {
     if (this.mini.has(base)) {
       this.mini.remove(base);
     }
-    
+
     this.mini.add(base);
   }
 
@@ -172,15 +189,24 @@ export class SearchService implements OnModuleInit {
    * Search by free-text; returns up to `limit` descriptors
    * sorted by α·relevance + (1-α)·recencyBoost.
    */
-  search(query: string, opts: SearchOptions = {}) {
+  search(query: string, opts: SearchOptions = {}): ResourceDescriptor<any>[] {
     const now     = Date.now();
     const fuzzy   = opts.fuzzy ?? 0.2;
-    const rawHits = this.mini.search(query, { prefix: true, fuzzy });
+    let q = query.trim().length ? query.trim() : '__all__';
+    const rawHits = this.mini.search(q, { prefix: true, fuzzy,
+      filter(doc) {
+        return (!opts.type || doc.type === opts.type) &&
+          (!opts.pkg || doc.package === opts.pkg) &&
+          (!opts.source || doc.source === opts.source) &&
+          (!opts.dataTypes || _.intersection(opts.dataTypes, doc.dataTypes)?.length > 0) &&
+          (!opts.names || opts.names.includes(doc.name));
+      }
+    });
 
     // normalize the text-match scores to [0,1]
     const maxScore  = Math.max(...rawHits.map((h: any) => h.score), 1);
 
-    const scored = rawHits.map((hit: any) => {
+    const scored = rawHits.map((hit: { id: string; score: number }) => {
       const desc   = this.descriptors.get(hit.id)!;
       const rel    = hit.score / maxScore;
       const hours  = (now - (desc.lastAccessed ?? 0)) / (1000 * 60 * 60);
@@ -190,9 +216,9 @@ export class SearchService implements OnModuleInit {
     });
 
     return scored
-      .sort((a: any, b: any) => b.combined - a.combined)
+      .sort((a: { combined: number }, b: { combined: number }) => b.combined - a.combined)
       .slice(0, opts.limit ?? 20)
-      .map((x: any) => x.desc);
+      .map((x: { desc: ResourceDescriptor<any> }) => x.desc);
   }
 
   /**
@@ -203,5 +229,36 @@ export class SearchService implements OnModuleInit {
       .filter(d => d.lastAccessed != null)
       .sort((a, b) => b.lastAccessed! - a.lastAccessed!)
       .slice(0, limit);
+  }
+
+  /**
+   * Get simple stats for a given source (or _all_ sources if none specified):
+   *  - counts per `type`
+   *  - list of unique `package` values (and its count)
+   */
+  getStatsBySource() {
+    // 1) grab all descriptors (or only those matching the given source)
+    const all = Array.from(this.descriptors.values());
+
+    // 2) count how many of each type
+    const countsByType = all.reduce<Record<string, number>>((acc, d) => {
+      acc[d.type] = (acc[d.type] || 0) + 1;
+      return acc;
+    }, {});
+
+    // 3) collect unique packages (only REST descriptors have .data.paths)
+    const sources = new Set<string>();
+    all.forEach(d => {
+      if (isRestDescriptor(d)) {
+        sources.add(d.source)
+      }
+    });
+
+    return SourceStats.from({
+      total: all.length,
+      countsByType,                   // e.g. { endpoint: 42, model: 17, ... }
+      uniqueSources: Array.from(sources),
+      uniqueSourcesCount: sources.size,
+    });
   }
 }

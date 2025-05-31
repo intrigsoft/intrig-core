@@ -19,11 +19,13 @@ export * from './lib/model/rest-resource-data';
 export * from './lib/model/schema';
 export * from './lib/model/sync-event';
 export * from './lib/model/event-context';
+export * from './lib/model/common';
 
 // Templates
 export * from './lib/template/json-literal';
 export * from './lib/template/template-util';
 export * from './lib/template/ts-literal';
+export * from './lib/template/md-literal';
 
 // Utils
 export * from './lib/util/change-case';

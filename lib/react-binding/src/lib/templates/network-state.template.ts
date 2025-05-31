@@ -65,6 +65,7 @@ export function init<T, E = unknown>(): InitState<T, E> {
 export interface PendingState<T, E = unknown> extends NetworkState<T, E> {
   state: 'pending';
   progress?: Progress;
+  data?: T;
 }
 
 /**
@@ -98,11 +99,13 @@ export function isPending<T, E = unknown>(state: NetworkState<T, E>): state is P
  * @return {PendingState<T>} An object representing the pending state.
  */
 export function pending<T, E = unknown>(
-  progress: Progress | undefined = undefined
+  progress: Progress | undefined = undefined,
+  data: T | undefined = undefined
 ): PendingState<T, E> {
   return {
     state: 'pending',
     progress,
+    data,
   };
 }
 

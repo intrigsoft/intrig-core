@@ -20,7 +20,7 @@ export class SyncStatusEventDto implements ISyncStatusEventDto {
   @ApiProperty({ example: 'alpha' })
   sourceId: string;
 
-  @ApiProperty({ enum: ['getConfig', 'fetch', 'decode', 'normalize', 'save'] })
+  @ApiProperty({ enum: ['getConfig', 'loadPreviousState', 'fetch', 'decode', 'normalize', 'save', 'loadNewState', 'indexDiff'] })
   step: Step;
 
   @ApiProperty({ enum: ['started','success','error'] })

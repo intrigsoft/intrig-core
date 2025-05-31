@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding,
+  GeneratorBinding, IntrigSourceConfig,
   PackageManagerService,
   ResourceDescriptor, RestData, Schema,
   SyncEventContext,
@@ -110,7 +110,7 @@ export class OperationsService {
       await this.generateSourceContent(ctx, descriptors, source);
     }
 
-    await this.generateGlobalContent(ctx);
+    await this.generateGlobalContent(ctx, config.sources);
     await this.installDependencies(ctx);
     await this.buildContent(ctx);
     await this.copyContentToNodeModules(ctx);
@@ -189,8 +189,8 @@ export class OperationsService {
   }
 
   @WithStatus(event => ({sourceId: '', step: 'generate'}))
-  private async generateGlobalContent(ctx: GenerateEventContext) {
-    await this.generatorBinding.generateGlobal()
+  private async generateGlobalContent(ctx: GenerateEventContext, apisToSync: IntrigSourceConfig[]) {
+    await this.generatorBinding.generateGlobal(apisToSync)
   }
 
   @WithStatus((a, source) => ({sourceId: source.id, step: 'generate'}))

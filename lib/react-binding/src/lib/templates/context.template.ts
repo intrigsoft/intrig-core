@@ -6,23 +6,15 @@ export function contextTemplate(_path: string) {
 
   return ts`
   import { NetworkAction, NetworkState } from '@intrig/react/network-state';
-import { AxiosProgressEvent } from 'axios';
+import { AxiosProgressEvent, AxiosRequestConfig } from 'axios';
 import { ZodSchema } from 'zod';
 import { createContext, useContext } from 'react';
 import { DefaultConfigs } from '@intrig/react/intrig-provider';
 
 type GlobalState = Record<string, NetworkState>;
 
-interface RequestType<T = any> {
-  method: 'get' | 'post' | 'put' | 'delete';
-  url: string;
-  headers?: Record<string, string>;
-  params?: Record<string, any>;
-  data?: any; // This allows transformations, while retaining flexibility.
+interface RequestType<T = any> extends AxiosRequestConfig {
   originalData?: T; // Keeps track of the original data type.
-  onUploadProgress?: (event: AxiosProgressEvent) => void;
-  onDownloadProgress?: (event: AxiosProgressEvent) => void;
-  signal?: AbortSignal;
   key: string;
   source: string
 }

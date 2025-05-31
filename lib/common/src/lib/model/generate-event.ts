@@ -20,7 +20,7 @@ export class GenerateStatusEventDto implements IGenerateStatusEventDto {
   @ApiProperty({ example: 'alpha' })
   sourceId: string;
 
-  @ApiProperty({ enum: ['getConfig', 'read', 'generate'] })
+  @ApiProperty({ enum: ['getConfig', 'clear', 'read', 'generate', 'install', 'build', 'copy-to-node-modules', 'postBuild'] })
   step: Step;
 
   @ApiProperty({ enum: ['started','success','error'] })

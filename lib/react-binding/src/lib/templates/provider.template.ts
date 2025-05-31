@@ -1,7 +1,14 @@
-import {typescript} from "common";
+import {IntrigSourceConfig, typescript} from "common";
 import * as path from 'path'
 
-export function providerTemplate(_path: string) {
+export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
+
+  const axiosConfigs = apisToSync.map(a => `
+  ${a.id}: axios.create({
+        ...(configs.defaults ?? {}),
+        ...(configs['${a.id}'] ?? {}),
+      }),
+  `).join("\n");
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`
@@ -36,6 +43,7 @@ import axios, {
 } from 'axios';
 import { ZodSchema } from 'zod';
 import logger from './logger';
+import {flushSync} from "react-dom";
 
 import {Context, RequestType, GlobalState} from './intrig-context';
 
@@ -83,7 +91,9 @@ export function IntrigProvider({
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
   const axiosInstances: Record<string, Axios> = useMemo(() => {
-    return {}
+    return {
+      ${axiosConfigs}
+    }
   }, [configs]);
 
   const contextValue = useMemo(() => {
@@ -93,7 +103,42 @@ export function IntrigProvider({
         let response = await axiosInstances[request.source].request(request);
 
         if (response.status >= 200 && response.status < 300) {
-          if (schema) {
+          if (response.headers?.['content-type']?.includes('text/event-stream')) {
+            const reader = response.data.getReader();
+            const decoder = new TextDecoder();
+            
+            let lastMessage: any
+            
+            while (true) {
+              let { done, value} = await reader.read();
+              if (done) {
+                flushSync(() => dispatch(success(lastMessage)));
+                break;
+              }
+              
+              let chunk = decoder.decode(value, { stream: true });
+              let lines = chunk.split("\\n").filter(Boolean);
+              for (const line of lines) {
+                if (line.startsWith("data:")) {
+                  if (schema) {
+                    let decoded = line.replace("data:", "");
+                    try {
+                      decoded = JSON.parse(decoded);
+                    }
+                    catch (e) { console.error(e); }
+                    let data = schema.safeParse(decoded);
+                    if (!data.success) {
+                      dispatch(error(data.error.issues, response.status, request));
+                      return;
+                    }
+                    flushSync(() => dispatch(pending(undefined, data.data)));
+                  } else {
+                    flushSync(() => dispatch(pending(undefined, line.replace('data:', ''))));
+                  }
+                }
+              }
+            }
+          } else if (schema) {
             let data = schema.safeParse(response.data);
             if (!data.success) {
               dispatch(
@@ -318,7 +363,7 @@ export function useNetworkState<T, E = unknown>({
       (context.state?.[${"`${source}:${operation}:${key}`"}] as NetworkState<T>) ??
       init()
     );
-  }, [context.state?.[${"`${source}:${operation}:${key}`"}]]);
+  }, [JSON.stringify(context.state?.[${"`${source}:${operation}:${key}`"}])]);
 
   const dispatch = useCallback(
     (state: NetworkState<T>) => {

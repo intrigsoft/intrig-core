@@ -3,9 +3,14 @@ import {OpenapiService} from "../services/openapi.service";
 import {IntrigSourceConfig} from "common";
 import type {IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "../services/intrig-config.service";
-import {ApiExtraModels, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {ApiBody, ApiExtraModels, ApiResponse, ApiTags} from "@nestjs/swagger";
 
-type CreateSourceDto = Pick<IntrigSourceConfig, 'specUrl'>;
+type ICreateSourceDto = Pick<IntrigSourceConfig, 'specUrl'>;
+
+class CreateSourceDto implements ICreateSourceDto {
+  constructor(public specUrl: string) {
+  }
+}
 
 @ApiTags('Sources')
 @ApiExtraModels(IntrigSourceConfig)
@@ -17,16 +22,22 @@ export class SourcesController {
               private openApiService: OpenapiService) {
   }
 
+  @ApiBody({
+    type: CreateSourceDto
+  })
   @ApiResponse({
     status: 201,
     type: IntrigSourceConfig
   })
   @Post("transform")
-  async createFromUrl(@Body() dto: CreateSourceDto): Promise<IntrigSourceConfig> {
+  async createFromUrl(@Body() dto: ICreateSourceDto): Promise<IntrigSourceConfig> {
     this.logger.log(`Creating source from URL: ${dto.specUrl}`);
     return this.openApiService.resolveSource(dto.specUrl);
   }
 
+  @ApiBody({
+    type: IntrigSourceConfig
+  })
   @ApiResponse({
     status: 201,
     type: IntrigSourceConfig

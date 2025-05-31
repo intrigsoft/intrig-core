@@ -89,7 +89,7 @@ function extractErrorParams(errorTypes: string[]) {
 export async function requestHookTemplate({source, data: {paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method}}: ResourceDescriptor<RestData>, _path: string) {
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl?.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`
 
   const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
@@ -118,7 +118,7 @@ export async function requestHookTemplate({source, data: {paths, operationId, re
     "...params"
   ].join(",")
 
-  const finalRequestBodyBlock = requestBody ? `body: encode(data, "${contentType}", requestBodySchema)` : ''
+  const finalRequestBodyBlock = requestBody ? `,data: encode(data, "${contentType}", requestBodySchema)` : ''
 
   return ts`
     ${[...imports].join('\n')}
@@ -161,14 +161,15 @@ export async function requestHookTemplate({source, data: {paths, operationId, re
             params,
             key: \`${"${source}: ${operation}"}\`,
             source: '${source}'
-            ${requestBody ? finalRequestBodyBlock : ''}
+            ${requestBody ? finalRequestBodyBlock : ''},
+            ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
           })
           return successfulDispatch();
       }, [dispatch])
 
       useEffect(() => {
         if (options.fetchOnMount) {
-          doExecute(options.params!, ${requestBody ? `options.body!` : ''});
+          doExecute(${[requestBody ? `options.body!` : undefined, "options.params!"].filter(a => a).join(",")});
         }
 
         return () => {
