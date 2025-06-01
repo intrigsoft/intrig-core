@@ -5,7 +5,7 @@ import {
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, Schema, SchemaDocumentation,
-  SourceManagementService
+  SourceManagementService, Tab
 } from "common";
 import {ConfigService} from "@nestjs/config";
 import path from "path";
@@ -28,6 +28,7 @@ import {typeTemplate} from "./templates/source/type/typeTemplate";
 import {swcrcTemplate} from "./templates/swcrc.template";
 import fsx from "fs-extra";
 import {reactHookDocs} from "./templates/docs/react-hook";
+import {sseHookDocs} from "./templates/docs/sse-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -151,6 +152,20 @@ ${"```"}
 
   async getEndpointDocumentation(result: ResourceDescriptor<RestData>, schemas: ResourceDescriptor<Schema>[]): Promise<RestDocumentation> {
     let mapping = Object.fromEntries(schemas.map(a => ([a.name, RelatedType.from({name: a.name, id: a.id})])));
+
+    let tabs: Tab[] = []
+    if (result.data.responseType === 'text/event-stream') {
+      tabs.push({
+        name: 'SSE Hook',
+        content: (await sseHookDocs(result)).content
+      })
+    } else {
+      tabs.push({
+        name: 'React Hook',
+        content: (await reactHookDocs(result)).content
+      })
+    }
+
     return RestDocumentation.from({
       id: result.id,
       name: result.name,
@@ -167,12 +182,7 @@ ${"```"}
         relatedType: mapping[a.ref.split('/').pop()!],
       })) ?? [],
       responseExamples: result.data.responseExamples ?? {},
-      tabs: [
-        {
-          name: 'React Hook',
-          content: (await reactHookDocs(result)).content
-        }
-      ]
+      tabs
     })
   }
 }
