@@ -83,7 +83,7 @@ const data = useMemo(()=> {
   if (isSuccess(${camelCase(descriptor.name)}Resp)) {
     return ${camelCase(descriptor.name)}Resp.data;
   }
-})
+}, [${camelCase(descriptor.name)}Resp])
 
 if (isPending(${camelCase(descriptor.name)}Resp)) {
   return <LoadingIndicator/> //TODO add your loading indicator here.

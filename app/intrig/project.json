@@ -36,12 +36,13 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "nx:run-commands",
       "outputs": [
-        "{workspaceRoot}/coverage/{projectRoot}"
+        "{workspaceRoot}/test-output/vitest/coverage"
       ],
       "options": {
-        "passWithNoTests": true
+        "command": "vitest run",
+        "cwd": "app/intrig"
       }
     },
     "run": {
