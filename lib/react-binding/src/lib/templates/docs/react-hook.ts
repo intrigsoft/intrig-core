@@ -1,10 +1,10 @@
 import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
 
-export function reactHookDocs(result: ResourceDescriptor<RestData>) {
+export function reactHookDocs(descriptor: ResourceDescriptor<RestData>) {
   let md = mdLiteral('react-hook.md')
 
-  let requestBody = result.data.requestBody ? camelCase(result.data.requestBody) : undefined
-  let params = result.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
+  let requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
+  let params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
 
   return md`
 
@@ -18,7 +18,7 @@ Test
 
 #### Import the hook to the component.
 ${"```ts"}
-import { use${pascalCase(result.name)} } from '@intrig/react/${result.path}/client';
+import { use${pascalCase(descriptor.name)} } from '@intrig/react/${descriptor.path}/client';
 ${"```"}
 
 #### Import the utility methods.
@@ -29,27 +29,27 @@ ${"```"}
 #### Use hook inside the component.
 
 ${"```tsx"}
-const [${camelCase(result.name)}Resp, ${camelCase(result.name)}, clear${pascalCase(result.name)}] = use${pascalCase(result.name)}();
+const [${camelCase(descriptor.name)}Resp, ${camelCase(descriptor.name)}, clear${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}();
 ${"```"}
 
 #### Execute data fetching.
 
 ${"```tsx"}
 useEffect(() => {
-  ${camelCase(result.name)}(${[requestBody, params ?? '{}'].filter(Boolean).join(', ')}); 
+  ${camelCase(descriptor.name)}(${[requestBody, params ?? '{}'].filter(Boolean).join(', ')}); 
 }, [${[requestBody, params].filter(Boolean).join(', ')}/* Dependencies */])  
 ${"```"}
 
-Extract the data from the response.
+#### Extract the data from the response.
 
 ${"```tsx"}
-const ${camelCase(result.name)} = isSuccess(${camelCase(result.name)}Resp) ? ${camelCase(result.name)}Resp.data : null;
+const ${camelCase(descriptor.name)} = isSuccess(${camelCase(descriptor.name)}Resp) ? ${camelCase(descriptor.name)}Resp.data : null;
 ${"```"}
 
 
 ## Full examples
 
-#### Quick format.
+#### Short format.
 You can pass the request body and params as props to the hook for initial data binding. This will create the data to be tightly coupled
 with the component lifecycle.
 
@@ -57,10 +57,10 @@ with the component lifecycle.
 <summary>Implementation</summary>
 
 ${"```tsx"}
-import { use${pascalCase(result.name)} } from '@intrig/react/${result.path}/client';
+import { use${pascalCase(descriptor.name)} } from '@intrig/react/${descriptor.path}/client';
 import { isSuccess, isPending, isError } from '@intrig/react';
-${requestBody ? `import { ${pascalCase(requestBody)} } from '@intrig/react/${result.source}/components/schemas/${pascalCase(requestBody)}';` : ''}
-${params ? `import { ${pascalCase(params)}Params } from '@intrig/react/${result.path}/${pascalCase(result.name)}.params';` : ''}
+${requestBody ? `import { ${pascalCase(requestBody)} } from '@intrig/react/${descriptor.source}/components/schemas/${pascalCase(requestBody)}';` : ''}
+${params ? `import { ${pascalCase(params)}Params } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.params';` : ''}
 import { useMemo } from 'react';
 import { LoadingIndicator, ErrorDisplay } from '@/components/ui'; //import from your project.
 
@@ -72,7 +72,7 @@ interface MyComponentProps {
 ` : ''}
 
 function MyComponent(${requestBody || params ? 'props: MyComponentProps' : ''}) { 
-const [${camelCase(result.name)}Resp] = use${pascalCase(result.name)}({
+const [${camelCase(descriptor.name)}Resp] = use${pascalCase(descriptor.name)}({
   fetchOnMount: true,
   clearOnUnmount: true,
   ${requestBody ? `body: props.${camelCase(requestBody)},` : ''}
@@ -80,17 +80,17 @@ const [${camelCase(result.name)}Resp] = use${pascalCase(result.name)}({
 });
 
 const data = useMemo(()=> {
-  if (isSuccess(${camelCase(result.name)}Resp)) {
-    return ${camelCase(result.name)}Resp.data;
+  if (isSuccess(${camelCase(descriptor.name)}Resp)) {
+    return ${camelCase(descriptor.name)}Resp.data;
   }
 }, [${camelCase(descriptor.name)}Resp])
 
-if (isPending(${camelCase(result.name)}Resp)) {
+if (isPending(${camelCase(descriptor.name)}Resp)) {
   return <LoadingIndicator/> //TODO add your loading indicator here.
 }
 
-if (isError(${camelCase(result.name)}Resp)) {
-  return <ErrorDisplay error={${camelCase(result.name)}Resp.error}/> //TODO add your error view here.
+if (isError(${camelCase(descriptor.name)}Resp)) {
+  return <ErrorDisplay error={${camelCase(descriptor.name)}Resp.error}/> //TODO add your error view here.
 }
 
 return <>
@@ -108,10 +108,10 @@ you can use the actions provided by the hook.
 <summary>Implementation</summary>
 
 ${"```tsx"}
-import { use${pascalCase(result.name)} } from '@intrig/react/${result.path}/client';
+import { use${pascalCase(descriptor.name)} } from '@intrig/react/${descriptor.path}/client';
 import { isSuccess } from '@intrig/react';
-${requestBody ? `import { ${pascalCase(requestBody)} } from '@intrig/react/${result.source}/components/schemas/${pascalCase(requestBody)}';` : ''}
-${params ? `import { ${pascalCase(params)}Params } from '@intrig/react/${result.path}/${pascalCase(result.name)}.params';` : ''}
+${requestBody ? `import { ${pascalCase(requestBody)} } from '@intrig/react/${descriptor.source}/components/schemas/${pascalCase(requestBody)}';` : ''}
+${params ? `import { ${pascalCase(params)}Params } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.params';` : ''}
 
 ${requestBody || params ? `
 interface MyComponentProps {
@@ -121,19 +121,19 @@ interface MyComponentProps {
 ` : ''}
 
 function MyComponent() {
-const [${camelCase(result.name)}Resp, ${camelCase(result.name)}, clear${pascalCase(result.name)}] = use${pascalCase(result.name)}();
+const [${camelCase(descriptor.name)}Resp, ${camelCase(descriptor.name)}, clear${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}();
 
 useEffect(() => { 
-  ${camelCase(result.name)}(${requestBody ? `${camelCase(requestBody)},` : ''} ${params ? `${camelCase(params)},` : '{}'}) //Call the fetch function. 
-  return clear${pascalCase(result.name)}; //Clear the data on unmount.
+  ${camelCase(descriptor.name)}(${requestBody ? `${camelCase(requestBody)},` : ''} ${params ? `${camelCase(params)},` : '{}'}) //Call the fetch function. 
+  return clear${pascalCase(descriptor.name)}; //Clear the data on unmount.
 }, [])
 
-if (isPending(${camelCase(result.name)}Resp)) {
+if (isPending(${camelCase(descriptor.name)}Resp)) {
   return <>Loading...</> //TODO add your loading indicator here.
 }
 
-if (isError(${camelCase(result.name)}Resp)) {
-  return <>An error occurred: {JSON.stringify(${camelCase(result.name)}Resp.error)}</> //TODO add your error view here.
+if (isError(${camelCase(descriptor.name)}Resp)) {
+  return <>An error occurred: {JSON.stringify(${camelCase(descriptor.name)}Resp.error)}</> //TODO add your error view here.
 }
 
 return <>
@@ -152,8 +152,17 @@ altogether and observe data directly.
 <summary>Implementation</summary>
 
 ${"```tsx"}
-import { use${pascalCase(result.name)} } from '@intrig/react/${result.path}/client';
+import { use${pascalCase(descriptor.name)} } from '@intrig/react/${descriptor.path}/client';
 import { isSuccess } from '@intrig/react';
+
+function MyComponent() {
+  const [${camelCase(descriptor.name)}Resp] = use${pascalCase(descriptor.name)}()
+  
+  if (isSuccess(${camelCase(descriptor.name)}Resp)) {
+    return <>{${camelCase(descriptor.name)}Resp.data}</> Do something with the data.  
+  }
+}
+${"```"}
 
 </details>
 
@@ -170,7 +179,7 @@ In some cases, you may want to fetch data on the component mount. There are two 
 ### 1. Shorthand.
 
 ${"```tsx"}
-const [${camelCase(result.name)}Resp] = use${pascalCase(result.name)}({
+const [${camelCase(descriptor.name)}Resp] = use${pascalCase(descriptor.name)}({
   fetchOnMount: true,
   ${requestBody ? `body: ${camelCase(requestBody)},` : ''}
   ${params ? `params: ${camelCase(params)},` : 'params: {}'}
@@ -182,10 +191,10 @@ In here the params object is mandatory to execute the fetch call.
 ### 2. Descriptive.
 
 ${"```tsx"}
-const [${camelCase(result.name)}Resp, ${camelCase(result.name)}] = use${pascalCase(result.name)}();
+const [${camelCase(descriptor.name)}Resp, ${camelCase(descriptor.name)}] = use${pascalCase(descriptor.name)}();
 
 useEffect(() => {
-${camelCase(result.name)}(${requestBody ? `${camelCase(requestBody)},` : ''} ${params ? `${camelCase(params)},` : '{}'}) 
+${camelCase(descriptor.name)}(${requestBody ? `${camelCase(requestBody)},` : ''} ${params ? `${camelCase(params)},` : '{}'}) 
 }, [])
 ${"```"}
 </details>
@@ -197,14 +206,14 @@ Its always a good practice to cleanup the data on unmount. There are two methods
 ### 1. Shorthand.
 
 ${"```tsx"}
-const [${camelCase(result.name)}Resp] = use${pascalCase(result.name)}({ clearOnUnmount: true });
+const [${camelCase(descriptor.name)}Resp] = use${pascalCase(descriptor.name)}({ clearOnUnmount: true });
 ${"```"}
 
 ### 2. Descriptive.
 ${"```tsx"}
-const [${camelCase(result.name)}Resp, ,clear${pascalCase(result.name)}] = use${pascalCase(result.name)}();
+const [${camelCase(descriptor.name)}Resp, ,clear${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}();
 
-useEffect(() => clear${pascalCase(result.name)}, [])
+useEffect(() => clear${pascalCase(descriptor.name)}, [])
 ${"```"}
 </details>
 
@@ -226,7 +235,7 @@ ${"```"}
 The simplest form of success data extraction is the turnary operator. 
 
 ${"```tsx"}
-const ${camelCase(result.name)}Data = isSuccess(${camelCase(result.name)}Resp) ? ${camelCase(result.name)}Resp.data : undefined;
+const ${camelCase(descriptor.name)}Data = isSuccess(${camelCase(descriptor.name)}Resp) ? ${camelCase(descriptor.name)}Resp.data : undefined;
 ${"```"}
 </details>
 
@@ -241,7 +250,7 @@ ${"```"}
 
 Then extract the data using the \`isSuccess\` utility method.
 ${"```tsx"}
-const ${camelCase(result.name)}Data = useMemo(() => isSuccess(${camelCase(result.name)}Resp) ? ${camelCase(result.name)}Resp.data : undefined, [${camelCase(result.name)}Resp])
+const ${camelCase(descriptor.name)}Data = useMemo(() => isSuccess(${camelCase(descriptor.name)}Resp) ? ${camelCase(descriptor.name)}Resp.data : undefined, [${camelCase(descriptor.name)}Resp])
 ${"```"}
 </details>
 
@@ -256,13 +265,13 @@ ${"```"}
 
 Then extract the data to the state.
 ${"```tsx"}
-const [${camelCase(result.name)}Data, set${pascalCase(result.name)}Data] = useState<${pascalCase(result.name)}Data | undefined>(undefined);
+const [${camelCase(descriptor.name)}Data, set${pascalCase(descriptor.name)}Data] = useState<${pascalCase(descriptor.name)}Data | undefined>(undefined);
 
 useEffect(() => {
-  if (isSuccess(${camelCase(result.name)}Resp)) {
-  set${pascalCase(result.name)}Data(${camelCase(result.name)}Resp.data);
+  if (isSuccess(${camelCase(descriptor.name)}Resp)) {
+  set${pascalCase(descriptor.name)}Data(${camelCase(descriptor.name)}Resp.data);
   }
-}, [${camelCase(result.name)}Resp])
+}, [${camelCase(descriptor.name)}Resp])
 ${"```"}
 </details>
 
@@ -271,7 +280,7 @@ ${"```"}
 Sometimes, you may want to inline the response into the component jsx.
 
 ${"```tsx"}
-<>{isSuccess(${camelCase(result.name)}Resp) ? ${camelCase(result.name)}Resp.data : null}</>
+<>{isSuccess(${camelCase(descriptor.name)}Resp) ? ${camelCase(descriptor.name)}Resp.data : null}</>
 ${"```"}
 </details>
 
@@ -287,7 +296,7 @@ ${"```"}
 Often times you may need to show the loading indicators while the actual network call is in progress. In that case, you can add a conditional early return.
 
 ${"```tsx"}
-if (isPending(${camelCase(result.name)}Resp)) {
+if (isPending(${camelCase(descriptor.name)}Resp)) {
   return <LoadingIndicator />
 }
 ${"```"}
@@ -298,7 +307,7 @@ ${"```"}
 If you need to show a non-blocking/parallel loading indicator, or change the component behavior based on the loading state, you can inline the loading condition.
  
 ${"```tsx"}
-<>{isPending(${camelCase(result.name)}Resp) ? <LoadingIndicator /> : null}<MyComponent /></>
+<>{isPending(${camelCase(descriptor.name)}Resp) ? <LoadingIndicator /> : null}<MyComponent /></>
 ${"```"}
 </details>
 
@@ -314,7 +323,7 @@ ${"```"}
 In most cases, in an error state, you may want to show the error message to the user instead of real component. In that case, you can add a conditional early return.
 
 ${"```tsx"}
-if (isError(${camelCase(result.name)}Resp)) {
+if (isError(${camelCase(descriptor.name)}Resp)) {
 return <ErrorMessage />
 }
 ${"```"}
@@ -325,7 +334,7 @@ ${"```"}
 If you need to show a non-blocking/parallel error indicator, or change the component behavior based on the error state, you can inline the error condition.
 
 ${"```tsx"}
-<>{isError(${camelCase(result.name)}Resp) ? <ErrorMessage /> : null}<MyComponent /></>
+<>{isError(${camelCase(descriptor.name)}Resp) ? <ErrorMessage /> : null}<MyComponent /></>
 ${"```"}
 </details>
 
@@ -342,10 +351,10 @@ ${"```"}
 Then add the side effect.
 ${"```tsx"}
 useEffect(() => {
-  if (isError(${camelCase(result.name)}Resp)) {
+  if (isError(${camelCase(descriptor.name)}Resp)) {
     //TODO execute error related operation.
   }
-}, [${camelCase(result.name)}Resp])
+}, [${camelCase(descriptor.name)}Resp])
 ${"```"}
 </details>
 
@@ -358,7 +367,7 @@ In some case you may need to instanciate multiple instances of the same request.
 In that cases, you can use \`key\` property to distinguish between these Network states. 
 
 ${'```tsx'}
-const [${camelCase(result.name)}Resp, ${camelCase(result.name)}, clear${pascalCase(result.name)}] = use${pascalCase(result.name)}({ key: 'id1' });
+const [${camelCase(descriptor.name)}Resp, ${camelCase(descriptor.name)}, clear${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}({ key: 'id1' });
 ${'```'} 
 </details>
 

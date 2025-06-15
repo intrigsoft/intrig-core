@@ -53,7 +53,7 @@
       "options": {
         "buildTarget": "intrig:build",
         "runBuildTargetDependencies": false,
-        "watch": false,
+        "watch": true,
         "args": [
           "run"
         ]
