@@ -29,6 +29,8 @@ import {swcrcTemplate} from "./templates/swcrc.template";
 import fsx from "fs-extra";
 import {reactHookDocs} from "./templates/docs/react-hook";
 import {sseHookDocs} from "./templates/docs/sse-hook";
+import {asyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
+import {asyncFunctionHookDocs} from "./templates/docs/async-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -89,6 +91,7 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(clientIndexTemplate([descriptor], this._path))
     await this.dump(paramsTemplate(descriptor, this._path))
     await this.dump(requestHookTemplate(descriptor, this._path))
+    await this.dump(asyncFunctionHookTemplate(descriptor, this._path))
     if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
       await this.dump(downloadHookTemplate(descriptor, this._path))
     }
@@ -165,6 +168,11 @@ ${"```"}
         content: (await reactHookDocs(result)).content
       })
     }
+
+    tabs.push({
+      name: 'Async Function Hook',
+      content: (await asyncFunctionHookDocs(result)).content
+    })
 
     return RestDocumentation.from({
       id: result.id,

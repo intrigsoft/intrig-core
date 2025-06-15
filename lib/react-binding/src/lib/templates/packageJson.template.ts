@@ -11,7 +11,7 @@ export function packageJsonTemplate(_path: string) {
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "swc src -d dist --copy-files && tsc --noEmit"
   },
   "dependencies": {
     "module-alias": "^2.2.2",

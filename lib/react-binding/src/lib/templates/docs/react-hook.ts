@@ -8,10 +8,6 @@ export function reactHookDocs(descriptor: ResourceDescriptor<RestData>) {
 
   return md`
 
-<hint>
-Test
-</hint>
-
 > Intrig-generated hooks are intended for backend data integration. They follow the same tuple-based API pattern as React’s built-in state hooks (e.g. useState).
 
 ## Imports
@@ -32,7 +28,7 @@ ${"```tsx"}
 const [${camelCase(descriptor.name)}Resp, ${camelCase(descriptor.name)}, clear${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}();
 ${"```"}
 
-#### Execute data fetching.
+#### Execute data fetching / calling.
 
 ${"```tsx"}
 useEffect(() => {

@@ -20,12 +20,14 @@ import {
   useMemo,
   useReducer,
   useState,
+  useRef,
 } from 'react';
 import {
   error,
   ErrorState,
   ErrorWithContext,
   init, IntrigHook,
+  isSuccess,
   isError,
   isPending,
   NetworkAction,
@@ -430,6 +432,55 @@ export function useNetworkState<T, E = unknown>({
   }, [dispatch, abortController]);
 
   return [networkState, deboundedExecute, clear, dispatch];
+}
+
+/**
+ * A hook for making transient calls that can be aborted and validated against schemas.
+ *
+ * @param {Object} options The options object.
+ * @param {ZodSchema<T>} [options.schema] Optional schema to validate the response data.
+ * @param {ZodSchema<T>} [options.errorSchema] Optional schema to validate the error response data.
+ * @return {[function(RequestType): Promise<T>, function(): void]} Returns a tuple containing a function to execute the request and a function to abort the ongoing request.
+ */
+export function useTransientCall<T, E = unknown>({
+                                                   schema,
+                                                   errorSchema
+                                                 }: {
+  schema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<T>
+}): [(request: RequestType) => Promise<T>, () => void] {
+  const ctx = useContext(Context);
+  const controller = useRef<AbortController>();
+
+  const call = useCallback(
+    async (request: RequestType)=> {
+      controller.current?.abort();
+      const abort = new AbortController();
+      controller.current = abort;
+
+      return new Promise<T>((resolve, reject) => {
+        ctx.execute(
+          { ...request, signal: abort.signal },
+          (state) => {
+            if (isSuccess(state)) {
+              resolve(state.data);
+            } else if (isError(state)) {
+              reject(state.error);
+            }
+          },
+          schema,
+          errorSchema,
+        );
+      })
+    },
+    [ctx, schema, errorSchema],
+  );
+
+  const abort = useCallback(() => {
+    controller.current?.abort();
+  }, []);
+
+  return [call, abort] as const;
 }
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
