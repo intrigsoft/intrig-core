@@ -1,10 +1,10 @@
 import {Injectable} from '@nestjs/common';
 import {
   GeneratorBinding,
-  IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor,
+  IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, Schema, SchemaDocumentation,
-  SourceManagementService
+  SourceManagementService, Tab
 } from "common";
 import { networkStateTemplate } from './templates/network-state.template';
 import { providerTemplate } from './templates/provider.template';
@@ -31,6 +31,8 @@ import {swcrcTemplate} from "./templates/swcrc.template";
 import path from "path";
 import fs from "fs-extra";
 import * as process from "node:process";
+import fsx from "fs-extra";
+import { reactHookDocs } from './templates/docs/react-hook';
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -49,7 +51,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
 
   async postBuild(): Promise<void> {
     let rootDir = this.config.get('rootDir') ?? process.cwd();
-    const sourceDir = path.resolve(rootDir, '.intrig/generated/dist/api/(generated)');
+    const sourceDir = path.resolve(rootDir, '.intrig/generated/src/api/(generated)');
     const destDir = path.resolve(rootDir, 'src/app/api/(generated)');
 
     fs.removeSync(destDir);
@@ -118,15 +120,86 @@ export class IntrigNextBindingService extends GeneratorBinding {
     }))
   }
 
-  getDocumentation(result: ResourceDescriptor<any>): Promise<any> {
-    return Promise.resolve(undefined);
+  async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
+    let tsFile = fsx.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
+    let collector: Record<string, string> = {}
+    let collectorType = "pre"
+    tsFile.split("\n").forEach(line => {
+      switch (line.trim()) {
+        case "//--- Zod Schemas  ---//":
+          collectorType = "Zod Schema"
+          break;
+        case "//--- Typescript Type  ---//":
+          collectorType = "Typescript Type"
+          break;
+        case "//--- JSON Schema  ---//":
+          collectorType = "JSON Schema"
+          break;
+        case "//--- Simple Type  ---//":
+          collectorType = "Simple Type"
+          break;
+        default:
+          collector[collectorType] = collector[collectorType] ?? ''
+          collector[collectorType] += line + "\n"
+      }
+    })
+    return SchemaDocumentation.from({
+      id: result.id,
+      name: result.data.name,
+      description: "", //TODO improvise description
+      jsonSchema: result.data.schema,
+      tabs: [
+        ["Typescript Type", 'TypeScript interface definition'],
+        ["JSON Schema", 'JSON Schema definition'],
+        ["Zod Schema", 'Zod schema for runtime validation']
+      ].map(([name, description]) => ({
+        name,
+        content: `
+# ${name}
+${description}
+${"```ts"}
+${collector[name]?.trim()}
+${"```"}
+        `
+      })),
+      relatedTypes: [],
+      relatedEndpoints: []
+    })
   }
 
-  getSchemaDocumentation(result: ResourceDescriptor<any>): Promise<SchemaDocumentation> {
-    throw new Error("Method not implemented.");
-  }
+  async getEndpointDocumentation(result: ResourceDescriptor<RestData>, schemas: ResourceDescriptor<Schema>[]): Promise<RestDocumentation> {
+    let mapping = Object.fromEntries(schemas.map(a => ([a.name, RelatedType.from({name: a.name, id: a.id})])));
 
-  getEndpointDocumentation(result: ResourceDescriptor<any>, schemas: ResourceDescriptor<any>[]): Promise<RestDocumentation> {
-    throw new Error("Method not implemented.");
+    let tabs: Tab[] = []
+    if (result.data.responseType === 'text/event-stream') {
+      // tabs.push({
+      //   name: 'SSE Hook',
+      //   content: (await sseHookDocs(result)).content
+      // })
+    } else {
+      tabs.push({
+        name: 'React Hook',
+        content: (await reactHookDocs(result)).content
+      })
+    }
+
+    return RestDocumentation.from({
+      id: result.id,
+      name: result.name,
+      method: result.data.method,
+      path: result.data.requestUrl!,
+      description: result.data.description,
+      requestBody: result.data.requestBody ? mapping[result.data.requestBody] : undefined,
+      contentType: result.data.contentType,
+      response: result.data.response ? mapping[result.data.response] : undefined,
+      responseType: result.data.responseType,
+      requestUrl: result.data.requestUrl!,
+      variables: result.data.variables?.map(a => ({
+        ...a,
+        relatedType: mapping[a.ref.split('/').pop()!],
+      })) ?? [],
+      responseExamples: result.data.responseExamples ?? {},
+      tabs
+    })
   }
 }
