@@ -127,7 +127,7 @@ export function IntrigProvider({
                   }
                   decoded = parsed;
                 } catch (e) {
-                  console.error(e);
+                  logger.error(e);
                 }
                 lastMessage = decoded;
                 flushSync(() => dispatch(pending(undefined, decoded)));
