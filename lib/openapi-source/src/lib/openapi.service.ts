@@ -33,7 +33,11 @@ export class IntrigOpenapiService {
     if (!id) {
       for (const source of config.sources) {
         this.logger.log(`Processing source: ${source.id}`);
-        await this.doSync(source, config, ctx)
+        try {
+          await this.doSync(source, config, ctx)
+        } catch (e: any) {
+          this.logger.error(`Failed to sync source ${source.id}: ${e.message}`, e);
+        }
       }
     } else {
       let source = config.sources.find(s => s.id === id);
@@ -42,7 +46,11 @@ export class IntrigOpenapiService {
         throw new Error(`Source ${id} not found`)
       }
       this.logger.log(`Processing specific source: ${id}`);
-      await this.doSync(source, config, ctx)
+      try {
+        await this.doSync(source, config, ctx)
+      } catch (e: any) {
+        this.logger.error(`Failed to sync source ${id}: ${e.message}`, e);
+      }
     }
     this.logger.log('OpenAPI sync process completed');
   }

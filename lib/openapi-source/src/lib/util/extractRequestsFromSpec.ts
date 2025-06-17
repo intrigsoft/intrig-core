@@ -8,7 +8,6 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document) {
 
   for (const [path, pathData] of Object.entries(spec.paths!)) {
     for (const [method, methodData] of Object.entries(pathData!)) {
-      console.log(method, methodData)
       const operation = deref(spec)<any>(methodData);
       if (isOperationObject(operation)) {
         const variables = operation.parameters
