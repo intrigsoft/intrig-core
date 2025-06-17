@@ -18,7 +18,7 @@ export function swcrcTemplate(_path: string) {
     "type": "es6",
     "noInterop": false
   },
-  "sourceMaps": true,
+  "sourceMaps": true,  
   "exclude": ["../../node_modules"]
 }
   `
