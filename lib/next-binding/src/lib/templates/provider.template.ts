@@ -6,7 +6,7 @@ export function providerTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`
 "use client"
-import {
+import React, {
   createContext,
   PropsWithChildren,
   useCallback,
