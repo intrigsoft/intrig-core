@@ -33,12 +33,12 @@ export function packageJsonTemplate(_path: string) {
   "exports": {
     ".": {
       "import": "./src/index.js",
-      "require": "./dist/index.js",
+      "require": "./src/index.js",
       "types": "./src/index.d.ts"
     },
     "./*": {
       "import": "./src/*.js",
-      "require": "./dist/*.js",
+      "require": "./src/*.js",
       "types": "./src/*.d.ts"
     } 
   },
