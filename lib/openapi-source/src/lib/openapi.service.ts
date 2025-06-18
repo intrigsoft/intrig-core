@@ -20,7 +20,7 @@ import {normalize} from "./util/normalize";
 import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
 import {extractSchemas} from "./util/extractSchemas";
 import * as path from 'path'
-import _ from "lodash";
+import set from "lodash/set";
 
 @Injectable()
 export class IntrigOpenapiService {
@@ -135,7 +135,7 @@ export class IntrigOpenapiService {
       let collector: Record<string, unknown> = {}
       for (let pathsKey in normalized.paths) {
         pathsKey = pathsKey as keyof OpenAPIV3_1.PathsObject;
-        _.set(collector, pathsKey.replaceAll("/", "."), {})
+        set(collector, pathsKey.replaceAll("/", "."), {})
       }
 
       const hasMultipleParameters = (obj: Record<string, unknown> | unknown): boolean => {
@@ -146,7 +146,7 @@ export class IntrigOpenapiService {
         return paramCount > 1;
       };
 
-      const findPathsWithMultipleParams = (obj: Record<string, unknown> | unknown, currentPath: string = ''): string[] => {
+      const findPathsWithMultipleParams = (obj: any, currentPath: string = ''): string[] => {
         let result: string[] = [];
 
         if (typeof obj !== 'object' || obj === null) return result;

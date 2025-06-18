@@ -31,7 +31,6 @@ import {swcrcTemplate} from "./templates/swcrc.template";
 import path from "path";
 import fs from "fs-extra";
 import * as process from "node:process";
-import fsx from "fs-extra";
 import { reactHookDocs } from './templates/docs/react-hook';
 
 const nonDownloadMimePatterns = picomatch([
@@ -127,7 +126,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
   }
 
   async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
-    let tsFile = fsx.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
+    let tsFile = fs.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
     let collector: Record<string, string> = {}
     let collectorType = "pre"
     tsFile.split("\n").forEach(line => {
