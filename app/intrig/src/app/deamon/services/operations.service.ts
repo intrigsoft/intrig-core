@@ -141,8 +141,8 @@ export class OperationsService {
           ...targetPackage.devDependencies,
           ...sourcePackage.devDependencies
         },
-        exports: sourcePackage.exports,
-        typesVersions: sourcePackage.typesVersions,
+        exports: sourcePackage.exports ?? targetPackage.exports,
+        typesVersions: sourcePackage.typesVersions ?? targetPackage.typesVersions,
       };
 
       await fs.writeJson(targetFile, merged, {spaces: 2});
