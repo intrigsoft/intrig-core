@@ -1,5 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
-import type {IIntrigSourceConfig} from 'common'
+import type {IIntrigSourceConfig, RestOptions} from 'common'
 import * as crypto from 'crypto';
 import {
   camelCase,
@@ -20,12 +20,14 @@ import {normalize} from "./util/normalize";
 import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
 import {extractSchemas} from "./util/extractSchemas";
 import * as path from 'path'
+import _ from "lodash";
 
 @Injectable()
 export class IntrigOpenapiService {
   private readonly logger = new Logger(IntrigOpenapiService.name);
 
-  constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {}
+  constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {
+  }
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
     this.logger.log('Starting OpenAPI sync process');
@@ -62,6 +64,7 @@ export class IntrigOpenapiService {
     const raw = response.data;
     let spec = await this.decodeSwaggerDoc(ctx, source, raw);
     let normalized = await this.normalize(ctx, source, spec);
+    this.validate(normalized, config.restOptions);
     await this.saveContent(ctx, source, normalized);
   }
 
@@ -125,5 +128,46 @@ export class IntrigOpenapiService {
         data: schema
       }))
     ]
+  }
+
+  private validate(normalized: OpenAPIV3_1.Document, restOptions: RestOptions | undefined) {
+    function validateForConflictingVariables() {
+      let collector: any = {}
+      for (let pathsKey in normalized.paths) {
+        pathsKey = pathsKey as keyof OpenAPIV3_1.PathsObject;
+        _.set(collector, pathsKey.replaceAll("/", "."), {})
+      }
+
+      const hasMultipleParameters = (obj: any): boolean => {
+        const paramCount = Object.keys(obj)
+          .filter(key => key.startsWith('{'))
+          .length;
+        return paramCount > 1;
+      };
+
+      const findPathsWithMultipleParams = (obj: any, currentPath: string = ''): string[] => {
+        let result: string[] = [];
+
+        if (typeof obj !== 'object') return result;
+
+        if (hasMultipleParameters(obj)) {
+          result.push(currentPath);
+        }
+
+        for (const key in obj) {
+          result = result.concat(findPathsWithMultipleParams(obj[key], currentPath ? `${currentPath}.${key}` : key));
+        }
+
+        return result;
+      };
+
+      const pathsWithMultipleParams = findPathsWithMultipleParams(collector);
+      if (pathsWithMultipleParams.length > 0) {
+        throw new Error(`Found paths with multiple parameters: ${pathsWithMultipleParams.join(', ')}`);
+      }
+    }
+    if (restOptions?.isConflictingVariablesAllowed === false) {
+      validateForConflictingVariables();
+    }
   }
 }

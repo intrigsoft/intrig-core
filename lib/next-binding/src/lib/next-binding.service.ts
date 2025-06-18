@@ -3,7 +3,7 @@ import {
   GeneratorBinding,
   IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
-  RestData, RestDocumentation, Schema, SchemaDocumentation,
+  RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,
   SourceManagementService, Tab
 } from "common";
 import { networkStateTemplate } from './templates/network-state.template';
@@ -47,6 +47,12 @@ export class IntrigNextBindingService extends GeneratorBinding {
               private config: ConfigService
   ) {
     super();
+  }
+
+  override getRestOptions(): RestOptions {
+    return {
+      isConflictingVariablesAllowed: false
+    };
   }
 
   async postBuild(): Promise<void> {

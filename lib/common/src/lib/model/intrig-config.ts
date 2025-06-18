@@ -1,7 +1,7 @@
 import {IIntrigSourceConfig} from "./intrig-source-config";
 
 export interface RestOptions {
-
+  isConflictingVariablesAllowed?: boolean;
 }
 
 export interface IntrigConfig {

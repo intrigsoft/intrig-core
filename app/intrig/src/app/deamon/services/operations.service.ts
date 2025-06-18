@@ -38,7 +38,14 @@ export class OperationsService {
   async sync(ctx: SyncEventContext, id?: string | undefined) {
     let config = await this.getConfig(ctx)
     let prevDescriptors = await this.getPreviousState(ctx, config);
-    await this.openApiService.sync(config, id, ctx)
+    let restOptions = this.generatorBinding.getRestOptions();
+    await this.openApiService.sync({
+      ...config,
+      restOptions: {
+        ...config.restOptions,
+        ...restOptions
+      }
+    }, id, ctx)
     let newDescriptors = await this.getNewState(ctx, config);
     await this.indexDiff(ctx, prevDescriptors, newDescriptors);
   }
