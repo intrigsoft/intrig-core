@@ -11,7 +11,7 @@ export function packageJsonTemplate(_path: string) {
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "swc src -d dist --copy-files && tsc --noEmit"
+    "build": "swc src -d dist --copy-files --strip-leading-paths && tsc --emitDeclarationOnly"
   },
   "dependencies": {
     "axios": "^1.7.7",
@@ -32,7 +32,21 @@ export function packageJsonTemplate(_path: string) {
   },
   "type": "module",
   "exports": {
-    "./*": "./src/*"
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.js",
+      "types": "./src/index.d.ts"
+    },
+    "./*": {
+      "import": "./src/*.js",
+      "require": "./src/*.js",
+      "types": "./src/*.d.ts"
+    } 
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["src/*"]
+    }
   }
 }
   `
