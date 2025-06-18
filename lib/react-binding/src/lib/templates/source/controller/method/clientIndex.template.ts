@@ -7,19 +7,23 @@ import {
 } from 'common';
 import * as path from 'path'
 
-export async function clientIndexTemplate(requestProperties: ResourceDescriptor<RestData>[], _path: string) {
+export async function clientIndexTemplate(descriptors: ResourceDescriptor<RestData>[], _path: string) {
 
-  const {source, data: {paths, operationId, responseType, contentType}} = requestProperties[0]
+  const {source, data: {paths, operationId, responseType, contentType}} = descriptors[0]
 
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `client.ts`))
 
-  if (requestProperties.length === 1) return ts`
+  if (descriptors.length === 1) return ts`
     export { use${pascalCase(operationId)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'
+    export { use${pascalCase(operationId)}Async } from './use${pascalCase(operationId)}Async${generatePostfix(contentType, responseType)}'
   `
 
-  const exports = requestProperties
+  const exports = descriptors
     .map(({data: {contentType, responseType}}) => {
-      return `export { use${pascalCase(operationId)} as use${pascalCase(operationId)}${generatePostfix(contentType, responseType)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'`
+      return `
+      export { use${pascalCase(operationId)} as use${pascalCase(operationId)}${generatePostfix(contentType, responseType)} } from './use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}'
+      export { use${pascalCase(operationId)}Async as use${pascalCase(operationId)}Async${generatePostfix(contentType, responseType)} } from './use${pascalCase(operationId)}Async${generatePostfix(contentType, responseType)}'
+      `
     })
     .join('\n');
 

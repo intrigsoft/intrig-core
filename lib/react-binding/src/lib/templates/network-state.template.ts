@@ -234,6 +234,28 @@ export interface AsyncRequestOptions {
   key?: string;
 }
 
+// Async hook variants for transient (promise-returning) network requests
+
+export type UnaryFunctionAsyncHook<P, T, E = unknown> = ((
+) => [(params: P) => Promise<T>, () => void]) & {
+  key: string;
+};
+
+export type BinaryFunctionAsyncHook<P, B, T, E = unknown> = ((
+) => [(body: B, params: P) => Promise<T>, () => void]) & {
+  key: string;
+};
+
+export type UnaryProduceAsyncHook<P, E = unknown> = ((
+) => [(params: P) => Promise<void>, () => void]) & {
+  key: string;
+};
+
+export type BinaryProduceAsyncHook<P, B, E = unknown> = ((
+) => [(body: B, params: P) => Promise<void>, () => void]) & {
+  key: string;
+};
+
 /**
  * Represents the dispatch state of a process.
  *
