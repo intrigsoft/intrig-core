@@ -20,12 +20,14 @@ import React, {
   useMemo,
   useReducer,
   useState,
+  useRef,
 } from 'react';
 import {
   error,
   ErrorState,
   ErrorWithContext,
   init, IntrigHook,
+  isSuccess,
   isError,
   isPending,
   NetworkAction,
@@ -44,6 +46,7 @@ import axios, {
 import { ZodSchema } from 'zod';
 import logger from './logger';
 import {flushSync} from "react-dom";
+import {createParser} from "eventsource-parser";
 
 import {Context, RequestType, GlobalState} from './intrig-context';
 
@@ -107,36 +110,40 @@ export function IntrigProvider({
             const reader = response.data.getReader();
             const decoder = new TextDecoder();
             
-            let lastMessage: any
-            
+            let lastMessage: any;
+
+            const parser = createParser({
+              onEvent(message) {
+                let decoded = message.data
+                try {
+                  let parsed = JSON.parse(decoded);
+                  if (schema) {
+                    let validated = schema.safeParse(parsed);
+                    if (!validated.success) {
+                      dispatch(
+                        error(validated.error.issues, response.status, request),
+                      );
+                      return;
+                    }
+                    parsed = validated.data;
+                  }
+                  decoded = parsed;
+                } catch (e) {
+                  logger.error(e);
+                }
+                lastMessage = decoded;
+                flushSync(() => dispatch(pending(undefined, decoded)));
+              },
+            });
+
             while (true) {
-              let { done, value} = await reader.read();
+              let { done, value } = await reader.read();
               if (done) {
                 flushSync(() => dispatch(success(lastMessage)));
                 break;
               }
-              
-              let chunk = decoder.decode(value, { stream: true });
-              let lines = chunk.split("\\n").filter(Boolean);
-              for (const line of lines) {
-                if (line.startsWith("data:")) {
-                  if (schema) {
-                    let decoded = line.replace("data:", "");
-                    try {
-                      decoded = JSON.parse(decoded);
-                    }
-                    catch (e) { console.error(e); }
-                    let data = schema.safeParse(decoded);
-                    if (!data.success) {
-                      dispatch(error(data.error.issues, response.status, request));
-                      return;
-                    }
-                    flushSync(() => dispatch(pending(undefined, data.data)));
-                  } else {
-                    flushSync(() => dispatch(pending(undefined, line.replace('data:', ''))));
-                  }
-                }
-              }
+
+              parser.feed(decoder.decode(value, { stream: true }));
             }
           } else if (schema) {
             let data = schema.safeParse(response.data);
@@ -430,6 +437,55 @@ export function useNetworkState<T, E = unknown>({
   }, [dispatch, abortController]);
 
   return [networkState, deboundedExecute, clear, dispatch];
+}
+
+/**
+ * A hook for making transient calls that can be aborted and validated against schemas.
+ *
+ * @param {Object} options The options object.
+ * @param {ZodSchema<T>} [options.schema] Optional schema to validate the response data.
+ * @param {ZodSchema<T>} [options.errorSchema] Optional schema to validate the error response data.
+ * @return {[function(RequestType): Promise<T>, function(): void]} Returns a tuple containing a function to execute the request and a function to abort the ongoing request.
+ */
+export function useTransientCall<T, E = unknown>({
+                                                   schema,
+                                                   errorSchema
+                                                 }: {
+  schema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<T>
+}): [(request: RequestType) => Promise<T>, () => void] {
+  const ctx = useContext(Context);
+  const controller = useRef<AbortController>();
+
+  const call = useCallback(
+    async (request: RequestType)=> {
+      controller.current?.abort();
+      const abort = new AbortController();
+      controller.current = abort;
+
+      return new Promise<T>((resolve, reject) => {
+        ctx.execute(
+          { ...request, signal: abort.signal },
+          (state) => {
+            if (isSuccess(state)) {
+              resolve(state.data);
+            } else if (isError(state)) {
+              reject(state.error);
+            }
+          },
+          schema,
+          errorSchema,
+        );
+      })
+    },
+    [ctx, schema, errorSchema],
+  );
+
+  const abort = useCallback(() => {
+    controller.current?.abort();
+  }, []);
+
+  return [call, abort] as const;
 }
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
