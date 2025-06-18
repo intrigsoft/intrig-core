@@ -11,7 +11,7 @@ import { headers } from 'next/headers';
 import { IntrigProvider } from './intrig-provider';
 import { DefaultConfigs } from './intrig-context';
 
-export default async function IntrigLayout({children, configs}: { children: React.ReactNode, configs?: DefaultConfigs}) {
+export async function IntrigLayout({children, configs}: { children: React.ReactNode, configs?: DefaultConfigs}) {
 
   let headersData = await headers();
   let hydratedResponsesStr = headersData.get('INTRIG_HYDRATED');
@@ -24,5 +24,7 @@ export default async function IntrigLayout({children, configs}: { children: Reac
     </IntrigProvider>
   </>
 }
+
+export default IntrigLayout;
 `
 }
