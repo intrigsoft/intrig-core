@@ -132,23 +132,24 @@ export class IntrigOpenapiService {
 
   private validate(normalized: OpenAPIV3_1.Document, restOptions: RestOptions | undefined) {
     function validateForConflictingVariables() {
-      let collector: any = {}
+      let collector: Record<string, unknown> = {}
       for (let pathsKey in normalized.paths) {
         pathsKey = pathsKey as keyof OpenAPIV3_1.PathsObject;
         _.set(collector, pathsKey.replaceAll("/", "."), {})
       }
 
-      const hasMultipleParameters = (obj: any): boolean => {
+      const hasMultipleParameters = (obj: Record<string, unknown> | unknown): boolean => {
+        if (typeof obj !== 'object' || obj === null) return false;
         const paramCount = Object.keys(obj)
           .filter(key => key.startsWith('{'))
           .length;
         return paramCount > 1;
       };
 
-      const findPathsWithMultipleParams = (obj: any, currentPath: string = ''): string[] => {
+      const findPathsWithMultipleParams = (obj: Record<string, unknown> | unknown, currentPath: string = ''): string[] => {
         let result: string[] = [];
 
-        if (typeof obj !== 'object') return result;
+        if (typeof obj !== 'object' || obj === null) return result;
 
         if (hasMultipleParameters(obj)) {
           result.push(currentPath);
