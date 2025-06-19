@@ -36,7 +36,7 @@ function appendFormData(
   } else if (data !== null && typeof data === 'object') {
     if (Array.isArray(data)) {
       data.forEach((item: any, index: number) => {
-        const key = `${parentKey}`;
+        const key = `${parentKey}[${index}]`;
         appendFormData(formData, item, key);
       });
     } else {
