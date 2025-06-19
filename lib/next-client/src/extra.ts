@@ -120,8 +120,8 @@ export function useAsNetworkState<T, F extends (...args: any) => Promise<T>>(
   const context = useIntrigContext();
 
   const networkState = useMemo(() => {
-    return context.state?.[`promiseState:${id}:${key}}`] ?? init();
-  }, [context.state?.[`promiseState:${id}:${key}}`]]);
+    return context.state?.[`promiseState:${id}:${key}`] ?? init();
+  }, [context.state?.[`promiseState:${id}:${key}`]]);
 
   const dispatch = useCallback(
     (state: NetworkState<T>) => {
