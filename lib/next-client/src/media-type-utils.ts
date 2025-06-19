@@ -51,8 +51,8 @@ function appendFormData(
 }
 
 encoders['multipart/form-data'] = (request, mediaType, schema) => {
-  let _request = request as Record<string, any>;
-  let formData = new FormData();
+  const _request = request as Record<string, any>;
+  const formData = new FormData();
   Object.keys(_request).forEach((key: string) => {
     appendFormData(formData, _request[key], key);
   });
@@ -68,8 +68,8 @@ encoders['application/x-www-form-urlencoded'] = (
   mediaType,
   schema,
 ) => {
-  let formData = new FormData();
-  for (let key in request) {
+  const formData = new FormData();
+  for (const key in request) {
     const value = request[key];
     formData.append(
       key,
@@ -107,8 +107,8 @@ transformers['application/json'] = async (request, mediaType, schema) => {
 };
 
 transformers['multipart/form-data'] = async (request, mediaType, schema) => {
-  let formData = await request.formData();
-  let content: Record<string, any> = {};
+  const formData = await request.formData();
+  const content: Record<string, any> = {};
   formData.forEach((value, key) => {
     if (content[key]) {
       if (!(content[key] instanceof Array)) {
@@ -139,15 +139,15 @@ transformers['application/x-www-form-urlencoded'] = async (
   mediaType,
   schema,
 ) => {
-  let formData = await request.formData();
-  let content: Record<string, any> = {};
+  const formData = await request.formData();
+  const content: Record<string, any> = {};
   formData.forEach((value, key) => (content[key] = value));
   return schema.parse(content);
 };
 
 transformers['application/xml'] = async (request, mediaType, schema) => {
-  let xmlParser = new XMLParser();
-  let content = await xmlParser.parse(await request.text());
+  const xmlParser = new XMLParser();
+  const content = await xmlParser.parse(await request.text());
   return schema.parse(content);
 };
 
@@ -182,7 +182,7 @@ responseTransformers['application/json'] = async (data, mediaType, schema) => {
 };
 
 responseTransformers['application/xml'] = async (data, mediaType, schema) => {
-  let parsed = new XMLParser().parse(data);
+  const parsed = new XMLParser().parse(data);
   return schema.parse(parsed);
 };
 

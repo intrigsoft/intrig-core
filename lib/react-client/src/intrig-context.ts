@@ -40,7 +40,7 @@ export interface ContextType {
  *
  * @type {ContextType}
  */
-let Context = createContext<ContextType>({
+const Context = createContext<ContextType>({
   state: {},
   filteredState: {},
   dispatch() {},

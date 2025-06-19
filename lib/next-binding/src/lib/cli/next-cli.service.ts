@@ -28,15 +28,15 @@ export class NextCliService extends GeneratorCli {
     await this.packageManagerService.installDependency("@intrig/next", false, false, this.rootDir)
     await this.packageManagerService.installDependency("intrig", true, false, this.rootDir)
 
-    let gitIgnorePath = path.resolve(this.rootDir, '.gitignore');
-    let gitIgnoreFileContent = (fs.existsSync(gitIgnorePath) ? fs.readFileSync(gitIgnorePath, 'utf-8') : '').split('\n')
+    const gitIgnorePath = path.resolve(this.rootDir, '.gitignore');
+    const gitIgnoreFileContent = (fs.existsSync(gitIgnorePath) ? fs.readFileSync(gitIgnorePath, 'utf-8') : '').split('\n')
 
     gitIgnoreFileContent.push("**/(generated)")
     fs.writeFileSync(gitIgnorePath, gitIgnoreFileContent.join('\n'), 'utf-8');
   }
 
   async preBuild(): Promise<void> {
-    let rootDir = this.config.get('rootDir') ?? process.cwd();
+    const rootDir = this.config.get('rootDir') ?? process.cwd();
     const sourceDir = path.resolve(rootDir, '.intrig/generated/dist/api/(generated)');
     const destDir = path.resolve(rootDir, 'src/app/api/(generated)');
 

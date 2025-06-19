@@ -31,8 +31,8 @@ export class InitCommand extends CommandRunner {
     }
 
     this.logger.debug('Reading package.json...');
-    let packageJsonPath = path.resolve(this.rootDir, 'package.json');
-    let packageJson: PackageJson = fsx.readJsonSync(packageJsonPath)
+    const packageJsonPath = path.resolve(this.rootDir, 'package.json');
+    const packageJson: PackageJson = fsx.readJsonSync(packageJsonPath)
 
     const dependencies = {...packageJson.dependencies, ...packageJson.devDependencies}
 
@@ -40,7 +40,7 @@ export class InitCommand extends CommandRunner {
       this.logger.warn('Intrig works best with TypeScript. Consider adding TypeScript to your project for the best experience.');
     }
 
-    let generator = this.generators.find(generator => generator.match(packageJson));
+    const generator = this.generators.find(generator => generator.match(packageJson));
 
     if (!generator) {
       this.logger.error('No generator found for this project');
@@ -56,8 +56,8 @@ export class InitCommand extends CommandRunner {
     this.logger.debug('Writing config file...');
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 
-    let gitIgnorePath = path.resolve(this.rootDir, '.gitignore');
-    let gitIgnoreFileContent = (fs.existsSync(gitIgnorePath) ? fs.readFileSync(gitIgnorePath, 'utf-8') : '').split('\n')
+    const gitIgnorePath = path.resolve(this.rootDir, '.gitignore');
+    const gitIgnoreFileContent = (fs.existsSync(gitIgnorePath) ? fs.readFileSync(gitIgnorePath, 'utf-8') : '').split('\n')
 
     if (!gitIgnoreFileContent.includes(".intrig/generated")) {
       this.logger.debug('Updating .gitignore file...');

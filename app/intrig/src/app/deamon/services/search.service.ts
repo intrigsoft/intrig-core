@@ -146,7 +146,7 @@ export class SearchService implements OnModuleInit {
     // enrich with REST-specific fields
     if (isRestDescriptor(desc)) {
       const d = desc.data as RestData;
-      let dataTypes: string[] = [d.requestBody, d.response, ...d.variables?.map(a => a.ref.split('/').pop()) ?? []]
+      const dataTypes: string[] = [d.requestBody, d.response, ...d.variables?.map(a => a.ref.split('/').pop()) ?? []]
         .filter(a => !!a)
         .map(a => a as string);
       Object.assign(base, {
@@ -192,7 +192,7 @@ export class SearchService implements OnModuleInit {
   search(query: string, opts: SearchOptions = {}): ResourceDescriptor<any>[] {
     const now     = Date.now();
     const fuzzy   = opts.fuzzy ?? 0.2;
-    let q = query.trim().length ? query.trim() : '__all__';
+    const q = query.trim().length ? query.trim() : '__all__';
     const rawHits = this.mini.search(q, { prefix: true, fuzzy,
       filter(doc) {
         return (!opts.type || doc.type === opts.type) &&

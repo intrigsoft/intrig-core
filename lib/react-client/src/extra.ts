@@ -112,11 +112,11 @@ export function useAsPromise<P, B, T, E>(
  */
 export function useAsNetworkState<T, F extends (...args: any) => Promise<T>>(
   fn: F,
-  key: string = 'default',
+  key = 'default',
 ): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
   const networkState = useMemo(() => {
     return context.state?.[`promiseState:${id}:${key}}`] ?? init();

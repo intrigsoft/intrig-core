@@ -39,7 +39,7 @@ export class OperationsController {
     this.logger.log(`Starting sync operation${id ? ` for id: ${id}` : ''}`);
     const events$ = new Subject<MessageEvent>();
     setTimeout(async () => {
-      let syncEventContext = new SyncEventContext(events$);
+      const syncEventContext = new SyncEventContext(events$);
       await this.operationsService.sync(syncEventContext, id);
       syncEventContext.done(new SyncDoneEventDto(true));
       this.logger.log('Sync operation completed');
@@ -66,7 +66,7 @@ export class OperationsController {
     this.logger.log('Starting generate operation');
     const events$ = new Subject<MessageEvent>()
     setTimeout(async () => {
-      let generateEventContext = new GenerateEventContext(events$);
+      const generateEventContext = new GenerateEventContext(events$);
       await this.operationsService.generate(generateEventContext);
       generateEventContext.done(new GenerateDoneEventDto(true));
       this.logger.log('Generate operation completed');

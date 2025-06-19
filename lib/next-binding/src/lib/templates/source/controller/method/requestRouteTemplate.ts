@@ -64,7 +64,7 @@ export async function requestRouteTemplate(requestUrl: string, paths: ResourceDe
   }
 
   for (const path of paths) {
-    let data = path.data;
+    const data = path.data;
     switch (data.method.toLowerCase()) {
       case "get":
         imports.add(createImport(data))

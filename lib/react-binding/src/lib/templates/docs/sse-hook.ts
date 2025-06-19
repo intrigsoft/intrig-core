@@ -1,10 +1,10 @@
 import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from "common";
 
 export function sseHookDocs(descriptor: ResourceDescriptor<RestData>) {
-  let md = mdLiteral('sse-hook.md')
+  const md = mdLiteral('sse-hook.md')
 
-  let requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
-  let params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
+  const requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
+  const params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
 
   return md`
 > Intrig-generated hooks are intended for backend data integration. They follow the same tuple-based API pattern as React’s built-in state hooks (e.g. useState). 

@@ -43,7 +43,7 @@ export class PackageManagerService {
   }
 
   async exec(cmd: string, cwd = process.cwd()): Promise<string> {
-    let {stdout, stderr} = await execAsync(cmd, { cwd });
+    const {stdout, stderr} = await execAsync(cmd, { cwd });
     if (stderr) this.logger.warn(stderr.trim());
     return stdout.trim();
   }
@@ -53,7 +53,7 @@ export class PackageManagerService {
     return this.runScript('install', cwd);
   }
 
-  async installDependency(dep: string, dev: boolean = false, legacy: boolean = true, cwd?: string) {
+  async installDependency(dep: string, dev = false, legacy = true, cwd?: string) {
     try {
       switch ((await this.getPM()).name) {
         case "npm":

@@ -44,7 +44,7 @@ async function bootstrapDeamon() {
   const url = `http://localhost:${actualPort}`;
 
   const discovery = app.get(DiscoveryService);
-  let intrigConfig = app.get(IntrigConfigService).get();
+  const intrigConfig = app.get(IntrigConfigService).get();
   discovery.register(actualPort, url, intrigConfig.generator);
 
   logger?.log(`🚀 Application is running on: ${url}/${globalPrefix}`);

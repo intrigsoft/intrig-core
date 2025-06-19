@@ -16,7 +16,7 @@ export class SourcesAddCommand extends CommandRunner {
   }
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
-    let metadata = await this.pm.getMetadata();
+    const metadata = await this.pm.getMetadata();
     if (!metadata) {
       console.error(chalk.red.bold('Error:'), chalk.red('No metadata found.'));
       process.exit(1);
