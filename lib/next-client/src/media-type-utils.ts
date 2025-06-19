@@ -148,7 +148,7 @@ transformers['application/x-www-form-urlencoded'] = async (
 transformers['application/xml'] = async (request, mediaType, schema) => {
   let xmlParser = new XMLParser();
   let content = await xmlParser.parse(await request.text());
-  return schema.parse(await content);
+  return schema.parse(content);
 };
 
 transformers['text/plain'] = async (request, mediaType, schema) => {
