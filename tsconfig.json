@@ -17,6 +17,12 @@
     },
     {
       "path": "./lib/common"
+    },
+    {
+      "path": "./lib/react-client"
+    },
+    {
+      "path": "./lib/next-client"
     }
   ]
 }
