@@ -208,7 +208,9 @@ export interface IntrigProviderStubProps {
 export function IntrigProviderStub({
   children,
   configs = {},
-  stubs = () => {},
+  stubs = () => {
+    // intentionally kept empty
+  },
 }: IntrigProviderStubProps) {
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
