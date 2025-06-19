@@ -51,12 +51,16 @@ export interface ContextType {
  *
  * @type {ContextType}
  */
-let Context = createContext<ContextType>({
+const Context = createContext<ContextType>({
   state: {},
   filteredState: {},
-  dispatch() {},
+  dispatch() {
+    // intentionally kept empty
+  },
   configs: {},
-  async execute() {},
+  async execute() {
+    // intentionally kept empty
+  },
 });
 
 export function useIntrigContext() {

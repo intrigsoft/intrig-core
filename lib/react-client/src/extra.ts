@@ -69,8 +69,12 @@ export function useAsPromise<P, B, T, E>(
   options?: IntrigHookOptions<P, B>,
 ): [(...args: any[]) => Promise<T>, () => void] {
   // <- Compatible return type
-  const resolveRef = useRef<(value: T) => void>(() => {});
-  const rejectRef = useRef<(reason?: any) => void>(() => {});
+  const resolveRef = useRef<(value: T) => void>(() => {
+    // intentionally kept empty
+  });
+  const rejectRef = useRef<(reason?: any) => void>(() => {
+    // intentionally kept empty
+  });
 
   const [state, dispatch, clear] = hook(options as any);
 
@@ -112,11 +116,11 @@ export function useAsPromise<P, B, T, E>(
  */
 export function useAsNetworkState<T, F extends (...args: any) => Promise<T>>(
   fn: F,
-  key: string = 'default',
+  key = 'default',
 ): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
   const networkState = useMemo(() => {
     return context.state?.[`promiseState:${id}:${key}}`] ?? init();

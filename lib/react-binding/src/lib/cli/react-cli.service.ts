@@ -24,6 +24,6 @@ export class ReactCliService extends GeneratorCli {
     await this.packageManagerService.installDependency("@intrig/react", false, false, this.rootDir)
   }
   override async preBuild(): Promise<void> {
-
+    // intentionally kept empty
   }
 }

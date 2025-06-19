@@ -15,9 +15,9 @@ export class SpecManagementService {
   private specsDir: string = this.config.get('specsDir') ?? path.resolve(process.cwd(), '.intrig', 'specs');
 
   async save(apiName: string, content: string) {
-    let currentContent = await this.read(apiName);
+    const currentContent = await this.read(apiName);
     if (currentContent) {
-      let differences = compareSwaggerDocs(
+      const differences = compareSwaggerDocs(
         currentContent,
         JSON.parse(content),
       );
@@ -33,10 +33,10 @@ export class SpecManagementService {
   }
 
   async read(apiName: string): Promise<OpenAPIV3_1.Document | undefined> {
-    let fileName = `${apiName}-latest.json`
-    let specPath = path.join(this.specsDir, fileName);
+    const fileName = `${apiName}-latest.json`
+    const specPath = path.join(this.specsDir, fileName);
     if (fs.existsSync(specPath)) {
-      let content = fs.readFileSync(specPath, 'utf-8');
+      const content = fs.readFileSync(specPath, 'utf-8');
       return JSON.parse(content)
     }
     return undefined

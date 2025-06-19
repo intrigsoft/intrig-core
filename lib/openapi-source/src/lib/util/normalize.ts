@@ -55,7 +55,7 @@ export function normalize(spec: OpenAPIV3_1.Document) {
             })
           }
           if (operationOb.requestBody) {
-            let requestBody = doDeref(operationOb.requestBody) as OpenAPIV3_1.RequestBodyObject;
+            const requestBody = doDeref(operationOb.requestBody) as OpenAPIV3_1.RequestBodyObject;
             operationOb.requestBody = requestBody
             Object.values(requestBody.content)
               .forEach(mto => {

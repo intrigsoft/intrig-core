@@ -63,11 +63,11 @@ export class DataSearchService {
     const result = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
-    let dataTypes = this.searchService.search("", {
+    const dataTypes = this.searchService.search("", {
       dataTypes: [result.name],
       type: 'rest'
     });
-    let schemaDocumentation = await this.generatorBinding.getSchemaDocumentation(result);
+    const schemaDocumentation = await this.generatorBinding.getSchemaDocumentation(result);
     schemaDocumentation.relatedEndpoints = dataTypes.map(d => ({
       id: d.id,
       name: d.name,
@@ -82,8 +82,8 @@ export class DataSearchService {
     const result = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
-    let restData = result.data as RestData;
-    let schemas = this.searchService.search("", {
+    const restData = result.data as RestData;
+    const schemas = this.searchService.search("", {
       type: 'schema',
       names: [restData.requestBody, restData.response, ...restData.variables?.map(a => a.ref.split('/').pop()) ?? []]
         .filter(a => !!a).map(a => a as string)

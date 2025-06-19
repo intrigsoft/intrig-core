@@ -25,10 +25,10 @@ export class PrebuildCommand extends CommandRunner {
       throw new Error("No metadata found");
     }
 
-    let packageJsonPath = path.resolve(this.config.get('rootDir') ?? process.cwd(), 'package.json');
-    let packageJson: PackageJson = fsx.readJsonSync(packageJsonPath)
+    const packageJsonPath = path.resolve(this.config.get('rootDir') ?? process.cwd(), 'package.json');
+    const packageJson: PackageJson = fsx.readJsonSync(packageJsonPath)
 
-    let generator = this.generators.find(generator => generator.match(packageJson));
+    const generator = this.generators.find(generator => generator.match(packageJson));
 
     if (!generator) {
       this.logger.warn('No generator found for this project')

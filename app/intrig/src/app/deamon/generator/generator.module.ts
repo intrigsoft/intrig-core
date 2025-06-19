@@ -25,8 +25,7 @@ export class GeneratorModule {
                 case "next":
                   return nextBinding;
               }
-            } catch (e) {
-            }
+            } catch (e) { /* empty */ }
             return reactBinding;
           }
         }

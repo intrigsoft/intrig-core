@@ -62,7 +62,7 @@ export class SyncCommand extends CommandRunner {
     );
     const stream = response.data as NodeJS.ReadableStream;
 
-    let spinners: Record<string, ora.Ora> = {}
+    const spinners: Record<string, ora.Ora> = {}
 
     // 6) parser
     const parser = createParser({

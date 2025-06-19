@@ -5,7 +5,7 @@ export function jsonLiteral(path: string) {
     const rawCode = strings.reduce((acc, str, i) =>
       acc + str + (values[i] || ''), '');
 
-    let content = await prettier.format(rawCode, {
+    const content = await prettier.format(rawCode, {
       parser: 'json',
       singleQuote: true
     });

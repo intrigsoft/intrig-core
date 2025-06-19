@@ -7,7 +7,7 @@ export function mdLiteral(path: string) {
 
     rawCode = rawCode.replace("<hint>", "<hint style='display:none'>");
 
-    let content = await prettier.format(rawCode, {
+    const content = await prettier.format(rawCode, {
       parser: 'markdown'
     })
 

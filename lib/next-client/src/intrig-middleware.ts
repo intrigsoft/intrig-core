@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { headers } from 'next/headers';
-//@ts-ignore
-let insightHook = await import('intrig-hook');
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
+const insightHook = await import('intrig-hook');
 
 export async function getAxiosInstance(key: string) {
   const baseURL = process.env[`${key.toUpperCase()}_API_URL`];
@@ -21,9 +22,9 @@ export async function getAxiosInstance(key: string) {
 }
 
 export async function addResponseToHydrate(key: string, responseData: any) {
-  let _headers = await headers();
-  let intrigHydrated = _headers.get('INTRIG_HYDRATED');
-  let ob = intrigHydrated ? JSON.parse(intrigHydrated) : {};
+  const _headers = await headers();
+  const intrigHydrated = _headers.get('INTRIG_HYDRATED');
+  const ob = intrigHydrated ? JSON.parse(intrigHydrated) : {};
   ob[key] = responseData;
   _headers.set('INTRIG_HYDRATED', JSON.stringify(ob));
 }

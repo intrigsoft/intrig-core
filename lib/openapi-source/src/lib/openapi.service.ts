@@ -42,7 +42,7 @@ export class IntrigOpenapiService {
         }
       }
     } else {
-      let source = config.sources.find(s => s.id === id);
+      const source = config.sources.find(s => s.id === id);
       if (!source) {
         this.logger.error(`Source ${id} not found`);
         throw new Error(`Source ${id} not found`)
@@ -62,8 +62,8 @@ export class IntrigOpenapiService {
     const response = await this.fetchSwaggerDoc(ctx, source);
 
     const raw = response.data;
-    let spec = await this.decodeSwaggerDoc(ctx, source, raw);
-    let normalized = await this.normalize(ctx, source, spec);
+    const spec = await this.decodeSwaggerDoc(ctx, source, raw);
+    const normalized = await this.normalize(ctx, source, spec);
     this.validate(normalized, config.restOptions);
     await this.saveContent(ctx, source, normalized);
   }
@@ -75,7 +75,7 @@ export class IntrigOpenapiService {
 
   @WithStatus((source, spec) => ({step: 'normalize', sourceId: source.id}))
   private async normalize(ctx: SyncEventContext, source: IIntrigSourceConfig, spec: any) {
-    let document = await RefParser.bundle(await spec) as OpenAPIV3_1.Document;
+    const document = await RefParser.bundle(await spec) as OpenAPIV3_1.Document;
     return normalize(document);
   }
 
@@ -101,12 +101,12 @@ export class IntrigOpenapiService {
   }
 
   async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {
-    let document = await this.specManagementService.read(id);
+    const document = await this.specManagementService.read(id);
     if (!document) {
       throw new Error(`Spec ${id} not found`)
     }
-    let restData = extractRequestsFromSpec(document);
-    let schemas = extractSchemas(document);
+    const restData = extractRequestsFromSpec(document);
+    const schemas = extractSchemas(document);
 
     const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
 
@@ -132,7 +132,7 @@ export class IntrigOpenapiService {
 
   private validate(normalized: OpenAPIV3_1.Document, restOptions: RestOptions | undefined) {
     function validateForConflictingVariables() {
-      let collector: Record<string, unknown> = {}
+      const collector: Record<string, unknown> = {}
       for (let pathsKey in normalized.paths) {
         pathsKey = pathsKey as keyof OpenAPIV3_1.PathsObject;
         set(collector, pathsKey.replaceAll("/", "."), {})
@@ -146,7 +146,7 @@ export class IntrigOpenapiService {
         return paramCount > 1;
       };
 
-      const findPathsWithMultipleParams = (obj: any, currentPath: string = ''): string[] => {
+      const findPathsWithMultipleParams = (obj: any, currentPath = ''): string[] => {
         let result: string[] = [];
 
         if (typeof obj !== 'object' || obj === null) return result;

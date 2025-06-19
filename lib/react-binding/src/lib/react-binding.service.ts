@@ -69,7 +69,7 @@ export class ReactBindingService extends GeneratorBinding {
   }
 
   async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
-    for (let descriptor of descriptors) {
+    for (const descriptor of descriptors) {
       this.logger.log(`Generating source: ${JSON.stringify(descriptor)}`)
       if (isRestDescriptor(descriptor)) {
         await this.generateRestSource(source, descriptor)
@@ -107,8 +107,8 @@ export class ReactBindingService extends GeneratorBinding {
   }
 
   async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
-    let tsFile = fsx.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
-    let collector: Record<string, string> = {}
+    const tsFile = fsx.readFileSync(`${this._path}/src/${result.source}/components/schemas/${result.data.name}.ts`, "utf8");
+    const collector: Record<string, string> = {}
     let collectorType = "pre"
     tsFile.split("\n").forEach(line => {
       switch (line.trim()) {
@@ -154,9 +154,9 @@ ${"```"}
   }
 
   async getEndpointDocumentation(result: ResourceDescriptor<RestData>, schemas: ResourceDescriptor<Schema>[]): Promise<RestDocumentation> {
-    let mapping = Object.fromEntries(schemas.map(a => ([a.name, RelatedType.from({name: a.name, id: a.id})])));
+    const mapping = Object.fromEntries(schemas.map(a => ([a.name, RelatedType.from({name: a.name, id: a.id})])));
 
-    let tabs: Tab[] = []
+    const tabs: Tab[] = []
     if (result.data.responseType === 'text/event-stream') {
       tabs.push({
         name: 'SSE Hook',

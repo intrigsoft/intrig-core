@@ -1,10 +1,10 @@
 import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
 
 export function asyncFunctionHookDocs(descriptor: ResourceDescriptor<RestData>) {
-  let md = mdLiteral('async-hook.md')
+  const md = mdLiteral('async-hook.md')
 
-  let requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
-  let params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
+  const requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
+  const params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
 
   return md`
   

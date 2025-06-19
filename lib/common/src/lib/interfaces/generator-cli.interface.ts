@@ -6,6 +6,6 @@ export abstract class GeneratorCli {
   abstract postInit(): Promise<void>
   abstract preBuild(): Promise<void>
   async postBuild() {
-
+    // intentionally kept empty
   }
 }

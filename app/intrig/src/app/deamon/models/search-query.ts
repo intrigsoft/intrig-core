@@ -18,9 +18,9 @@ export class SearchQuery {
 
   @ApiProperty({ required: false, description: 'zero-based page index', default: 0 })
   @Type(() => Number)
-  @IsOptional() @IsInt() @Min(0) page: number = 0;
+  @IsOptional() @IsInt() @Min(0) page = 0;
 
   @ApiProperty({ required: false, description: 'page size', default: 10 })
   @Type(() => Number)
-  @IsOptional() @IsInt() @Min(1) size: number = 10;
+  @IsOptional() @IsInt() @Min(1) size = 10;
 }

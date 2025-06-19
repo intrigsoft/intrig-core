@@ -36,11 +36,11 @@ export class GenerateCommand extends CommandRunner {
     );
     const stream = response.data as NodeJS.ReadableStream;
 
-    let spinners: Record<string, ora.Ora> = {}
+    const spinners: Record<string, ora.Ora> = {}
     // 4) set up SSE parser
     const parser = createParser({
       onEvent(event: EventSourceMessage) {
-        let { sourceId = 'global', step = 'generate', status } = JSON.parse(event.data);
+        const { sourceId = 'global', step = 'generate', status } = JSON.parse(event.data);
         const label = `${sourceId} › ${step}`;
 
         switch (status) {

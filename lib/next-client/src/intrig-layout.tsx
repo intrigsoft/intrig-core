@@ -11,9 +11,9 @@ export async function IntrigLayout({
   children: React.ReactNode;
   configs?: DefaultConfigs;
 }) {
-  let headersData = await headers();
-  let hydratedResponsesStr = headersData.get('INTRIG_HYDRATED');
-  let hydratedResponses = hydratedResponsesStr
+  const headersData = await headers();
+  const hydratedResponsesStr = headersData.get('INTRIG_HYDRATED');
+  const hydratedResponses = hydratedResponsesStr
     ? JSON.parse(hydratedResponsesStr)
     : {};
   headersData.delete('INTRIG_HYDRATED');

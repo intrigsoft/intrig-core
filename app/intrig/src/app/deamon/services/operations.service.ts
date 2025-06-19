@@ -36,9 +36,9 @@ export class OperationsService {
   }
 
   async sync(ctx: SyncEventContext, id?: string | undefined) {
-    let config = await this.getConfig(ctx)
-    let prevDescriptors = await this.getPreviousState(ctx, config);
-    let restOptions = this.generatorBinding.getRestOptions();
+    const config = await this.getConfig(ctx)
+    const prevDescriptors = await this.getPreviousState(ctx, config);
+    const restOptions = this.generatorBinding.getRestOptions();
     await this.openApiService.sync({
       ...config,
       restOptions: {
@@ -46,13 +46,13 @@ export class OperationsService {
         ...restOptions
       }
     }, id, ctx)
-    let newDescriptors = await this.getNewState(ctx, config);
+    const newDescriptors = await this.getNewState(ctx, config);
     await this.indexDiff(ctx, prevDescriptors, newDescriptors);
   }
 
   @WithStatus((p1, p2) => ({sourceId: '', step: 'indexDiff'}))
   private async indexDiff(ctx: SyncEventContext, prevDescriptors: ResourceDescriptor<RestData | Schema>[], newDescriptors: ResourceDescriptor<RestData | Schema>[]) {
-    let diff = await this.diffDescriptors(prevDescriptors, newDescriptors);
+    const diff = await this.diffDescriptors(prevDescriptors, newDescriptors);
 
     [...diff.added, ...diff.modified].forEach(descriptor => {
       this.searchService.addDescriptor(descriptor);
@@ -65,13 +65,11 @@ export class OperationsService {
   @WithStatus(event => ({sourceId: '', step: 'loadPreviousState'}))
   private async getPreviousState(ctx: SyncEventContext, config: IntrigConfig) {
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
-    for (let source of config.sources) {
+    for (const source of config.sources) {
       try {
-        let descriptors = await this.openApiService.getResourceDescriptors(source.id);
+        const descriptors = await this.openApiService.getResourceDescriptors(source.id);
         prevDescriptors = [...prevDescriptors, ...descriptors]
-      } catch (e: any) {
-
-      }
+      } catch (e: any) { /* empty */ }
     }
     return prevDescriptors;
   }
@@ -79,8 +77,8 @@ export class OperationsService {
   @WithStatus(event => ({sourceId: '', step: 'loadNewState'}))
   private async getNewState(ctx: SyncEventContext, config: IntrigConfig) {
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
-    for (let source of config.sources) {
-      let descriptors = await this.openApiService.getResourceDescriptors(source.id);
+    for (const source of config.sources) {
+      const descriptors = await this.openApiService.getResourceDescriptors(source.id);
       prevDescriptors = [...prevDescriptors, ...descriptors]
     }
     return prevDescriptors;
@@ -110,10 +108,10 @@ export class OperationsService {
 
   async generate(ctx: GenerateEventContext) {
 
-    let config = await this.getConfig(ctx)
+    const config = await this.getConfig(ctx)
     await this.clearGenerateDir(ctx);
     for (const source of config.sources) {
-      let descriptors = await this.getDescriptors(ctx, source);
+      const descriptors = await this.getDescriptors(ctx, source);
       await this.generateSourceContent(ctx, descriptors, source);
     }
 

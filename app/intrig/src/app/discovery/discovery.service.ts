@@ -143,7 +143,7 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
   onApplicationShutdown(signal: string) {
     const filePath = this.getMetadataFilePath();
     if (fs.existsSync(filePath)) {
-      let metadata: DiscoveryMetadata = fsx.readJsonSync(filePath, 'utf-8');
+      const metadata: DiscoveryMetadata = fsx.readJsonSync(filePath, 'utf-8');
       if (metadata.pid !== process.pid) {
         return
       }
