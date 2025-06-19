@@ -69,9 +69,7 @@ export class OperationsService {
       try {
         const descriptors = await this.openApiService.getResourceDescriptors(source.id);
         prevDescriptors = [...prevDescriptors, ...descriptors]
-      } catch (e: any) {
-
-      }
+      } catch (e: any) { /* empty */ }
     }
     return prevDescriptors;
   }

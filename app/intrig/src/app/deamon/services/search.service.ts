@@ -77,8 +77,7 @@ export class SearchService implements OnModuleInit {
         const descriptors = await this.openApiService.getResourceDescriptors(source.id);
         descriptors.forEach(descriptor => this.addDescriptor(descriptor));
       }
-    } catch (e) {
-    }
+    } catch (e) { /* empty */ }
   }
 
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { headers } from 'next/headers';
-//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 const insightHook = await import('intrig-hook');
 
 export async function getAxiosInstance(key: string) {
