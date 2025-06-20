@@ -27,7 +27,7 @@ export class ResourceDescriptor<T> implements IResourceDescriptor<T> {
   @ApiProperty({description: 'Path to the resource'})
   path: string;
 
-  @ApiProperty({description: 'Resource data'})
+  @ApiProperty({description: 'Resource data', type: () => Object})
   data: T;
 
   @ApiProperty({description: 'Last access timestamp', required: false})

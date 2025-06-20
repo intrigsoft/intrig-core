@@ -186,7 +186,7 @@ export function requestHookTemplate(
         : ''
     }
 
-    ${extractErrorParams(errorTypes)}
+    ${extractErrorParams(errorTypes.map(a => a as string))}
 
     const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
     const source = "${source}"
@@ -224,14 +224,15 @@ export function requestHookTemplate(
             },
             params,
             key: \`${'${source}: ${operation}'}\`,
-            ${requestBody ? finalRequestBodyBlock : ''}
+            ${requestBody ? finalRequestBodyBlock : ''},
+            ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
           })
           return successfulDispatch();
       }, [dispatch])
 
       useEffect(() => {
         if (options.fetchOnMount) {
-          doExecute(${requestBody ? `options.body!,` : ''} options.params!);
+          doExecute(${[requestBody ? `options.body!` : undefined, "options.params!"].filter(a => a).join(",")});
         }
 
         return () => {
