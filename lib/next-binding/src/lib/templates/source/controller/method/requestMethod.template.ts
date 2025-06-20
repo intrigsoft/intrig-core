@@ -94,7 +94,7 @@ export function requestMethodTemplate(
   imports.add(`import { z, ZodError } from 'zod'`);
   imports.add(`import { isAxiosError } from 'axios';`);
   imports.add(
-    `import {getAxiosInstance, addResponseToHydrate} from '@intrig/next/intrig-middleware'`,
+    `import {getAxiosInstance, addResponseToHydrate, getHeaders} from '@intrig/next/intrig-middleware'`,
   );
   imports.add(
     `import {transformResponse, encode} from '@intrig/next/media-type-utils'`,
@@ -175,11 +175,14 @@ export function requestMethodTemplate(
           logger.info("Executing request ${source}: ${method} ${modifiedRequestUrl}");
           logger.debug("⇨", {p, ${requestBody ? 'data' : ''}})
 
+          let _headers = await getHeaders() ?? {};
+
           let axiosInstance = await getAxiosInstance('${source}')
           let { data: responseData, headers } = await axiosInstance.request({
             method: '${method}',
             url: \`${modifiedRequestUrl}\`,
             headers: {
+              ..._headers,
               ${contentType ? `"Content-Type": "${contentType}",` : ''}
             },
             params,

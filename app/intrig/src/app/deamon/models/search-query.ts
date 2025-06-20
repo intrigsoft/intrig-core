@@ -16,11 +16,11 @@ export class SearchQuery {
   @ApiProperty({ required: false, description: 'filter by REST package path' })
   @IsOptional() @IsString() pkg?: string;
 
-  @ApiProperty({ required: false, description: 'zero-based page index', default: 0 })
+  @ApiProperty({ required: false, description: 'zero-based page index', default: 0, type: Number })
   @Type(() => Number)
   @IsOptional() @IsInt() @Min(0) page = 0;
 
-  @ApiProperty({ required: false, description: 'page size', default: 10 })
+  @ApiProperty({ required: false, description: 'page size', default: 10, type: Number })
   @Type(() => Number)
   @IsOptional() @IsInt() @Min(1) size = 10;
 }

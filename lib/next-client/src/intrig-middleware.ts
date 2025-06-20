@@ -1,10 +1,37 @@
-import axios from 'axios';
-import { headers } from 'next/headers';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-const insightHook = await import('intrig-hook');
+import axios, {AxiosInstance} from 'axios';
+import {headers} from 'next/headers';
+
+interface RequestContext {
+  headers?: Record<string, string>;
+}
+
+const CONTEXT = new WeakMap<Headers, RequestContext>();
+
+export async function addToHeaders(newHeaders: Record<string, string>) {
+  const _headers = await headers();
+
+  const ctx = CONTEXT.get(_headers) ?? {};
+  CONTEXT.set(_headers, {
+    ...ctx,
+    headers: {
+      ...ctx.headers,
+      ...newHeaders
+    }
+  });
+}
+
+export async function getHeaders() {
+  const _headers = await headers();
+  const ctx = CONTEXT.get(_headers) ?? {};
+  return ctx.headers;
+}
+
+const clients = new Map<string, AxiosInstance>();
 
 export async function getAxiosInstance(key: string) {
+  if (clients.has(key)) {
+    return clients.get(key)!;
+  }
   const baseURL = process.env[`${key.toUpperCase()}_API_URL`];
   if (!baseURL) {
     throw new Error(
@@ -12,12 +39,10 @@ export async function getAxiosInstance(key: string) {
     );
   }
 
-  const axiosInstance = axios.create({ baseURL });
-
-  if (insightHook?.requestInterceptor) {
-    axiosInstance.interceptors.request.use(insightHook.requestInterceptor);
-  }
-
+  const axiosInstance = axios.create({
+    baseURL
+  });
+  clients.set(key, axiosInstance);
   return axiosInstance;
 }
 
