@@ -224,8 +224,7 @@ export function requestHookTemplate(
             },
             params,
             key: \`${'${source}: ${operation}'}\`,
-            ${requestBody ? finalRequestBodyBlock : ''},
-            ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
+            ${[requestBody ? finalRequestBodyBlock : undefined, responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : undefined].filter(Boolean).join(',\n')}
           })
           return successfulDispatch();
       }, [dispatch])

@@ -37,7 +37,7 @@ const clients = new Map<string, AxiosInstance>();
 
 export async function getAxiosInstance(key: string) {
   if (clients.has(key)) {
-    return clients.get(key);
+    return clients.get(key)!;
   }
   const baseURL = process.env[${"`${key.toUpperCase()}_API_URL`"}];
   if (!baseURL) {
