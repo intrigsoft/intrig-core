@@ -1,28 +1,29 @@
 # Intrig Core
 
-A powerful code generation tool for creating React and Next.js bindings from API specifications.
+A powerful TypeScript library and code generator designed to streamline OpenAPI-based network integration.
 
 ## Overview
 
-Intrig Core is a framework for generating type-safe API client code for React and Next.js applications. It takes API specifications (like OpenAPI) as input and generates fully typed client libraries that can be used in your frontend applications.
+Intrig Core is a TypeScript library and code generator designed to simplify the process of connecting to APIs described by the OpenAPI specification. It generates type-safe TypeScript code for React and Next.js applications, reducing manual coding effort and potential for errors.
 
 ## Features
 
 - **Multiple Framework Support**: Generate client code for both React and Next.js
-- **Type Safety**: Generate TypeScript interfaces from API schemas
+- **Type Safety**: Generate TypeScript interfaces from API schemas for reduced runtime errors
 - **REST API Support**: Generate hooks and utilities for REST API endpoints
 - **File Download Support**: Special handling for file download endpoints
 - **Customizable Templates**: Flexible template system for code generation
-- **CLI and Server Modes**: Use as a CLI tool or run as a server with Swagger documentation
+- **Intrig Insight**: Project-specific documentation about the generated code
+- **CLI Tool**: Comprehensive command-line interface for managing your project
 
 ## Installation
 
 ```bash
 # Install globally
-npm install -g @intrig-core/source
+npm install -g @intrigsoft/intrig-core
 
 # Or use with npx
-npx @intrig-core/source
+npx @intrigsoft/intrig-core
 ```
 
 ## Usage
@@ -49,38 +50,119 @@ You can set the generator to either "react" or "next" depending on your target f
 ### CLI Commands
 
 ```bash
+# Initialize Intrig in your project
+intrig init
+
+# Add sources
+intrig sources add
+
+# List all sources
+intrig sources ls
+
+# Remove a source
+intrig sources rm
+
+# Sync all entities
+intrig sync
+
 # Generate code
 intrig generate
 
-# Run in server mode
-intrig run
+# Manage the daemon
+intrig deamon up
+intrig deamon down
+intrig deamon restart
+intrig deamon status
+
+# Search for resources
+intrig search
+
+# Prebuild and postbuild operations
+intrig prebuild
+intrig postbuild
 
 # Get help
 intrig --help
 ```
 
-### Server Mode
-
-When running in server mode, Intrig Core provides a web interface for exploring and generating code from API specifications. The server is available at:
-
-- API: http://localhost:{port}/api
-- Swagger Docs: http://localhost:{port}/docs
-
 ## Architecture
 
-Intrig Core is built as a monorepo with the following components:
+Intrig Core is built as a monorepo with NestJS, a popular Node.js framework for building scalable server-side applications with TypeScript. The project includes the following components:
 
 - **common**: Shared utilities, interfaces, and services
 - **openapi-source**: Parser for OpenAPI specifications
 - **react-binding**: Generator for React bindings
 - **next-binding**: Generator for Next.js bindings
-- **intrig**: CLI application
+- **react-client**: Client library for React applications
+- **next-client**: Client library for Next.js applications
+- **intrig**: CLI application and daemon for documentation and sync purposes
 
 The code generation process follows these steps:
 
 1. Parse API specifications into resource descriptors
 2. Generate code using templates based on the selected framework
 3. Output the generated code to the configured directory
+
+## Intrig Insight
+
+Intrig Insight is a powerful feature that addresses the "knowledge cost" challenge common with code generators. It provides:
+
+- **Project-specific documentation** about the generated code
+- **Customized and personalized documentation** for your specific integration
+- **Reduced learning curve** for new team members or those unfamiliar with generated code
+- **Documentation that stays in sync** with the actual generated output
+
+Intrig Insight communicates with a project-specific daemon to provide this documentation. You can start the daemon using:
+
+```bash
+intrig deamon up
+```
+
+## Common Workflows
+
+### Setting Up a New Project
+
+1. Initialize Intrig in your project:
+   ```
+   intrig init
+   ```
+
+2. Add sources:
+   ```
+   intrig sources add
+   ```
+
+3. Sync entities:
+   ```
+   intrig sync
+   ```
+
+4. Generate code:
+   ```
+   intrig generate
+   ```
+
+### Managing the Daemon
+
+1. Start the daemon:
+   ```
+   intrig deamon up
+   ```
+
+2. Check daemon status:
+   ```
+   intrig deamon status
+   ```
+
+3. Restart the daemon after configuration changes:
+   ```
+   intrig deamon restart
+   ```
+
+4. Stop the daemon when not needed:
+   ```
+   intrig deamon down
+   ```
 
 ## Development
 
@@ -93,7 +175,7 @@ The code generation process follows these steps:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/intrig-core.git
+git clone https://github.com/intrigsoft/intrig-core.git
 cd intrig-core
 
 # Install dependencies
@@ -108,6 +190,25 @@ npm run build
 ```bash
 npm test
 ```
+
+## Troubleshooting
+
+If you encounter issues with Intrig, try the following:
+
+1. Check if the daemon is running:
+   ```
+   intrig deamon status
+   ```
+
+2. Restart the daemon:
+   ```
+   intrig deamon restart
+   ```
+
+3. Ensure your sources are correctly configured:
+   ```
+   intrig sources ls
+   ```
 
 ## Contributing
 
