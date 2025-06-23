@@ -124,7 +124,22 @@
   "release": {
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
-    }
+    },
+    "projects": ["app/intrig", "lib/next-client", "lib/react-client"],
+    "npmPackages": [
+      {
+        "packageRoot": "app/intrig",
+        "packageName": "@intrig-core/intrig"
+      },
+      {
+        "packageRoot": "lib/next-client",
+        "packageName": "@intrig/next"
+      },
+      {
+        "packageRoot": "lib/react-client",
+        "packageName": "@intrig/react"
+      }
+    ]
   },
   "generators": {
     "@nx/react": {
