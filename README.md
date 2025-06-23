@@ -191,6 +191,39 @@ npm run build
 npm test
 ```
 
+## Release Process
+
+To release new versions of the packages, we use Nx Release, which handles version synchronization and publishing in a single command.
+
+### Available Release Commands
+
+```bash
+# Default release (patch)
+npm run release
+
+# Specific release types
+npm run release:patch  # Increment patch version (0.0.x)
+npm run release:minor  # Increment minor version (0.x.0)
+npm run release:major  # Increment major version (x.0.0)
+
+# Test the release process without publishing
+npm run release:dry-run
+```
+
+### What Nx Release Does
+
+1. Builds all packages using Nx (configured as a preVersionCommand)
+2. Bumps the version according to the release type (major, minor, or patch)
+3. Updates all package versions to the new version (syncing them)
+4. Publishes all packages to npm with the new version
+
+### Packages Published
+
+Nx Release publishes the following packages:
+- `@intrig-core/intrig`
+- `@intrig/next`
+- `@intrig/react`
+
 ## Troubleshooting
 
 If you encounter issues with Intrig, try the following:

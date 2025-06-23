@@ -1,5 +1,5 @@
 {
-  "name": "@intrig-core/intrig",
+  "name": "@intrig/core",
   "version": "0.0.2",
   "private": false,
   "type": "module",
