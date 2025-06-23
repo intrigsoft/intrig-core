@@ -8,5 +8,8 @@
   },
   "files": [
     "main.js"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
