@@ -128,15 +128,15 @@
     "projects": ["app/intrig", "lib/next-client", "lib/react-client"],
     "npmPackages": [
       {
-        "packageRoot": "app/intrig",
+        "packageRoot": "dist/app/intrig",
         "packageName": "@intrig/core"
       },
       {
-        "packageRoot": "lib/next-client",
+        "packageRoot": "dist/lib/next-client",
         "packageName": "@intrig/next"
       },
       {
-        "packageRoot": "lib/react-client",
+        "packageRoot": "dist/lib/react-client",
         "packageName": "@intrig/react"
       }
     ]

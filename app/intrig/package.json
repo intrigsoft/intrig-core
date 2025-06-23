@@ -7,7 +7,8 @@
     "intrig": "./main.js"
   },
   "files": [
-    "main.js"
+    "main.js",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
