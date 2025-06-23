@@ -83,7 +83,10 @@ module.exports = {
       compiler: 'swc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: ['./src/assets'],
+      assets: [
+        './src/assets',
+        { input: '../../', output: '.', glob: 'README.md' }
+      ],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: true,
