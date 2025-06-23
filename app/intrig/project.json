@@ -67,6 +67,12 @@
           "buildTarget": "intrig:build:production"
         }
       }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/app/intrig"
+      }
     }
   }
 }

@@ -38,9 +38,5 @@
       "import": "./index.esm.js",
       "default": "./index.esm.js"
     }
-  },
-  "files": [
-    ".",
-    "!**/*.tsbuildinfo"
-  ]
+  }
 }

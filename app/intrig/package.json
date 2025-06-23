@@ -6,10 +6,6 @@
   "bin": {
     "intrig": "./main.js"
   },
-  "files": [
-    "main.js",
-    "README.md"
-  ],
   "publishConfig": {
     "access": "public"
   }
