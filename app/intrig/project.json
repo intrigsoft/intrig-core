@@ -72,7 +72,10 @@
       "executor": "@nx/js:release-publish",
       "options": {
         "packageRoot": "dist/app/intrig"
-      }
+      },
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }
