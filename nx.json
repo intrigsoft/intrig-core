@@ -129,7 +129,7 @@
     "npmPackages": [
       {
         "packageRoot": "app/intrig",
-        "packageName": "@intrig-core/intrig"
+        "packageName": "@intrig/core"
       },
       {
         "packageRoot": "lib/next-client",
