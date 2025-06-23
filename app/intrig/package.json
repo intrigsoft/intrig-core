@@ -1,14 +1,11 @@
 {
   "name": "@intrig/core",
-  "version": "0.0.6",
+  "version": "0.0.12",
   "private": false,
   "type": "module",
   "bin": {
     "intrig": "./main.js"
   },
-  "files": [
-    "main.js"
-  ],
   "publishConfig": {
     "access": "public"
   }

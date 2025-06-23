@@ -1,6 +1,6 @@
 {
   "name": "@intrig/next",
-  "version": "0.0.6",
+  "version": "0.0.12",
   "type": "module",
   "main": "./index.esm.js",
   "module": "./index.esm.js",
@@ -38,9 +38,5 @@
       "import": "./index.esm.js",
       "default": "./index.esm.js"
     }
-  },
-  "files": [
-    ".",
-    "!**/*.tsbuildinfo"
-  ]
+  }
 }
