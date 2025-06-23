@@ -20,10 +20,10 @@ Intrig Core is a TypeScript library and code generator designed to simplify the 
 
 ```bash
 # Install globally
-npm install -g @intrigsoft/intrig-core
+npm install -g @intrig/core
 
 # Or use with npx
-npx @intrigsoft/intrig-core
+npx @intrig/core
 ```
 
 ## Usage
@@ -220,7 +220,7 @@ npm run release:dry-run
 ### Packages Published
 
 Nx Release publishes the following packages:
-- `@intrig-core/intrig`
+- `@intrig/core`
 - `@intrig/next`
 - `@intrig/react`
 
