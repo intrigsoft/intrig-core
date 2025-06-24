@@ -1,7 +1,9 @@
 import {jsonLiteral} from "common";
 import * as path from "path";
+import * as fsx from "fs-extra";
 
 export function packageJsonTemplate(_path: string) {
+  const packageJson = fsx.readJsonSync(path.resolve(_path, '..', '..', 'package.json'));
   const json = jsonLiteral(path.resolve(_path, 'package.json'))
   return json`
 {
@@ -23,9 +25,13 @@ export function packageJsonTemplate(_path: string) {
     "module-alias": "^2.2.2",
     "zod": "^3.23.8"
   },
+  "devDependencies": {
+    "react": "${packageJson.dependencies.react}",
+    "react-dom": "${packageJson.dependencies['react-dom']}"
+  },
   "peerDependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "_moduleAliases": {
     "@intrig/react": "./src"

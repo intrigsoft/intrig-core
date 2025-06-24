@@ -12,6 +12,7 @@ export function tsConfigTemplate(_path: string) {
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {

@@ -356,7 +356,7 @@ export function useNetworkState<T, E = unknown>({
 }: NetworkStateProps<T>): [
   NetworkState<T, E>,
   (request: RequestType) => void,
-  clear: () => void,
+  () => void,
   (state: NetworkState<T, E>) => void
 ] {
   const context = useContext(Context);
@@ -468,7 +468,7 @@ export function useTransientCall<T, E = unknown>({
           { ...request, signal: abort.signal },
           (state) => {
             if (isSuccess(state)) {
-              resolve(state.data);
+              resolve(state.data as T);
             } else if (isError(state)) {
               reject(state.error);
             }
@@ -485,7 +485,7 @@ export function useTransientCall<T, E = unknown>({
     controller.current?.abort();
   }, []);
 
-  return [call, abort] as const;
+  return [call, abort];
 }
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
@@ -510,7 +510,7 @@ export function useCentralError() {
   const ctx = useContext(Context);
 
   return useMemo(() => {
-    return Object.entries(ctx.filteredState)
+    return Object.entries(ctx.filteredState as Record<string, NetworkState>)
       .filter(([, state]) => isError(state))
       .map(([k, state]) => {
         let [source, operation, key] = k.split(':');
@@ -534,7 +534,7 @@ export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {
-    let pendingStates = Object.values(ctx.filteredState).filter(isPending);
+    let pendingStates = Object.values(ctx.filteredState as Record<string, NetworkState>).filter(isPending);
     if (!pendingStates.length) {
       return init();
     }

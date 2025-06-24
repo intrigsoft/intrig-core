@@ -86,10 +86,12 @@ export function useAsPromise<P, B, T, E>(
  * @param key An optional identifier for the network state. Defaults to 'default'.
  * @return A tuple containing the current network state, a function to execute the promise, and a function to clear the state.
  */
-export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, key: string = 'default'): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
+export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(fn: F, options: any = {}): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
   let id = useId();
 
   let context = useIntrigContext();
+
+  let key = options.key ?? 'default';
 
   const networkState = useMemo(() => {
     return context.state?.[${"`promiseState:${id}:${key}}`"}] ?? init()
@@ -102,7 +104,7 @@ export function useAsNetworkState<T, F extends ((...args: any) => Promise<T>)>(f
     [key, context.dispatch]
   );
 
-  const execute = useCallback((...args: Parameters<F>) => {
+  const execute = useCallback((...args: any[]) => {
     dispatch(pending())
     return fn(...args).then(
       (data) => {

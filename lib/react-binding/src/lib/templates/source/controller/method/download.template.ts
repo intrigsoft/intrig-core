@@ -7,22 +7,34 @@ import {
 } from 'common';
 import * as path from 'path';
 
-function extractHookShape(response: string | undefined, requestBody: string | undefined, imports: Set<string>) {
+function extractHookShapeAndOptionsShape(response: string | undefined, requestBody: string | undefined, imports: Set<string>) {
   if (response) {
     if (requestBody) {
-      imports.add(`import { BinaryFunctionHook } from "@intrig/react"`);
-      return `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`;
+      imports.add(`import { BinaryFunctionHook, BinaryHookOptions } from "@intrig/react"`);
+      return {
+        hookShape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
+        optionsShape: `BinaryHookOptions<Params, RequestBody>`
+      };
     } else {
-      imports.add(`import { UnaryFunctionHook } from "@intrig/react"`);
-      return `UnaryFunctionHook<Params, Response, _ErrorType>`;
+      imports.add(`import { UnaryFunctionHook, UnaryHookOptions } from "@intrig/react"`);
+      return {
+        hookShape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
+        optionsShape: `UnaryHookOptions<Params>`
+      };
     }
   } else {
     if (requestBody) {
-      imports.add(`import { BinaryProduceHook } from "@intrig/react"`);
-      return `BinaryProduceHook<Params, RequestBody, _ErrorType>`;
+      imports.add(`import { BinaryProduceHook, BinaryHookOptions } from "@intrig/react"`);
+      return {
+        hookShape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
+        optionsShape: `BinaryHookOptions<Params, RequestBody>`
+      };
     } else {
-      imports.add(`import { UnaryProduceHook } from "@intrig/react"`);
-      return `UnaryProduceHook<Params, _ErrorType>`;
+      imports.add(`import { UnaryProduceHook, UnaryHookOptions } from "@intrig/react"`);
+      return {
+        hookShape: `UnaryProduceHook<Params, _ErrorType>`,
+        optionsShape: `UnaryHookOptions<Params>`
+      };
     }
   }
 }
@@ -85,7 +97,7 @@ export async function downloadHookTemplate({source, data: {paths, operationId, r
   imports.add(`import { useCallback } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, successfulDispatch, validationError, encode} from "@intrig/react"`)
 
-  const hookShape = extractHookShape(response, requestBody, imports);
+  const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
   const { paramExpression, paramType } = extractParamDeconstruction(variables, requestBody);
 
@@ -148,9 +160,9 @@ export async function downloadHookTemplate({source, data: {paths, operationId, r
     const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(key: string = "default"): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
+    function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
       let [state,, clear, dispatch] = useNetworkState<Response, _ErrorType>({
-        key,
+        key: options?.key ?? 'default',
         operation,
         source,
         schema,

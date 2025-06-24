@@ -8,7 +8,7 @@ export function contextTemplate(_path: string) {
   import { NetworkAction, NetworkState } from '@intrig/react/network-state';
 import { AxiosProgressEvent, AxiosRequestConfig } from 'axios';
 import { ZodSchema } from 'zod';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, Dispatch } from 'react';
 import { DefaultConfigs } from '@intrig/react/intrig-provider';
 
 type GlobalState = Record<string, NetworkState>;
@@ -25,13 +25,13 @@ interface RequestType<T = any> extends AxiosRequestConfig {
  *
  * @interface ContextType
  * @property {GlobalState} state - The global state of the application.
- * @property {React.Dispatch<NetworkAction<unknown>>} dispatch - The dispatch function to send network actions.
+ * @property {Dispatch<NetworkAction<unknown>>} dispatch - The dispatch function to send network actions.
  * @property {Record<string, AxiosInstance>} axios - A record of Axios instances for making HTTP requests.
  */
 export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
-  dispatch: React.Dispatch<NetworkAction<unknown, unknown>>;
+  dispatch: Dispatch<NetworkAction<unknown, unknown>>;
   configs: DefaultConfigs;
   execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
 }
