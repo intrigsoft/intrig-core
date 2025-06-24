@@ -1,3 +1,13 @@
+## 0.0.14-4 (2025-06-24)
+
+### 🩹 Fixes
+
+- initialize `useRef` with null in provider template ([b743171](https://github.com/intrigsoft/intrig-core/commit/b743171))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.14-3 (2025-06-24)
 
 This was a version bump only, there were no code changes.
