@@ -1,6 +1,6 @@
 {
   "name": "@intrig/react",
-  "version": "0.0.12",
+  "version": "0.0.13-0",
   "type": "module",
   "main": "./index.esm.js",
   "module": "./index.esm.js",
