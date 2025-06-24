@@ -455,7 +455,7 @@ export function useTransientCall<T, E = unknown>({
   errorSchema?: ZodSchema<T>
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
-  const controller = useRef<AbortController>();
+  const controller = useRef<AbortController>(null);
 
   const call = useCallback(
     async (request: RequestType)=> {
