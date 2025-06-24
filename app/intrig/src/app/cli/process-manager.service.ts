@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { spawn } from 'child_process';
+import { spawn } from 'cross-spawn';
 import { DiscoveryService } from '../discovery/discovery.service';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
