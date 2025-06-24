@@ -190,9 +190,6 @@ export class OperationsService {
   @WithStatus(event => ({sourceId: '', step: 'install'}))
   private async installDependencies(ctx: GenerateEventContext) {
     await this.packageManagerService.install(this.generateDir)
-    await this.packageManagerService.installDependency("@swc/core", true, false, this.generateDir)
-    await this.packageManagerService.installDependency("@swc/cli", true, false, this.generateDir)
-    await this.packageManagerService.installDependency("@types/node", true, false, this.generateDir)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'generate'}))

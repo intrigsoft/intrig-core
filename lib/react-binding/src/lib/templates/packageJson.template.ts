@@ -26,6 +26,9 @@ export function packageJsonTemplate(_path: string) {
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@swc/cli": "^0.7.7",
+    "@swc/core": "^1.12.6",
+    "@types/node": "^24.0.4",
     "react": "${packageJson.dependencies.react}",
     "react-dom": "${packageJson.dependencies['react-dom']}"
   },
