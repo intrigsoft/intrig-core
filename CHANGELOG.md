@@ -1,3 +1,13 @@
+## 0.0.14-6 (2025-06-25)
+
+### 🚀 Features
+
+- make request and response interceptors async in provider templates ([ba77f62](https://github.com/intrigsoft/intrig-core/commit/ba77f62))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.14-5 (2025-06-25)
 
 ### 🚀 Features
