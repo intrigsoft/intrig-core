@@ -1,3 +1,17 @@
+## 0.0.14-5 (2025-06-25)
+
+### 🚀 Features
+
+- add customizable request and response interceptors to Axios instance creation ([bd26f56](https://github.com/intrigsoft/intrig-core/commit/bd26f56))
+
+### 🩹 Fixes
+
+- replace `@ts-ignore` with `@ts-expect-error` for stricter type checking ([e532bdc](https://github.com/intrigsoft/intrig-core/commit/e532bdc))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.14-4 (2025-06-24)
 
 ### 🩹 Fixes
