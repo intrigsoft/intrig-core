@@ -68,8 +68,10 @@ function requestReducer(
 
 export interface DefaultConfigs extends CreateAxiosDefaults {
   debounceDelay?: number;
-  requestInterceptor?: (config: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
-  responseInterceptor?: (config: AxiosResponse<any>) => AxiosResponse<any>;
+  requestInterceptor?: (
+    config: InternalAxiosRequestConfig,
+  ) => Promise<InternalAxiosRequestConfig>;
+  responseInterceptor?: (config: AxiosResponse<any>) => Promise<AxiosResponse<any>>;
 }
 
 export interface IntrigProviderProps {
@@ -82,13 +84,13 @@ function createAxiosInstance(defaultConfig?: DefaultConfigs, config?: DefaultCon
     ...defaultConfig ?? {},
     ...config ?? {},
   });
-  function requestInterceptor(cfg: InternalAxiosRequestConfig) {
-    let intermediate = defaultConfig?.requestInterceptor?.(cfg) ?? cfg;
+  async function requestInterceptor(cfg: InternalAxiosRequestConfig) {
+    let intermediate = await defaultConfig?.requestInterceptor?.(cfg) ?? cfg;
     return config?.requestInterceptor?.(intermediate) ?? intermediate;
   }
 
-  function responseInterceptor(cfg: AxiosResponse<any>) {
-    let intermediate = defaultConfig?.responseInterceptor?.(cfg) ?? cfg;
+  async function responseInterceptor(cfg: AxiosResponse<any>) {
+    let intermediate = await defaultConfig?.responseInterceptor?.(cfg) ?? cfg;
     return config?.responseInterceptor?.(intermediate) ?? intermediate;
   }
 
