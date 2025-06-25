@@ -93,7 +93,9 @@ function createAxiosInstance(defaultConfig?: DefaultConfigs, config?: DefaultCon
   }
 
   axiosInstance.interceptors.request.use(requestInterceptor)
-  axiosInstance.interceptors.response.use(responseInterceptor, (error) => {})
+  axiosInstance.interceptors.response.use(responseInterceptor, (error) => {
+    return Promise.reject(error);
+  })
   return axiosInstance;
 }
 
