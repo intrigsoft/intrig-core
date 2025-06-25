@@ -7,6 +7,11 @@ export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]
   ${a.id}: createAxiosInstance(configs.defaults, configs['${a.id}']),
   `).join("\n");
 
+  const configType = `{
+  defaults?: DefaultConfigs,
+  ${apisToSync.map(a => `${a.id}?: DefaultConfigs`).join(",\n  ")}
+  }`
+
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`
 import React, {
@@ -75,7 +80,7 @@ export interface DefaultConfigs extends CreateAxiosDefaults {
 }
 
 export interface IntrigProviderProps {
-  configs?: Record<string, DefaultConfigs>;
+  configs?: ${configType};
   children: React.ReactNode;
 }
 
