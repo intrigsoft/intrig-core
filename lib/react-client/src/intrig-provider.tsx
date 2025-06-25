@@ -87,7 +87,7 @@ function createAxiosInstance(
 
   axiosInstance.interceptors.request.use(requestInterceptor);
   axiosInstance.interceptors.response.use(responseInterceptor, (error) => {
-    //intentionally kept empty
+    return Promise.reject(error);
   });
   return axiosInstance;
 }
