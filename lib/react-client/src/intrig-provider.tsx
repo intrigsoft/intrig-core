@@ -23,7 +23,9 @@ import {
 import axios, {
   Axios,
   AxiosProgressEvent,
+  AxiosResponse,
   CreateAxiosDefaults,
+  InternalAxiosRequestConfig,
   isAxiosError,
 } from 'axios';
 import { ZodSchema } from 'zod';
@@ -52,11 +54,42 @@ function requestReducer(
 
 export interface DefaultConfigs extends CreateAxiosDefaults {
   debounceDelay?: number;
+  requestInterceptor?: (
+    config: InternalAxiosRequestConfig,
+  ) => InternalAxiosRequestConfig;
+  responseInterceptor?: (config: AxiosResponse<any>) => AxiosResponse<any>;
 }
 
 export interface IntrigProviderProps {
   configs?: Record<string, DefaultConfigs>;
   children: React.ReactNode;
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
+function createAxiosInstance(
+  defaultConfig?: DefaultConfigs,
+  config?: DefaultConfigs,
+) {
+  const axiosInstance = axios.create({
+    ...(defaultConfig ?? {}),
+    ...(config ?? {}),
+  });
+  function requestInterceptor(cfg: InternalAxiosRequestConfig) {
+    const intermediate = defaultConfig?.requestInterceptor?.(cfg) ?? cfg;
+    return config?.requestInterceptor?.(intermediate) ?? intermediate;
+  }
+
+  function responseInterceptor(cfg: AxiosResponse<any>) {
+    const intermediate = defaultConfig?.responseInterceptor?.(cfg) ?? cfg;
+    return config?.responseInterceptor?.(intermediate) ?? intermediate;
+  }
+
+  axiosInstance.interceptors.request.use(requestInterceptor);
+  axiosInstance.interceptors.response.use(responseInterceptor, (error) => {
+    return Promise.reject(error);
+  });
+  return axiosInstance;
 }
 
 /**
@@ -78,10 +111,7 @@ export function IntrigProvider({
 
   const axiosInstances: Record<string, Axios> = useMemo(() => {
     return {
-      deamon_api: axios.create({
-        ...(configs.defaults ?? {}),
-        ...(configs['deamon_api'] ?? {}),
-      }),
+
     };
   }, [configs]);
 

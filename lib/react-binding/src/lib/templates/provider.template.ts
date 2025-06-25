@@ -4,10 +4,7 @@ import * as path from 'path'
 export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
 
   const axiosConfigs = apisToSync.map(a => `
-  ${a.id}: axios.create({
-        ...(configs.defaults ?? {}),
-        ...(configs['${a.id}'] ?? {}),
-      }),
+  ${a.id}: createAxiosInstance(configs.defaults, configs['${a.id}']),
   `).join("\n");
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
@@ -39,8 +36,10 @@ import {
 import axios, {
   Axios,
   AxiosProgressEvent,
-  AxiosRequestConfig,
+  AxiosRequestConfig, 
+  AxiosResponse,
   CreateAxiosDefaults,
+  InternalAxiosRequestConfig,
   isAxiosError,
 } from 'axios';
 import { ZodSchema } from 'zod';
@@ -69,11 +68,35 @@ function requestReducer(
 
 export interface DefaultConfigs extends CreateAxiosDefaults {
   debounceDelay?: number;
+  requestInterceptor?: (config: InternalAxiosRequestConfig) => InternalAxiosRequestConfig;
+  responseInterceptor?: (config: AxiosResponse<any>) => AxiosResponse<any>;
 }
 
 export interface IntrigProviderProps {
   configs?: Record<string, DefaultConfigs>;
   children: React.ReactNode;
+}
+
+function createAxiosInstance(defaultConfig?: DefaultConfigs, config?: DefaultConfigs) {
+  const axiosInstance = axios.create({
+    ...defaultConfig ?? {},
+    ...config ?? {},
+  });
+  function requestInterceptor(cfg: InternalAxiosRequestConfig) {
+    let intermediate = defaultConfig?.requestInterceptor?.(cfg) ?? cfg;
+    return config?.requestInterceptor?.(intermediate) ?? intermediate;
+  }
+
+  function responseInterceptor(cfg: AxiosResponse<any>) {
+    let intermediate = defaultConfig?.responseInterceptor?.(cfg) ?? cfg;
+    return config?.responseInterceptor?.(intermediate) ?? intermediate;
+  }
+
+  axiosInstance.interceptors.request.use(requestInterceptor)
+  axiosInstance.interceptors.response.use(responseInterceptor, (error) => {
+    return Promise.reject(error);
+  })
+  return axiosInstance;
 }
 
 /**
