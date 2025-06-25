@@ -65,7 +65,8 @@ export interface IntrigProviderProps {
   children: React.ReactNode;
 }
 
-// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 function createAxiosInstance(
   defaultConfig?: DefaultConfigs,
   config?: DefaultConfigs,
