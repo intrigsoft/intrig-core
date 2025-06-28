@@ -52,14 +52,9 @@ export class OperationsService {
 
   @WithStatus((p1, p2) => ({sourceId: '', step: 'indexDiff'}))
   private async indexDiff(ctx: SyncEventContext, prevDescriptors: ResourceDescriptor<RestData | Schema>[], newDescriptors: ResourceDescriptor<RestData | Schema>[]) {
-    const diff = await this.diffDescriptors(prevDescriptors, newDescriptors);
 
-    [...diff.added, ...diff.modified].forEach(descriptor => {
-      this.searchService.addDescriptor(descriptor);
-    })
-    diff.removed.forEach(descriptor => {
-      this.searchService.removeDescriptor(descriptor.id);
-    })
+    this.searchService.clearAll()
+    newDescriptors.forEach(this.searchService.addDescriptor.bind(this.searchService))
   }
 
   @WithStatus(event => ({sourceId: '', step: 'loadPreviousState'}))
@@ -84,27 +79,27 @@ export class OperationsService {
     return prevDescriptors;
   }
 
-  private async diffDescriptors<T>(
-    oldArr: ResourceDescriptor<T>[],
-    newArr: ResourceDescriptor<T>[]
-  ) {
-    // 1. Added: in newArr but not in oldArr (by id)
-    const added = _.differenceBy(newArr, oldArr, 'id');
-
-    // 2. Removed: in oldArr but not in newArr (by id)
-    const removed = _.differenceBy(oldArr, newArr, 'id');
-
-    // 3. Intersection: items present in both sets (by id)
-    const intersection = _.intersectionBy(newArr, oldArr, 'id');
-
-    // 4. Modified: same id but deep-shape differs (including data, or any other prop)
-    const modified = intersection.filter(newItem => {
-      const oldItem = _.find(oldArr, ['id', newItem.id])!;
-      return !_.isEqual(oldItem, newItem);
-    });
-
-    return { added, removed, modified };
-  }
+  // private async diffDescriptors<T>(
+  //   oldArr: ResourceDescriptor<T>[],
+  //   newArr: ResourceDescriptor<T>[]
+  // ) {
+  //   // 1. Added: in newArr but not in oldArr (by id)
+  //   const added = _.differenceBy(newArr, oldArr, 'id');
+  //
+  //   // 2. Removed: in oldArr but not in newArr (by id)
+  //   const removed = _.differenceBy(oldArr, newArr, 'id');
+  //
+  //   // 3. Intersection: items present in both sets (by id)
+  //   const intersection = _.intersectionBy(newArr, oldArr, 'id');
+  //
+  //   // 4. Modified: same id but deep-shape differs (including data, or any other prop)
+  //   const modified = intersection.filter(newItem => {
+  //     const oldItem = _.find(oldArr, ['id', newItem.id])!;
+  //     return !_.isEqual(oldItem, newItem);
+  //   });
+  //
+  //   return { added, removed, modified };
+  // }
 
   async generate(ctx: GenerateEventContext) {
 
