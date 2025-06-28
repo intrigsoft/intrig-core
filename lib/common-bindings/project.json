@@ -1,13 +1,13 @@
 {
-  "name": "react-binding",
+  "name": "common-bindings",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "lib/react-binding/src",
+  "sourceRoot": "lib/common-bindings/src",
   "projectType": "library",
   "tags": [],
   "targets": {
     "nx-release-publish": {
       "executor": "@nx/js:release-publish",
-      "options": {"packageRoot": "dist/lib/react-binding"},
+      "options": {"packageRoot": "dist/lib/common-bindings"},
       "dependsOn": ["^build"]
     }
   }

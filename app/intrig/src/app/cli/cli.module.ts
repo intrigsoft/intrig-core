@@ -8,15 +8,17 @@ import {SourcesCommand} from "./commands/sources.command";
 import {CommonModule} from "common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
-import {ReactCliModule, ReactCliService} from "react-binding";
+import {BUILTIN_PLUGINS} from "../plugins/builtin-plugins";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 
+const cliModules = BUILTIN_PLUGINS.map(p => p.cliModule);
+const cliServices = BUILTIN_PLUGINS.map(p => p.cliService);
+
 @Module({
-  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
+  imports: [CommonModule, DiscoveryModule, HttpModule, ...cliModules],
   providers: [
     ProcessManagerService,
     ...DeamonCommand.registerWithSubCommands(),
@@ -28,12 +30,11 @@ import {PostbuildCommand} from "./commands/postbuild.command";
     HttpModule,
     PrebuildCommand,
     PostbuildCommand,
+    ...cliServices,
     {
       provide: GENERATORS,
-      inject: [NextCliService, ReactCliService],
-      useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
-        return [nextCliService, reactCliService]
-      }
+      inject: cliServices,
+      useFactory: (...services: any[]) => services
     }
   ],
 })

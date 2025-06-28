@@ -1,32 +1,29 @@
 import {DynamicModule, Module} from '@nestjs/common';
 import {IntrigConfigService} from "../services/intrig-config.service";
-import {ReactBindingService} from "react-binding";
-import {IntrigNextBindingService} from "next-binding";
-import {GeneratorBinding} from "common";
+import {GeneratorBinding} from "@intrig/common";
+import {BUILTIN_PLUGINS} from "../../plugins/builtin-plugins";
 
 @Module({})
 export class GeneratorModule {
-  static register(): DynamicModule {
+  static register(plugins = BUILTIN_PLUGINS): DynamicModule {
+    const bindingModules = plugins.map(p => p.bindingModule);
+    const bindingServices = plugins.map(p => p.bindingService);
     return {
       module: GeneratorModule,
-      imports: [],
+      imports: [...bindingModules],
       providers: [
         IntrigConfigService,
-        ReactBindingService,
-        IntrigNextBindingService,
+        ...bindingServices,
         {
           provide: GeneratorBinding,
-          inject: [IntrigConfigService, ReactBindingService, IntrigNextBindingService],
-          useFactory: (configService: IntrigConfigService, reactBinding: ReactBindingService, nextBinding: IntrigNextBindingService): GeneratorBinding => {
+          inject: [IntrigConfigService, ...bindingServices],
+          useFactory: (configService: IntrigConfigService, ...bindings: GeneratorBinding[]): GeneratorBinding => {
             try {
-              switch (configService.get().generator) {
-                case "react":
-                  return reactBinding;
-                case "next":
-                  return nextBinding;
-              }
+              const generator = configService.get().generator;
+              const idx = plugins.findIndex(p => p.name === generator);
+              return bindings[idx >= 0 ? idx : 0];
             } catch (e) { /* empty */ }
-            return reactBinding;
+            return bindings[0];
           }
         }
       ],

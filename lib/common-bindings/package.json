@@ -1,7 +1,7 @@
 {
-  "name": "@intrig/next-binding",
+  "name": "@intrig/common",
   "version": "0.0.1",
-  
+  "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -12,7 +12,5 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {
-    "@intrig/common": "*"
-}
+  "dependencies": {}
 }

@@ -1,7 +1,7 @@
 {
-  "name": "react-binding",
+  "name": "@intrig/react-binding",
   "version": "0.0.1",
-  "private": true,
+  
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -12,5 +12,7 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@intrig/common": "*"
+}
 }

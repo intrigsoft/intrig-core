@@ -5,6 +5,7 @@
   "references": [
     {
       "path": "../common"
+    {"path": "../common-bindings"},
     },
     {
       "path": "./tsconfig.lib.json"
