@@ -10,12 +10,13 @@ import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
-import {BUILTIN_PLUGINS} from "../plugins/builtin-plugins";
+import {loadInstalledPlugins} from "../plugins/plugin-loader";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 
-const cliModules = BUILTIN_PLUGINS.map(p => p.cliModule);
-const cliServices = BUILTIN_PLUGINS.map(p => p.cliService);
+const PLUGINS = loadInstalledPlugins();
+const cliModules = PLUGINS.map(p => p.cliModule);
+const cliServices = PLUGINS.map(p => p.cliService);
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, ...cliModules],

@@ -1,11 +1,11 @@
 import {DynamicModule, Module} from '@nestjs/common';
 import {IntrigConfigService} from "../services/intrig-config.service";
 import {GeneratorBinding} from "@intrig/common";
-import {BUILTIN_PLUGINS} from "../../plugins/builtin-plugins";
+import {loadInstalledPlugins} from "../../plugins/plugin-loader";
 
 @Module({})
 export class GeneratorModule {
-  static register(plugins = BUILTIN_PLUGINS): DynamicModule {
+  static register(plugins = loadInstalledPlugins()): DynamicModule {
     const bindingModules = plugins.map(p => p.bindingModule);
     const bindingServices = plugins.map(p => p.bindingService);
     return {
