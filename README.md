@@ -45,8 +45,20 @@ Create an `intrig.config.json` file in your project root:
 }
 ```
 
-You can set the generator to either "react" or "next" depending on your target framework. 
-Make sure the matching binding package (e.g. `@intrig/react-binding`) is installed in your project so Intrig can load it at runtime.
+You can set the generator to either "react" or "next" depending on your target framework.
+Install the matching binding plugin (e.g. `@intrig/react-binding`) so Intrig can discover it in `node_modules`.
+Each plugin's `package.json` must declare the plugin type:
+
+```json
+{
+  "intrig": {
+    "plugin": {
+      "type": "generator",
+      "for": "react"
+    }
+  }
+}
+```
 
 ### CLI Commands
 

@@ -15,8 +15,8 @@ import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 
 const PLUGINS = loadInstalledPlugins();
-const cliModules = PLUGINS.map(p => p.cliModule);
-const cliServices = PLUGINS.map(p => p.cliService);
+const cliModules = PLUGINS.map(p => p.plugin.cliModule);
+const cliServices = PLUGINS.map(p => p.plugin.cliService);
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, ...cliModules],

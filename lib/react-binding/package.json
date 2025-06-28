@@ -14,5 +14,11 @@
   },
   "dependencies": {
     "@intrig/common": "*"
-}
+  },
+  "intrig": {
+    "plugin": {
+      "type": "generator",
+      "for": "react"
+    }
+  }
 }
