@@ -79,6 +79,8 @@
     "@nestjs/core": "^10.0.2",
     "@nestjs/platform-express": "^10.0.2",
     "@nestjs/swagger": "^8.1.1",
+    "@intrig/react-binding": "0.0.1",
+    "@intrig/next-binding": "0.0.1",
     "axios": "^1.9.0",
     "chalk": "^4.1.2",
     "change-case": "^5.4.4",

@@ -22,6 +22,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "declaration": true
+    "declaration": true,
+    "paths": {
+      "@intrig/next-binding": ["./lib/next-binding/src/index.ts"],
+      "@intrig/react-binding": ["./lib/react-binding/src/index.ts"]
+    }
   }
 }

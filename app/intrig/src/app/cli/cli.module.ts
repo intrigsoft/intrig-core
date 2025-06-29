@@ -1,40 +1,47 @@
-import { Module } from '@nestjs/common';
+import {DynamicModule, Module, Type} from '@nestjs/common';
 import { ProcessManagerService } from './process-manager.service';
 import {DeamonCommand} from "./commands/deamon.command";
 import {GenerateCommand} from "./commands/generate.command";
 import {InitCommand} from "./commands/init.command";
 import {SyncCommand} from "./commands/sync.command";
 import {SourcesCommand} from "./commands/sources.command";
-import {CommonModule} from "common";
+import {CommonModule, GeneratorBinding} from "common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "@intrig/next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
-import {ReactCliModule, ReactCliService} from "@intrig/react-binding";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
+import {loadDynamicModules} from "../loadDynamicModules";
 
-@Module({
-  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
-  providers: [
-    ProcessManagerService,
-    ...DeamonCommand.registerWithSubCommands(),
-    GenerateCommand,
-    InitCommand,
-    ...SourcesCommand.registerWithSubCommands(),
-    SyncCommand,
-    SearchCommand,
-    HttpModule,
-    PrebuildCommand,
-    PostbuildCommand,
-    {
-      provide: GENERATORS,
-      inject: [NextCliService, ReactCliService],
-      useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
-        return [nextCliService, reactCliService]
-      }
-    }
-  ],
-})
-export class CliModule {}
+@Module({})
+export class CliModule {
+  static async registerAsync(): Promise<DynamicModule> {
+
+    const plugins = await loadDynamicModules();
+
+    return {
+      module: CliModule,
+      imports: [CommonModule, DiscoveryModule, HttpModule, ...plugins.map(a => a.cliModule)],
+      providers: [
+        ProcessManagerService,
+        ...DeamonCommand.registerWithSubCommands(),
+        GenerateCommand,
+        InitCommand,
+        ...SourcesCommand.registerWithSubCommands(),
+        SyncCommand,
+        SearchCommand,
+        HttpModule,
+        PrebuildCommand,
+        PostbuildCommand,
+        {
+          provide: GENERATORS,
+          inject: plugins.map(a => a.cli),
+          useFactory(...services: Type<GeneratorBinding>[]) {
+            return services
+          }
+        }
+      ],
+    };
+  }
+}

@@ -66,8 +66,16 @@ module.exports = {
       type: 'module'
     },
   },
+  target: 'node',
   experiments: {
     outputModule: true,
+    topLevelAwait: true
+  },
+  resolve: {
+    alias: {
+      '@intrig/react-binding': join(__dirname, '../../lib/react-binding/src/index.ts'),
+      '@intrig/next-binding': join(__dirname, '../../lib/next-binding/src/index.ts')
+    }
   },
   plugins: [
     new webpack.BannerPlugin({

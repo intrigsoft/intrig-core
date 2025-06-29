@@ -13,7 +13,7 @@ import configuration from "./config/configuration";
       load: [configuration]
     }),
     CommonModule,
-    CliModule,
+    CliModule.registerAsync(),
     DiscoveryModule,
     DeamonModule,
   ],

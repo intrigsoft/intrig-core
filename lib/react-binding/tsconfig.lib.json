@@ -9,6 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "target": "es2021",
+    "module": "ESNext",
     "strictNullChecks": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,

@@ -15,7 +15,7 @@ import { SearchService } from './services/search.service';
 @Module({
   imports: [
     CommonModule,
-    GeneratorModule.register(),
+    GeneratorModule.registerAsync(),
     OpenapiSourceModule,
     HttpModule,
   ],

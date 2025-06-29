@@ -1,16 +1,16 @@
 {
   "name": "@intrig/react-binding",
-  "version": "0.0.1",
+  "version": "0.0.14-6",
   "type": "module",
-  "main": "./index.esm.js",
-  "module": "./index.esm.js",
-  "types": "./index.esm.d.ts",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
   "exports": {
     ".": {
       "development": "./src/index.ts",
-      "types": "./index.esm.d.ts",
-      "import": "./index.esm.js",
-      "default": "./index.esm.js"
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
     },
     "./package.json": "./package.json"
   },

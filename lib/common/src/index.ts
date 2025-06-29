@@ -8,6 +8,7 @@ export * from './lib/package-manager.service';
 export * from './lib/interfaces/generator.interface';
 export * from './lib/interfaces/generator-cli.interface'
 export * from './lib/interfaces/page.interface'
+export * from './lib/interfaces/plugin.interface'
 
 // Models
 export * from './lib/model/content-types';
