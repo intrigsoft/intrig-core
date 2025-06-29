@@ -1,6 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
+import {GeneratorBinding} from "@intrig/common";
 import {
-  GeneratorBinding, IntrigSourceConfig,
+  IntrigSourceConfig,
   PackageManagerService,
   ResourceDescriptor, RestData, Schema,
   SyncEventContext,

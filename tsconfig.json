@@ -12,11 +12,9 @@
     {
       "path": "./lib/next-binding"
     },
+    {"path": "./lib/common-bindings"},
     {
       "path": "./lib/openapi-source"
-    },
-    {
-      "path": "./lib/common"
     },
     {
       "path": "./lib/react-client"

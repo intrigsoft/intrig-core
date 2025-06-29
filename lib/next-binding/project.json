@@ -4,6 +4,11 @@
   "sourceRoot": "lib/next-binding/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project next-binding --web",
-  "targets": {}
+  "targets": {
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {"packageRoot": "dist/lib/next-binding"},
+      "dependsOn": ["^build"]
+    }
+  }
 }

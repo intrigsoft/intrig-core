@@ -3,11 +3,7 @@
   "files": [],
   "include": [],
   "references": [
-    {
-      "path": "../common"
-    },
-    {
-      "path": "./tsconfig.lib.json"
-    }
+    {"path": "../common-bindings"},
+    {"path": "./tsconfig.lib.json"}
   ]
 }

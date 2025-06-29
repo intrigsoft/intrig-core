@@ -4,7 +4,7 @@ import {
   pascalCase, ResourceDescriptor, RestData,
   typescript,
   Variable
-} from 'common';
+} from '@intrig/common';
 import path from 'path';
 
 function extractHookShapeAndOptionsShape(response: string | undefined, requestBody: string | undefined, imports: Set<string>) {

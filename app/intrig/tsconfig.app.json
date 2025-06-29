@@ -28,7 +28,7 @@
       "path": "../../lib/next-binding/tsconfig.lib.json"
     },
     {
-      "path": "../../lib/common/tsconfig.lib.json"
+      "path": "../../lib/common-bindings/tsconfig.lib.json"
     }
   ]
 }

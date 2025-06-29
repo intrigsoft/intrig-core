@@ -13,7 +13,7 @@
       "path": "../../lib/next-binding"
     },
     {
-      "path": "../../lib/common"
+      "path": "../../lib/common-bindings"
     },
     {
       "path": "./tsconfig.app.json"

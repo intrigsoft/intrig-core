@@ -1,5 +1,5 @@
 import { OpenAPIV3_1 } from 'openapi-types';
-import { jsonLiteral, typescript } from 'common';
+import { jsonLiteral, typescript } from '@intrig/common';
 import * as path from 'path'
 
 export interface SchemaConversionResult {

@@ -1,5 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
-import type {IIntrigSourceConfig, RestOptions} from 'common'
+import type {IIntrigSourceConfig, RestOptions} from '@intrig/common'
 import * as crypto from 'crypto';
 import {
   camelCase,
@@ -10,7 +10,7 @@ import {
   SpecManagementService,
   SyncEventContext,
   WithStatus
-} from 'common'
+} from '@intrig/common'
 import {lastValueFrom} from "rxjs";
 import {HttpService} from "@nestjs/axios";
 import {load as yamlLoad} from "js-yaml";

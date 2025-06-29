@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
+import {GeneratorBinding} from "@intrig/common";
 import {
-  GeneratorBinding,
   IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,

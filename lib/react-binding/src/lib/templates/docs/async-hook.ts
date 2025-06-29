@@ -1,4 +1,4 @@
-import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
+import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from '@intrig/common'
 
 export function asyncFunctionHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('async-hook.md')

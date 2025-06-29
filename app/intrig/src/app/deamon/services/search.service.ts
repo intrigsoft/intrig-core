@@ -1,6 +1,6 @@
 import {Injectable, OnModuleInit} from '@nestjs/common';
 import MiniSearch from 'minisearch';
-import {isRestDescriptor, isSchemaDescriptor, ResourceDescriptor, RestData, Schema} from 'common';
+import {isRestDescriptor, isSchemaDescriptor, ResourceDescriptor, RestData, Schema} from '@intrig/common';
 import {IntrigConfigService} from "./intrig-config.service";
 import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";

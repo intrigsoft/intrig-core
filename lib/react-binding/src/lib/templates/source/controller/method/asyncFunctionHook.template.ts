@@ -4,7 +4,7 @@ import {
   pascalCase, ResourceDescriptor, RestData,
   typescript,
   Variable
-} from 'common';
+} from '@intrig/common';
 import * as path from 'path';
 
 function extractAsyncHookShape(response: string | undefined, requestBody: string | undefined, imports: Set<string>) {
