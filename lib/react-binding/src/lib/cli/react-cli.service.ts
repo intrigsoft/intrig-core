@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {GeneratorCli, PackageManagerService} from "@intrig/common";
+import {GeneratorCli, PackageManagerService} from "common";
 import { PackageJson } from 'nx/src/utils/package-json';
 import {ConfigService} from "@nestjs/config";
 import process from "node:process";

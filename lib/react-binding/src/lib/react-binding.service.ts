@@ -1,12 +1,12 @@
 import {Injectable, Logger} from '@nestjs/common';
+import {GeneratorBinding} from "@intrig/common";
 import {
-  GeneratorBinding,
   IIntrigSourceConfig, IntrigSourceConfig,
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, Schema, SchemaDocumentation,
   SourceManagementService, Tab
-} from "@intrig/common";
+} from "common";
 import {ConfigService} from "@nestjs/config";
 import path from "path";
 import process from "node:process";

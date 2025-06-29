@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {GeneratorBinding, Page, ResourceDescriptor, RestData} from "@intrig/common";
+import {GeneratorBinding} from "@intrig/common";
+import {Page, ResourceDescriptor, RestData} from "common";
 import {SearchService} from "./search.service";
 
 @Injectable()

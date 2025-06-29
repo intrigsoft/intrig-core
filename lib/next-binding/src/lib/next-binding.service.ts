@@ -1,11 +1,11 @@
 import {Injectable} from '@nestjs/common';
+import {GeneratorBinding} from "@intrig/common";
 import {
-  GeneratorBinding,
   IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,
   SourceManagementService, Tab
-} from "@intrig/common";
+} from "common";
 import { networkStateTemplate } from './templates/network-state.template';
 import { providerTemplate } from './templates/provider.template';
 import { indexTemplate } from './templates/index.template';
