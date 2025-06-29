@@ -8,10 +8,10 @@ import {SourcesCommand} from "./commands/sources.command";
 import {CommonModule} from "common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "next-binding";
+import {NextCliModule, NextCliService} from "@intrig/next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
-import {ReactCliModule, ReactCliService} from "react-binding";
+import {ReactCliModule, ReactCliService} from "@intrig/react-binding";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 

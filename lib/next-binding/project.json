@@ -1,9 +1,32 @@
 {
-  "name": "next-binding",
+  "name": "@intrig/next-binding",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "lib/next-binding/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project next-binding --web",
-  "targets": {}
+  "// targets": "to see all targets run: nx show project @intrig/next-binding --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/next-binding",
+        "tsConfig": "lib/next-binding/tsconfig.lib.json",
+        "packageJson": "lib/next-binding/package.json",
+        "main": "lib/next-binding/src/index.ts",
+        "assets": [
+          "lib/next-binding/README.md"
+        ]
+      }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/lib/next-binding"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    }
+  }
 }

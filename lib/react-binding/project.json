@@ -1,9 +1,32 @@
 {
-  "name": "react-binding",
+  "name": "@intrig/react-binding",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "lib/react-binding/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project react-binding --web",
-  "targets": {}
+  "// targets": "to see all targets run: nx show project @intrig/react-binding --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/react-binding",
+        "tsConfig": "lib/react-binding/tsconfig.lib.json",
+        "packageJson": "lib/react-binding/package.json",
+        "main": "lib/react-binding/src/index.ts",
+        "assets": [
+          "lib/react-binding/README.md"
+        ]
+      }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/lib/react-binding"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    }
+  }
 }

@@ -35,8 +35,6 @@
         }
       },
       "exclude": [
-        "lib/react-binding/*",
-        "lib/next-binding/*",
         "lib/openapi-source/*",
         "lib/shared/*",
         "lib/common/*"
@@ -71,8 +69,6 @@
     {
       "plugin": "@nx/js/typescript",
       "include": [
-        "lib/react-binding/*",
-        "lib/next-binding/*",
         "lib/openapi-source/*",
         "lib/shared/*",
         "lib/common/*"
@@ -125,7 +121,7 @@
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
     },
-    "projects": ["app/intrig", "lib/next-client", "lib/react-client"],
+    "projects": ["app/intrig", "lib/next-client", "lib/react-client", "lib/next-binding", "lib/react-binding"],
     "npmPackages": [
       {
         "packageRoot": "dist/app/intrig",
@@ -138,6 +134,14 @@
       {
         "packageRoot": "dist/lib/react-client",
         "packageName": "@intrig/react"
+      },
+      {
+        "packageRoot": "dist/lib/next-binding",
+        "packageName": "@intrig/next-binding"
+      },
+      {
+        "packageRoot": "dist/lib/react-binding",
+        "packageName": "@intrig/react-binding"
       }
     ]
   },

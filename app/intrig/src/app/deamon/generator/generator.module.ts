@@ -1,7 +1,7 @@
 import {DynamicModule, Module} from '@nestjs/common';
 import {IntrigConfigService} from "../services/intrig-config.service";
-import {ReactBindingService} from "react-binding";
-import {IntrigNextBindingService} from "next-binding";
+import {ReactBindingService} from "@intrig/react-binding";
+import {IntrigNextBindingService} from "@intrig/next-binding";
 import {GeneratorBinding} from "common";
 
 @Module({})
