@@ -4,7 +4,7 @@ import {
   pascalCase,
   ResourceDescriptor, RestData,
   typescript
-} from 'common';
+} from '@intrig/common';
 import * as path from 'path'
 
 export async function clientIndexTemplate(descriptors: ResourceDescriptor<RestData>[], _path: string) {

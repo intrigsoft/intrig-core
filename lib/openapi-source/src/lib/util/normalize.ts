@@ -1,6 +1,6 @@
 import {OpenAPIV3, OpenAPIV3_1} from "openapi-types";
 import {produce} from 'immer'
-import {pascalCase, camelCase} from 'common'
+import {pascalCase, camelCase} from '@intrig/common'
 import ReferenceObject = OpenAPIV3.ReferenceObject;
 import ExampleObject = OpenAPIV3_1.ExampleObject;
 import {deref, isRef} from "./ref-management";

@@ -17,9 +17,6 @@
       "path": "./lib/openapi-source"
     },
     {
-      "path": "./lib/common"
-    },
-    {
       "path": "./lib/react-client"
     },
     {

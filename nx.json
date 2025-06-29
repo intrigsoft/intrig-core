@@ -39,7 +39,7 @@
         "lib/next-binding/*",
         "lib/openapi-source/*",
         "lib/shared/*",
-        "lib/common/*"
+        "lib/common-bindings/*"
       ]
     },
     {
@@ -75,7 +75,7 @@
         "lib/next-binding/*",
         "lib/openapi-source/*",
         "lib/shared/*",
-        "lib/common/*"
+        "lib/common-bindings/*"
       ],
       "options": {
         "typecheck": {
