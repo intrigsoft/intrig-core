@@ -39,5 +39,8 @@
       "import": "./index.esm.js",
       "default": "./index.esm.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
