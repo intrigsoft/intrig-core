@@ -1,9 +1,28 @@
 {
-  "name": "common",
+  "name": "@intrig/common",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "lib/common/src",
   "projectType": "library",
   "tags": [],
   "// targets": "to see all targets run: nx show project common --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/common",
+        "tsConfig": "lib/common/tsconfig.lib.json",
+        "packageJson": "lib/common/package.json",
+        "main": "lib/common/src/index.ts",
+        "assets": ["lib/common/README.md"]
+      }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/lib/common"
+      },
+      "dependsOn": ["^build"]
+    }
+  }
 }

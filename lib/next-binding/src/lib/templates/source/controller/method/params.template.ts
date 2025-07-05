@@ -1,4 +1,4 @@
-import {camelCase, decodeVariables, pascalCase, ResourceDescriptor, RestData, typescript} from "common";
+import {camelCase, decodeVariables, pascalCase, ResourceDescriptor, RestData, typescript} from "@intrig/common";
 import * as path from "path";
 
 export function paramsTemplate(

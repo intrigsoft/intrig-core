@@ -5,7 +5,7 @@ import {GenerateCommand} from "./commands/generate.command";
 import {InitCommand} from "./commands/init.command";
 import {SyncCommand} from "./commands/sync.command";
 import {SourcesCommand} from "./commands/sources.command";
-import {CommonModule, GeneratorBinding} from "common";
+import {CommonModule, GeneratorBinding} from "@intrig/common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
 import {GENERATORS} from "./tokens";

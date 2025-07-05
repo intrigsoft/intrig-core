@@ -7,7 +7,7 @@ import {
   SyncDoneEventDto,
   SyncEventContext,
   SyncStatusEventDto
-} from "common";
+} from "@intrig/common";
 import {Subject} from "rxjs";
 
 @ApiTags('Operations')

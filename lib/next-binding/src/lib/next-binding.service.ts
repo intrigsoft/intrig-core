@@ -5,7 +5,7 @@ import {
   ResourceDescriptor,
   RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,
   SourceManagementService, Tab
-} from "common";
+} from "@intrig/common";
 import { networkStateTemplate } from './templates/network-state.template';
 import { providerTemplate } from './templates/provider.template';
 import { indexTemplate } from './templates/index.template';

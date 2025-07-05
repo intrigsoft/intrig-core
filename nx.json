@@ -29,7 +29,7 @@
           "watchDepsName": "watch-deps"
         }
       },
-      "exclude": ["lib/openapi-source/*", "lib/shared/*", "lib/common/*"]
+      "exclude": ["lib/openapi-source/*", "lib/shared/*"]
     },
     {
       "plugin": "@nx/webpack/plugin",
@@ -56,7 +56,7 @@
     },
     {
       "plugin": "@nx/js/typescript",
-      "include": ["lib/openapi-source/*", "lib/shared/*", "lib/common/*"],
+      "include": ["lib/openapi-source/*", "lib/shared/*"],
       "options": {
         "typecheck": {
           "targetName": "typecheck"
@@ -114,6 +114,7 @@
       "lib/react-client",
       "lib/next-binding",
       "lib/react-binding",
+      "lib/common",
       "@intrig/registry"
     ],
     "npmPackages": [
@@ -136,6 +137,10 @@
       {
         "packageRoot": "dist/lib/react-binding",
         "packageName": "@intrig/react-binding"
+      },
+      {
+        "packageRoot": "dist/lib/common",
+        "packageName": "@intrig/common"
       }
     ]
   },

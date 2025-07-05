@@ -1,4 +1,4 @@
-import {Plugin} from "common";
+import {Plugin} from "@intrig/common";
 import {NextBindingModule} from "./next-binding.module";
 import {IntrigNextBindingService} from "./next-binding.service";
 import {NextCliModule} from "./cli/next-cli.module";

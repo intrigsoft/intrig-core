@@ -1,7 +1,7 @@
 import {Command, CommandRunner} from "nest-commander";
 import {HttpService} from "@nestjs/axios";
 import {lastValueFrom} from "rxjs";
-import {Page, ResourceDescriptor} from "common";
+import {Page, ResourceDescriptor} from "@intrig/common";
 import inquirer from "inquirer";
 import {ProcessManagerService} from "../process-manager.service";
 import chalk from "chalk";

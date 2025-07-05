@@ -4,7 +4,7 @@ import {
   pascalCase,
   ResourceDescriptor, RestData,
   typescript
-} from 'common';
+} from '@intrig/common';
 import path from 'path';
 
 export function downloadHookTemplate(

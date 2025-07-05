@@ -5,7 +5,7 @@ import {
   ResourceDescriptor,
   RestData,
   typescript
-} from "common";
+} from "@intrig/common";
 import * as path from "path";
 
 export async function paramsTemplate({source, data: {paths, operationId, variables}}: ResourceDescriptor<RestData>, _path: string) {

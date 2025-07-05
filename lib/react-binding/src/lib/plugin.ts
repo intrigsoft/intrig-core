@@ -1,4 +1,4 @@
-import {Plugin} from "common";
+import {Plugin} from "@intrig/common";
 import {ReactBindingModule} from "./react-binding.module";
 import {ReactBindingService} from "./react-binding.service";
 import {ReactCliModule} from "./cli/react-cli.module";

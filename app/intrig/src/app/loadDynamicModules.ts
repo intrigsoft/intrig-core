@@ -3,7 +3,7 @@ import * as path from 'path';
 import pacote from 'pacote';
 import npa from 'npm-package-arg';
 import { Logger } from '@nestjs/common';
-import { IntrigConfig, Plugin } from 'common';
+import { IntrigConfig, Plugin } from '@intrig/common';
 import { createJiti } from 'jiti';
 
 const logger = new Logger('loadDynamicModules');

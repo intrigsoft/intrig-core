@@ -1,4 +1,4 @@
-import {jsonLiteral} from "common";
+import {jsonLiteral} from "@intrig/common";
 import * as path from "path";
 import * as fsx from "fs-extra";
 

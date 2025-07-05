@@ -1,6 +1,6 @@
 import {Controller, Get, Query, Param, NotFoundException, UsePipes, ValidationPipe} from '@nestjs/common';
 import {ApiExtraModels, ApiOperation, ApiResponse, getSchemaPath} from '@nestjs/swagger';
-import {Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation} from "common";
+import {Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation} from "@intrig/common";
 import {DataSearchService} from "../services/data-search.service";
 import {SourceStats} from "../models/source-stats";
 import {SearchQuery} from "../models/search-query";

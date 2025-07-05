@@ -1,4 +1,4 @@
-import {typescript} from "common";
+import {typescript} from "@intrig/common";
 import * as path from 'path'
 
 export function extraTemplate(_path: string) {
