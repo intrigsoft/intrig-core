@@ -1,3 +1,16 @@
+## 0.0.14-7 (2025-07-05)
+
+### 🚀 Features
+
+- enhance provider template with dynamic `configs` type generation ([eb4780b](https://github.com/intrigsoft/intrig-core/commit/eb4780b))
+- add dynamic module loading and plugin support for `next-binding` and `react-binding` ([524a035](https://github.com/intrigsoft/intrig-core/commit/524a035))
+- add new `@intrig/registry` library with build configurations and version replacement logic ([cbccb36](https://github.com/intrigsoft/intrig-core/commit/cbccb36))
+- integrate `live-plugin-manager` for dynamic plugin loading and update `IntrigConfig` with `generatorLib` property ([e32f132](https://github.com/intrigsoft/intrig-core/commit/e32f132))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.14-6 (2025-06-25)
 
 ### 🚀 Features
