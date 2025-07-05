@@ -7,17 +7,20 @@ export interface RestOptions {
 export interface IntrigConfig {
   sources: IIntrigSourceConfig[];
   generator: string;
+  generatorLib: string;
   restOptions?: RestOptions;
 }
 
 export class IntrigConfigImpl implements IntrigConfig {
   sources: IIntrigSourceConfig[];
   generator: string;
+  generatorLib: string;
   restOptions?: RestOptions;
 
   constructor(config: IntrigConfig) {
     this.sources = config.sources;
     this.generator = config.generator;
     this.restOptions = config.restOptions;
+    this.generatorLib = config.generatorLib;
   }
 }
