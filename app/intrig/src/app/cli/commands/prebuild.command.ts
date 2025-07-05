@@ -2,7 +2,7 @@ import {Command, CommandRunner} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
 import {Inject, Logger} from "@nestjs/common";
 import {GENERATORS} from "../tokens";
-import {GeneratorCli} from "common";
+import {GeneratorCli} from "@intrig/common";
 import {PackageJson} from "nx/src/utils/package-json";
 import * as fsx from "fs-extra";
 import path from "path";

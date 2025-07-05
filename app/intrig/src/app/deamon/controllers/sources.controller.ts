@@ -1,7 +1,7 @@
 import {Body, Controller, Delete, Get, Logger, Param, Post} from '@nestjs/common';
 import {OpenapiService} from "../services/openapi.service";
-import {IntrigSourceConfig} from "common";
-import type {IIntrigSourceConfig} from "common";
+import {IntrigSourceConfig} from "@intrig/common";
+import type {IIntrigSourceConfig} from "@intrig/common";
 import {IntrigConfigService} from "../services/intrig-config.service";
 import {ApiBody, ApiExtraModels, ApiResponse, ApiTags} from "@nestjs/swagger";
 

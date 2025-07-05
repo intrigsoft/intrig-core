@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {join} from "path";
 import {readFileSync, writeFileSync} from "fs";
-import {IntrigConfig, IntrigSourceConfig} from "common";
+import {IntrigConfig, IntrigSourceConfig} from "@intrig/common";
 import {ConfigService} from "@nestjs/config";
 
 @Injectable()

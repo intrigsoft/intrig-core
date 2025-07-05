@@ -1,4 +1,4 @@
-import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
+import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from '@intrig/common'
 
 export function reactHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('react-hook.md')

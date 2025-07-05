@@ -1,4 +1,4 @@
-import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from "common";
+import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from "@intrig/common";
 
 export function sseHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('sse-hook.md')

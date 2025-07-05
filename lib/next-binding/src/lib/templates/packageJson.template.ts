@@ -1,4 +1,4 @@
-import {jsonLiteral} from "common";
+import {jsonLiteral} from "@intrig/common";
 import * as path from "path";
 
 export function packageJsonTemplate(_path: string) {

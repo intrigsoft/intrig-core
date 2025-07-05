@@ -1,7 +1,7 @@
 // import {deref, IntrigSourceConfig, isRef, RequestProperties} from "@intrig/cli-common";
 import {OpenAPIV3_1} from "openapi-types";
 import {deref, isRef} from "./ref-management";
-import {RestData} from "common";
+import {RestData} from "@intrig/common";
 
 export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document) {
   const requests: RestData[] = [];

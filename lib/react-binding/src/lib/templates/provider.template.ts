@@ -1,4 +1,4 @@
-import {IntrigSourceConfig, typescript} from "common";
+import {IntrigSourceConfig, typescript} from "@intrig/common";
 import * as path from 'path'
 
 export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {

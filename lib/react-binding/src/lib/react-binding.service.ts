@@ -6,7 +6,7 @@ import {
   ResourceDescriptor,
   RestData, RestDocumentation, Schema, SchemaDocumentation,
   SourceManagementService, Tab
-} from "common";
+} from "@intrig/common";
 import {ConfigService} from "@nestjs/config";
 import path from "path";
 import process from "node:process";
