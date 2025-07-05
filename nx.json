@@ -1,10 +1,7 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/.eslintrc.json",
@@ -15,9 +12,7 @@
       "!{projectRoot}/src/test-setup.[jt]s",
       "!{projectRoot}/test-setup.[jt]s"
     ],
-    "sharedGlobals": [
-      "{workspaceRoot}/.github/workflows/ci.yml"
-    ]
+    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "nxCloudId": "680f4717e0012135d36d79e0",
   "plugins": [
@@ -34,11 +29,7 @@
           "watchDepsName": "watch-deps"
         }
       },
-      "exclude": [
-        "lib/openapi-source/*",
-        "lib/shared/*",
-        "lib/common/*"
-      ]
+      "exclude": ["lib/openapi-source/*", "lib/shared/*", "lib/common/*"]
     },
     {
       "plugin": "@nx/webpack/plugin",
@@ -61,18 +52,11 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": [
-        "app/deamon-e2e/**/*",
-        "app/intrig-e2e/**/*"
-      ]
+      "exclude": ["app/deamon-e2e/**/*", "app/intrig-e2e/**/*"]
     },
     {
       "plugin": "@nx/js/typescript",
-      "include": [
-        "lib/openapi-source/*",
-        "lib/shared/*",
-        "lib/common/*"
-      ],
+      "include": ["lib/openapi-source/*", "lib/shared/*", "lib/common/*"],
       "options": {
         "typecheck": {
           "targetName": "typecheck"
@@ -112,16 +96,26 @@
   ],
   "targetDefaults": {
     "test": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "release": {
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
     },
-    "projects": ["app/intrig", "lib/next-client", "lib/react-client", "lib/next-binding", "lib/react-binding"],
+    "projects": [
+      "app/intrig",
+      "lib/next-client",
+      "lib/react-client",
+      "lib/next-binding",
+      "lib/react-binding",
+      "@intrig/registry"
+    ],
     "npmPackages": [
       {
         "packageRoot": "dist/app/intrig",

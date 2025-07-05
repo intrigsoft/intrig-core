@@ -1,0 +1,51 @@
+{
+  "name": "@intrig/registry",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/registry/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project @intrig/registry --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/registry",
+        "main": "lib/registry/src/index.ts",
+        "tsConfig": "lib/registry/tsconfig.lib.json",
+        "assets": ["lib/registry/*.md"]
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "dependencies": true
+        }
+      ]
+    },
+    "post-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node lib/registry/post-build.js"
+        ],
+        "parallel": false
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ]
+    },
+    "build-all": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run @intrig/registry:build",
+          "nx run @intrig/registry:post-build"
+        ],
+        "parallel": false
+      }
+    }
+  }
+}
