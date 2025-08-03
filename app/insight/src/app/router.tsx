@@ -1,8 +1,9 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './app';
 import HomePage from './pages/home';
 import AboutPage from './pages/about';
 import DashboardPage from './pages/dashboard';
+import SourceDetailPage from './pages/source-detail';
 
 // Create router objects for each route
 const router = createBrowserRouter([
@@ -21,6 +22,14 @@ const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'sources',
+        element: <Navigate to="/" replace />,
+      },
+      {
+        path: 'sources/:sourceId',
+        element: <SourceDetailPage />,
       },
     ],
   },
