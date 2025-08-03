@@ -4,6 +4,8 @@ import HomePage from './pages/home';
 import AboutPage from './pages/about';
 import DashboardPage from './pages/dashboard';
 import SourceDetailPage from './pages/source-detail';
+import EndpointDetailPage from './pages/endpoint-detail';
+import DatatypeDetailPage from './pages/datatype-detail';
 
 // Create router objects for each route
 const router = createBrowserRouter([
@@ -30,6 +32,22 @@ const router = createBrowserRouter([
       {
         path: 'sources/:sourceId',
         element: <SourceDetailPage />,
+      },
+      {
+        path: 'sources/:sourceId/endpoint',
+        element: <Navigate to={params => `/sources/${params.sourceId}`} replace />,
+      },
+      {
+        path: 'sources/:sourceId/endpoint/:endpointId',
+        element: <EndpointDetailPage />,
+      },
+      {
+        path: 'sources/:sourceId/datatype',
+        element: <Navigate to={params => `/sources/${params.sourceId}`} replace />,
+      },
+      {
+        path: 'sources/:sourceId/datatype/:datatypeId',
+        element: <DatatypeDetailPage />,
       },
     ],
   },
