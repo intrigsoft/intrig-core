@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function extraTemplate(_path: string) {
+export function reactExtraTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "extra.ts"))
 
   return ts`

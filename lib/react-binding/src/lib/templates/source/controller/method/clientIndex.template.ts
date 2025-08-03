@@ -7,7 +7,7 @@ import {
 } from 'common';
 import * as path from 'path'
 
-export async function clientIndexTemplate(descriptors: ResourceDescriptor<RestData>[], _path: string) {
+export async function reactClientIndexTemplate(descriptors: ResourceDescriptor<RestData>[], _path: string) {
 
   const {source, data: {paths, operationId, responseType, contentType}} = descriptors[0]
 

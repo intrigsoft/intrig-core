@@ -1,8 +1,13 @@
-import {typescript} from "common";
+import {IntrigSourceConfig, typescript} from "common";
 import * as path from 'path'
 
-export function contextTemplate(_path: string) {
+export function reactContextTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
   const ts = typescript(path.resolve(_path, "src", "intrig-context.ts"))
+
+  const configType = `{
+  defaults?: DefaultConfigs,
+  ${apisToSync.map(a => `${a.id}?: DefaultConfigs`).join(",\n  ")}
+  }`
 
   return ts`
   import { NetworkAction, NetworkState } from '@intrig/react/network-state';
@@ -32,7 +37,7 @@ export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
   dispatch: Dispatch<NetworkAction<unknown, unknown>>;
-  configs: DefaultConfigs;
+  configs: ${configType};
   execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
 }
 

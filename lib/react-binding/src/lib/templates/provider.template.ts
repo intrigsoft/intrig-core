@@ -1,7 +1,7 @@
 import {IntrigSourceConfig, typescript} from "common";
 import * as path from 'path'
 
-export function providerTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
+export function reactProviderTemplate(_path: string, apisToSync: IntrigSourceConfig[]) {
 
   const axiosConfigs = apisToSync.map(a => `
   ${a.id}: createAxiosInstance(configs.defaults, configs['${a.id}']),
@@ -225,7 +225,7 @@ export type WithStubSupport<T> = T & {
 }
 
 export interface IntrigProviderStubProps {
-  configs?: DefaultConfigs;
+  configs?: ${configType};
   stubs?: (stub: StubType<any, any, any>) => void;
   children: React.ReactNode;
 }
@@ -410,8 +410,8 @@ export function useNetworkState<T, E = unknown>({
   );
 
   const debounceDelay = useMemo(() => {
-    return requestDebounceDelay ?? context.configs?.debounceDelay ?? 0;
-  }, [context.configs, requestDebounceDelay]);
+    return requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0;
+  }, [context.configs, requestDebounceDelay, source]);
 
   const execute = useCallback(
     async (request: RequestType) => {

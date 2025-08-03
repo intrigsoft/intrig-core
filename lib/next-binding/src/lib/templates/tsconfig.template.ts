@@ -1,7 +1,7 @@
 import {jsonLiteral} from "common";
 import * as path from "path";
 
-export function tsConfigTemplate(_path: string) {
+export function nextTsConfigTemplate(_path: string) {
   const json = jsonLiteral(path.resolve(_path, 'tsconfig.json'))
   return json`
 {

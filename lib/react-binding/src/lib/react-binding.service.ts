@@ -10,27 +10,27 @@ import {
 import {ConfigService} from "@nestjs/config";
 import path from "path";
 import process from "node:process";
-import {contextTemplate} from "./templates/context.template";
-import {extraTemplate} from "./templates/extra.template";
-import {indexTemplate} from "./templates/index.template";
-import {loggerTemplate} from "./templates/logger.template";
-import {mediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
-import {networkStateTemplate} from "./templates/network-state.template";
-import {packageJsonTemplate} from "./templates/packageJson.template";
-import {providerTemplate} from "./templates/provider.template";
-import {tsConfigTemplate} from "./templates/tsconfig.template";
-import {clientIndexTemplate} from "./templates/source/controller/method/clientIndex.template";
-import {paramsTemplate} from "./templates/source/controller/method/params.template";
-import {requestHookTemplate} from "./templates/source/controller/method/requestHook.template";
+import {reactContextTemplate} from "./templates/context.template";
+import {reactExtraTemplate} from "./templates/extra.template";
+import {reactIndexTemplate} from "./templates/index.template";
+import {reactLoggerTemplate} from "./templates/logger.template";
+import {reactMediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
+import {reactNetworkStateTemplate} from "./templates/network-state.template";
+import {reactPackageJsonTemplate} from "./templates/packageJson.template";
+import {reactProviderTemplate} from "./templates/provider.template";
+import {reactTsConfigTemplate} from "./templates/tsconfig.template";
+import {reactClientIndexTemplate} from "./templates/source/controller/method/clientIndex.template";
+import {reactParamsTemplate} from "./templates/source/controller/method/params.template";
+import {reactRequestHookTemplate} from "./templates/source/controller/method/requestHook.template";
 import picomatch from "picomatch";
-import {downloadHookTemplate} from "./templates/source/controller/method/download.template";
-import {typeTemplate} from "./templates/source/type/typeTemplate";
-import {swcrcTemplate} from "./templates/swcrc.template";
+import {reactDownloadHookTemplate} from "./templates/source/controller/method/download.template";
+import {reactTypeTemplate} from "./templates/source/type/typeTemplate";
+import {reactSwcrcTemplate} from "./templates/swcrc.template";
 import fsx from "fs-extra";
 import {reactHookDocs} from "./templates/docs/react-hook";
-import {sseHookDocs} from "./templates/docs/sse-hook";
-import {asyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
-import {asyncFunctionHookDocs} from "./templates/docs/async-hook";
+import {reactSseHookDocs} from "./templates/docs/sse-hook";
+import {reactAsyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
+import {reactAsyncFunctionHookDocs} from "./templates/docs/async-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -55,17 +55,17 @@ export class ReactBindingService extends GeneratorBinding {
   private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
   async generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any> {
-    await this.dump(contextTemplate(this._path))
-    await this.dump(extraTemplate(this._path))
-    await this.dump(indexTemplate(this._path))
-    // await this.dump(intrigMiddlewareTemplate(this._path))
-    await this.dump(swcrcTemplate(this._path))
-    await this.dump(loggerTemplate(this._path))
-    await this.dump(mediaTypeUtilsTemplate(this._path))
-    await this.dump(networkStateTemplate(this._path))
-    await this.dump(packageJsonTemplate(this._path))
-    await this.dump(providerTemplate(this._path, apisToSync))
-    await this.dump(tsConfigTemplate(this._path))
+    await this.dump(reactContextTemplate(this._path, apisToSync))
+    await this.dump(reactExtraTemplate(this._path))
+    await this.dump(reactIndexTemplate(this._path))
+    // await this.dump(reactIntrigMiddlewareTemplate(this._path))
+    await this.dump(reactSwcrcTemplate(this._path))
+    await this.dump(reactLoggerTemplate(this._path))
+    await this.dump(reactMediaTypeUtilsTemplate(this._path))
+    await this.dump(reactNetworkStateTemplate(this._path))
+    await this.dump(reactPackageJsonTemplate(this._path))
+    await this.dump(reactProviderTemplate(this._path, apisToSync))
+    await this.dump(reactTsConfigTemplate(this._path))
   }
 
   async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
@@ -88,17 +88,17 @@ export class ReactBindingService extends GeneratorBinding {
   }
 
   private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>) {
-    await this.dump(clientIndexTemplate([descriptor], this._path))
-    await this.dump(paramsTemplate(descriptor, this._path))
-    await this.dump(requestHookTemplate(descriptor, this._path))
-    await this.dump(asyncFunctionHookTemplate(descriptor, this._path))
+    await this.dump(reactClientIndexTemplate([descriptor], this._path))
+    await this.dump(reactParamsTemplate(descriptor, this._path))
+    await this.dump(reactRequestHookTemplate(descriptor, this._path))
+    await this.dump(reactAsyncFunctionHookTemplate(descriptor, this._path))
     if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
-      await this.dump(downloadHookTemplate(descriptor, this._path))
+      await this.dump(reactDownloadHookTemplate(descriptor, this._path))
     }
   }
 
   private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
-    await this.dump(typeTemplate({
+    await this.dump(reactTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
@@ -160,7 +160,7 @@ ${"```"}
     if (result.data.responseType === 'text/event-stream') {
       tabs.push({
         name: 'SSE Hook',
-        content: (await sseHookDocs(result)).content
+        content: (await reactSseHookDocs(result)).content
       })
     } else {
       tabs.push({
@@ -171,7 +171,7 @@ ${"```"}
 
     tabs.push({
       name: 'Stateless Hook',
-      content: (await asyncFunctionHookDocs(result)).content
+      content: (await reactAsyncFunctionHookDocs(result)).content
     })
 
     return RestDocumentation.from({

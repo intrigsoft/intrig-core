@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function providerTemplate(_path: string) {
+export function nextProviderTemplate(_path: string) {
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
   return ts`

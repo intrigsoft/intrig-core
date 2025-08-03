@@ -64,8 +64,9 @@ async function bootstrap() {
   } else {
     try {
       await CommandFactory.run(AppModule, {
-        logger: false,
-        errorHandler(err: any) {
+        // logger: false,
+        errorHandler(err:
+                     any) {
           if (err.code === 'commander.help') {
             return process.exit(0);
           }

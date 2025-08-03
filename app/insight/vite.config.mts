@@ -32,5 +32,7 @@ export default defineConfig(() => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    // Use relative paths for assets when served from any base URL
+    base: './',
   },
 }));

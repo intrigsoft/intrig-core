@@ -75,7 +75,7 @@ function extractParamDeconstruction(variables: Variable[], requestBody?: string)
 }
 
 
-export async function asyncFunctionHookTemplate(
+export async function reactAsyncFunctionHookTemplate(
   { source, data: { paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method } }: ResourceDescriptor<RestData>,
   _path: string
 ) {

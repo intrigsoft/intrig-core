@@ -55,7 +55,7 @@ function extractErrorParams(errorTypes: (string | undefined)[]) {
   }
 }
 
-export function requestMethodTemplate(
+export function nextRequestMethodTemplate(
   {
     source,
     data: {

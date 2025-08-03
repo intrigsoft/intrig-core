@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function intrigLayoutTemplate(_path: string) {
+export function nextIntrigLayoutTemplate(_path: string) {
 
   const ts = typescript(path.resolve(_path, "src", "intrig-layout.tsx"))
   return ts`

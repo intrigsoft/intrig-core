@@ -86,7 +86,7 @@ function extractErrorParams(errorTypes: string[]) {
   }
 }
 
-export async function requestHookTemplate({source, data: {paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method}}: ResourceDescriptor<RestData>, _path: string) {
+export async function reactRequestHookTemplate({source, data: {paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method}}: ResourceDescriptor<RestData>, _path: string) {
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`))
 
   const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`

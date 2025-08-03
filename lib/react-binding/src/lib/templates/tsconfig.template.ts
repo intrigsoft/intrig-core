@@ -1,7 +1,7 @@
 import {jsonLiteral} from "common";
 import * as path from "path";
 
-export function tsConfigTemplate(_path: string) {
+export function reactTsConfigTemplate(_path: string) {
   const json = jsonLiteral(path.resolve(_path, 'tsconfig.json'))
   return json`
 {
@@ -24,7 +24,8 @@ export function tsConfigTemplate(_path: string) {
       ],
       "intrig-hook": ["src/config/intrig"]
     },
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",

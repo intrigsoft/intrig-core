@@ -2,7 +2,11 @@
   "name": "@intrig-core/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "predev": "intrig prebuild && intrig prebuild && intrig prebuild",
+    "prebuild": "intrig prebuild && intrig prebuild && intrig prebuild",
+    "postbuild": "intrig postbuild && intrig postbuild && intrig postbuild"
+  },
   "private": true,
   "type": "module",
   "devDependencies": {
@@ -81,12 +85,15 @@
   ],
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^12.0.1",
+    "@intrig/react": "^0.0.14-6",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.0.2",
     "@nestjs/platform-express": "^10.0.2",
+    "@nestjs/serve-static": "^4.0.0",
     "@nestjs/swagger": "^8.1.1",
+    "@rekog/mcp-nest": "^1.7.3",
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.9.0",
     "chalk": "^4.1.2",

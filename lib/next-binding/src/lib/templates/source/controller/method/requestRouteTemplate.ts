@@ -7,7 +7,7 @@ import {
 } from 'common';
 import * as path from "path";
 
-export async function requestRouteTemplate(requestUrl: string, paths: ResourceDescriptor<RestData>[], _path: string) {
+export async function nextRequestRouteTemplate(requestUrl: string, paths: ResourceDescriptor<RestData>[], _path: string) {
   const parts = requestUrl
     .replace(/\{/g, "[")
     .replace(/\}/g, "]")

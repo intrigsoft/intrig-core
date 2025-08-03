@@ -50,3 +50,4 @@ test-output
 out
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+.intrig/generated

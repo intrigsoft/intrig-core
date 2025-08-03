@@ -1,7 +1,7 @@
 import {jsonLiteral} from "common";
 import * as path from "path";
 
-export function packageJsonTemplate(_path: string) {
+export function nextPackageJsonTemplate(_path: string) {
   const json = jsonLiteral(path.resolve(_path, 'package.json'))
   return json`
 {

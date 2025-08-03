@@ -1,7 +1,7 @@
 import {jsonLiteral} from "common";
 import * as path from "path";
 
-export function swcrcTemplate(_path: string) {
+export function reactSwcrcTemplate(_path: string) {
   const json = jsonLiteral(path.resolve(_path, '.swcrc'))
   return json`
 {

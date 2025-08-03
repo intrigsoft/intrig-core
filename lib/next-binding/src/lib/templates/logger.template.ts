@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function loggerTemplate(_path: string) {
+export function nextLoggerTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, 'src', 'logger.ts'))
 
   return ts`

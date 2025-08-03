@@ -85,7 +85,8 @@ module.exports = {
       tsConfig: './tsconfig.app.json',
       assets: [
         './src/assets',
-        { input: '../../', output: '.', glob: 'README.md' }
+        { input: '../../', output: '.', glob: 'README.md' },
+        { input: '../../dist/app/insight', output: './assets/insight', glob: '**/*' }
       ],
       optimization: false,
       outputHashing: 'none',
