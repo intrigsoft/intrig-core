@@ -48,3 +48,5 @@ test-output
 # Next.js
 .next
 out
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

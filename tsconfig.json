@@ -23,6 +23,9 @@
     },
     {
       "path": "./lib/next-client"
+    },
+    {
+      "path": "./app/insight"
     }
   ]
 }
