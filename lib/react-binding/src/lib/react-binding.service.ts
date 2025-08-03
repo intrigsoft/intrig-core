@@ -164,13 +164,13 @@ ${"```"}
       })
     } else {
       tabs.push({
-        name: 'React Hook',
+        name: 'Stateful Hook',
         content: (await reactHookDocs(result)).content
       })
     }
 
     tabs.push({
-      name: 'Async Function Hook',
+      name: 'Stateless Hook',
       content: (await asyncFunctionHookDocs(result)).content
     })
 

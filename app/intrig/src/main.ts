@@ -55,10 +55,16 @@ async function bootstrap() {
   const cmd = process.argv[2];
   if (cmd === 'run') {
     await bootstrapDeamon()
+  } else if (cmd === "mcp") {
+    const app = await NestFactory.createApplicationContext(AppModule, {
+      logger: false
+    });
+    await app.init()
+    process.stdin.resume();
   } else {
     try {
       await CommandFactory.run(AppModule, {
-        logger: logger ?? undefined,
+        logger: false,
         errorHandler(err: any) {
           if (err.code === 'commander.help') {
             return process.exit(0);
