@@ -121,6 +121,39 @@
         ]
       }
     },
+    "/api/config/sources/{id}": {
+      "get": {
+        "operationId": "SourcesController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/Sources$SourcesControllerGetById$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntrigSourceConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Source not found"
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
     "/api/operations/sync": {
       "get": {
         "operationId": "OperationsController_sync",
@@ -365,6 +398,37 @@
           }
         },
         "summary": "Get stats for a source",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/data-stats": {
+      "get": {
+        "operationId": "DataSearchController_getDataStats",
+        "parameters": [
+          {
+            "name": "source",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetDataStats$Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns data statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataStats"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get data statistics including source count, endpoint count, and data type count",
         "tags": [
           "DataSearch"
         ]
@@ -857,13 +921,45 @@
           "uniqueSourcesCount": {
             "type": "number",
             "description": "Number of unique sources"
+          },
+          "controllerCount": {
+            "type": "number",
+            "description": "Number of unique paths in endpoints"
           }
         },
         "required": [
           "total",
           "countsByType",
           "uniqueSources",
-          "uniqueSourcesCount"
+          "uniqueSourcesCount",
+          "controllerCount"
+        ]
+      },
+      "DataStats": {
+        "type": "object",
+        "properties": {
+          "sourceCount": {
+            "type": "number",
+            "description": "Number of unique sources"
+          },
+          "endpointCount": {
+            "type": "number",
+            "description": "Number of endpoints"
+          },
+          "dataTypeCount": {
+            "type": "number",
+            "description": "Number of data types"
+          },
+          "controllerCount": {
+            "type": "number",
+            "description": "Number of unique paths in endpoints"
+          }
+        },
+        "required": [
+          "sourceCount",
+          "endpointCount",
+          "dataTypeCount",
+          "controllerCount"
         ]
       },
       "SearchQuery": {
@@ -909,6 +1005,9 @@
         "items": {
           "$ref": "#/components/schemas/IntrigSourceConfig"
         }
+      },
+      "Sources$SourcesControllerGetById$Id": {
+        "type": "string"
       },
       "Operations$OperationsControllerSync$Id": {
         "type": "string"
@@ -981,6 +1080,9 @@
         "type": "string"
       },
       "DataSearch$DataSearchControllerGetEndpointById$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetDataStats$Source": {
         "type": "string"
       }
     }

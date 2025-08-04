@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {GeneratorBinding, Page, ResourceDescriptor, RestData} from "common";
 import {SearchService} from "./search.service";
+import {DataStats} from "../models/data-stats";
 
 @Injectable()
 export class DataSearchService {
@@ -56,6 +57,11 @@ export class DataSearchService {
 
   async getStats() {
     return this.searchService.getStatsBySource();
+  }
+
+  async getDataStats(source?: string) {
+    this.logger.debug(`Getting data stats${source ? ` for source: ${source}` : ''}`);
+    return this.searchService.getDataStats(source);
   }
 
   async getSchemaDocsById(id: string) {

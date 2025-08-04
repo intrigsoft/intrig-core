@@ -19,9 +19,10 @@ import { Link } from "react-router-dom";
 // Interface for search result data items
 interface DashboardSearchProps {
   placeholder?: string;
+  source?: string;
 }
 
-export function DashboardSearch({ placeholder = "Search endpoints and data types..." }: DashboardSearchProps) {
+export function DashboardSearch({ placeholder = "Search endpoints and data types...", source }: DashboardSearchProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery, debouncedSearchQuery] = useDebounceState("", 300);
 
@@ -34,7 +35,8 @@ export function DashboardSearch({ placeholder = "Search endpoints and data types
       search({
         query: debouncedSearchQuery,
         page: 1,
-        size: 10
+        size: 10,
+        source
       })
     } else {
       // Clear results when search query is empty

@@ -4,6 +4,7 @@ import {isRestDescriptor, isSchemaDescriptor, ResourceDescriptor, RestData, Sche
 import {IntrigConfigService} from "./intrig-config.service";
 import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";
+import {DataStats} from "../models/data-stats";
 import _ from "lodash";
 
 export interface SearchOptions {
@@ -234,6 +235,7 @@ export class SearchService implements OnModuleInit {
    * Get simple stats for a given source (or _all_ sources if none specified):
    *  - counts per `type`
    *  - list of unique `package` values (and its count)
+   *  - count of unique paths in endpoints (controllers)
    */
   getStatsBySource() {
     // 1) grab all descriptors (or only those matching the given source)
@@ -253,11 +255,62 @@ export class SearchService implements OnModuleInit {
       }
     });
 
+    // 4) count unique paths in endpoints (controllers)
+    const paths = new Set<string>();
+    all.forEach(d => {
+      if (isRestDescriptor(d) && d.path) {
+        paths.add(d.path);
+      }
+    });
+    const controllerCount = paths.size;
+
     return SourceStats.from({
       total: all.length,
       countsByType,                   // e.g. { endpoint: 42, model: 17, ... }
       uniqueSources: Array.from(sources),
       uniqueSourcesCount: sources.size,
+      controllerCount,
+    });
+  }
+
+  /**
+   * Get data stats including source count, endpoint count, data type count, and controller count.
+   * Optionally filter by source.
+   * @param source Optional source to filter by
+   */
+  getDataStats(source?: string) {
+    // Get all descriptors or filter by source if provided
+    const all = Array.from(this.descriptors.values())
+      .filter(d => !source || d.source === source);
+
+    // Count unique sources
+    const sources = new Set<string>();
+    all.forEach(d => {
+      if (d.source) {
+        sources.add(d.source);
+      }
+    });
+
+    // Count endpoints (REST descriptors)
+    const endpointCount = all.filter(d => isRestDescriptor(d)).length;
+
+    // Count data types (Schema descriptors)
+    const dataTypeCount = all.filter(d => isSchemaDescriptor(d)).length;
+
+    // Count unique paths in endpoints (controllers)
+    const paths = new Set<string>();
+    all.forEach(d => {
+      if (isRestDescriptor(d) && d.data.paths && d.data.paths.length > 0) {
+        d.data.paths.forEach(p => paths.add(p));
+      }
+    });
+    const controllerCount = paths.size;
+
+    return DataStats.from({
+      sourceCount: sources.size,
+      endpointCount,
+      dataTypeCount,
+      controllerCount,
     });
   }
 }

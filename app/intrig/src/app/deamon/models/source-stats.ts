@@ -4,7 +4,8 @@ export interface ISourceStats {
   total: number,
   countsByType: Record<string, number>,
   uniqueSources: string[],
-  uniqueSourcesCount: number
+  uniqueSourcesCount: number,
+  controllerCount: number
 }
 
 
@@ -21,14 +22,18 @@ export class SourceStats implements ISourceStats {
   @ApiProperty({description: 'Number of unique sources'})
   uniqueSourcesCount: number;
 
-  constructor(total: number, countsByType: Record<string, number>, uniqueSources: string[], uniqueSourcesCount: number) {
+  @ApiProperty({description: 'Number of unique paths in endpoints'})
+  controllerCount: number;
+
+  constructor(total: number, countsByType: Record<string, number>, uniqueSources: string[], uniqueSourcesCount: number, controllerCount: number) {
     this.total = total;
     this.countsByType = countsByType;
     this.uniqueSources = uniqueSources;
     this.uniqueSourcesCount = uniqueSourcesCount;
+    this.controllerCount = controllerCount;
   }
 
   static from(stats: ISourceStats) {
-    return new SourceStats(stats.total, stats.countsByType, stats.uniqueSources, stats.uniqueSourcesCount);
+    return new SourceStats(stats.total, stats.countsByType, stats.uniqueSources, stats.uniqueSourcesCount, stats.controllerCount);
   }
 }

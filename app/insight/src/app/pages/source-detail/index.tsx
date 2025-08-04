@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { DatabaseIcon, ServerIcon, CodeIcon } from 'lucide-react';
+import { ComponentIcon, ServerIcon, BracesIcon, Link2Icon } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
+import {useSourcesControllerGetById} from '@intrig/react/deamon_api/Sources/sourcesControllerGetById/useSourcesControllerGetById'
+import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats'
+import {isSuccess} from "@intrig/react";
 
 // Mock data for demonstration purposes
 // In a real application, this would come from an API or state management
@@ -61,18 +64,57 @@ const mockDatatypes = {
 
 export function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
-  const [source, setSource] = useState<typeof mockSources[0] | null>(null);
-  const [stats, setStats] = useState<typeof mockSourceStats[keyof typeof mockSourceStats] | null>(null);
+
+  const [sourceResp, fetchSource] = useSourcesControllerGetById({
+    clearOnUnmount: true,
+  })
+
+  const [sourceStatsResp, fetchSourceStats] = useDataSearchControllerGetDataStats({
+    clearOnUnmount: true,
+  })
+
+  useEffect(() => {
+    if (sourceId) {
+      fetchSource({
+        id: sourceId
+      })
+    }
+  }, [sourceId]);
+
+  const source = useMemo(() => {
+    if (isSuccess(sourceResp)) {
+      return sourceResp.data
+    }
+    return null
+  }, [sourceResp]);
+
+  useEffect(() => {
+    if (sourceId) {
+      fetchSourceStats({
+        source: sourceId
+      })
+    }
+  }, [sourceId]);
+
+  const stats = useMemo(() => {
+    if (isSuccess(sourceStatsResp)) {
+      return sourceStatsResp.data
+    }
+    return null
+  }, [sourceStatsResp]);
+
+  // const [source, setSource] = useState<typeof mockSources[0] | null>(null);
+  // const [stats, setStats] = useState<typeof mockSourceStats[keyof typeof mockSourceStats] | null>(null);
   const [endpoints, setEndpoints] = useState<typeof mockEndpoints[keyof typeof mockEndpoints] | null>(null);
   const [datatypes, setDatatypes] = useState<typeof mockDatatypes[keyof typeof mockDatatypes] | null>(null);
-  
+
   useEffect(() => {
     // In a real application, this would be an API call
     if (sourceId) {
       const foundSource = mockSources.find(s => s.id === sourceId);
       if (foundSource) {
-        setSource(foundSource);
-        setStats(mockSourceStats[sourceId as keyof typeof mockSourceStats]);
+        // setSource(foundSource);
+        // setStats(mockSourceStats[sourceId as keyof typeof mockSourceStats]);
         setEndpoints(mockEndpoints[sourceId as keyof typeof mockEndpoints] || []);
         setDatatypes(mockDatatypes[sourceId as keyof typeof mockDatatypes] || []);
       }
@@ -102,15 +144,10 @@ export function SourceDetailPage() {
               </div>
               <div className="text-sm">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                  {source.isOpenApi ? (
+                  {(
                     <>
-                      <ServerIcon className="h-3 w-3" />
+                      <ServerIcon className="h-3 w-3"/>
                       <span>OpenAPI</span>
-                    </>
-                  ) : (
-                    <>
-                      <CodeIcon className="h-3 w-3" />
-                      <span>JSON Schema</span>
                     </>
                   )}
                 </span>
@@ -120,20 +157,20 @@ export function SourceDetailPage() {
             {/* Stats in top right */}
             {stats && (
               <div className="flex flex-col md:flex-row gap-4 mb-4 md:mb-0">
-                <StatCard 
+                <StatCard
+                  title="Controllers"
+                  value={stats.controllerCount}
+                  icon={<ComponentIcon className="h-4 w-4" />}
+                />
+                <StatCard
                   title="Endpoints" 
-                  value={stats.endpoints} 
-                  icon={<ServerIcon className="h-4 w-4" />} 
+                  value={stats.endpointCount}
+                  icon={<Link2Icon className="h-4 w-4" />} 
                 />
-                <StatCard 
+                <StatCard
                   title="Data Types" 
-                  value={stats.dataTypes} 
-                  icon={<CodeIcon className="h-4 w-4" />} 
-                />
-                <StatCard 
-                  title="Controllers" 
-                  value={stats.controllers} 
-                  icon={<DatabaseIcon className="h-4 w-4" />} 
+                  value={stats.dataTypeCount}
+                  icon={<BracesIcon className="h-4 w-4" />} 
                 />
               </div>
             )}
@@ -141,7 +178,7 @@ export function SourceDetailPage() {
           
           {/* Search Box in the middle */}
           <div className="max-w-md mx-auto w-full mb-8">
-            <DashboardSearch />
+            <DashboardSearch source={sourceId} />
           </div>
           
           {/* Collapsible Endpoints List */}

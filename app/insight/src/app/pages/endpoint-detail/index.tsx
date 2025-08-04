@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { DatabaseIcon, ServerIcon, CodeIcon, ArrowLeftIcon } from 'lucide-react';
+import { ComponentIcon, ServerIcon, BracesIcon, Link2Icon, ArrowLeftIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // Mock data for demonstration purposes

@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Logger, Param, Post} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Logger, NotFoundException, Param, Post} from '@nestjs/common';
 import {OpenapiService} from "../services/openapi.service";
 import {IntrigSourceConfig} from "common";
 import type {IIntrigSourceConfig} from "common";
@@ -66,5 +66,23 @@ export class SourcesController {
   list(): IntrigSourceConfig[] {
     this.logger.log('Listing all sources');
     return this.configService.list();
+  }
+
+  @ApiResponse({
+    status: 200,
+    type: IntrigSourceConfig
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Source not found'
+  })
+  @Get(":id")
+  getById(@Param('id') id: string): IntrigSourceConfig {
+    this.logger.log(`Getting source with id: ${id}`);
+    const source = this.configService.list().find(source => source.id === id);
+    if (!source) {
+      throw new NotFoundException(`Source with id ${id} not found`);
+    }
+    return source;
   }
 }

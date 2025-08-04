@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { CodeIcon, ArrowLeftIcon } from 'lucide-react';
+import { BracesIcon, ArrowLeftIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // Mock data for demonstration purposes
@@ -104,7 +104,7 @@ export function DatatypeDetailPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2 py-1 rounded-md bg-purple-100 text-purple-800 font-medium">
-                <CodeIcon className="h-4 w-4 inline mr-1" />
+                <BracesIcon className="h-4 w-4 inline mr-1" />
                 Data Type
               </span>
             </div>

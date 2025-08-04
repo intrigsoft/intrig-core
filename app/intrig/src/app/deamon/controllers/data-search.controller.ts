@@ -3,10 +3,11 @@ import {ApiExtraModels, ApiOperation, ApiResponse, getSchemaPath} from '@nestjs/
 import {Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation} from "common";
 import {DataSearchService} from "../services/data-search.service";
 import {SourceStats} from "../models/source-stats";
+import {DataStats} from "../models/data-stats";
 import {SearchQuery} from "../models/search-query";
 
 @Controller('data')
-@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, SearchQuery)
+@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery)
 export class DataSearchController {
 
   constructor(private dataSearchService: DataSearchService) {
@@ -77,5 +78,12 @@ export class DataSearchController {
   @ApiResponse({status: 200, description: 'Returns stats for a source', type: SourceStats})
   async getStats(): Promise<SourceStats> {
     return await this.dataSearchService.getStats();
+  }
+
+  @Get("/data-stats")
+  @ApiOperation({summary: 'Get data statistics including source count, endpoint count, and data type count'})
+  @ApiResponse({status: 200, description: 'Returns data statistics', type: DataStats})
+  async getDataStats(@Query('source') source?: string): Promise<DataStats> {
+    return await this.dataSearchService.getDataStats(source);
   }
 }

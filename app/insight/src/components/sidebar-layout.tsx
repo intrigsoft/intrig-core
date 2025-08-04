@@ -6,6 +6,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import ErrorBoundary from "@/components/error-boundary";
 
 export function SidebarLayout() {
   return (
@@ -13,7 +14,9 @@ export function SidebarLayout() {
       <div className="flex min-h-screen h-screen w-full">
         <AppSidebar />
         <main className="flex-1 p-4 w-full h-full overflow-auto">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
       <SidebarTrigger className="fixed bottom-4 right-4 md:hidden" />
