@@ -12,6 +12,8 @@ export interface SearchOptions {
   fuzzy?: number;
   /** maximum number of results */
   limit?: number;
+  /** starting index for pagination */
+  offset?: number;
   type?: string;
   pkg?: string;
   source?: string;
@@ -186,6 +188,28 @@ export class SearchService implements OnModuleInit {
   }
 
   /**
+   * Get the total count of search results without applying pagination
+   * @param query Search query
+   * @param opts Search options (excluding pagination)
+   * @returns Total count of matching results
+   */
+  getTotalCount(query: string, opts: Omit<SearchOptions, 'limit' | 'offset'> = {}): number {
+    const fuzzy = opts.fuzzy ?? 0.2;
+    const q = query.trim().length ? query.trim() : '__all__';
+    const rawHits = this.mini.search(q, { prefix: true, fuzzy,
+      filter(doc) {
+        return (!opts.type || doc.type === opts.type) &&
+          (!opts.pkg || doc.package === opts.pkg) &&
+          (!opts.source || doc.source === opts.source) &&
+          (!opts.dataTypes || _.intersection(opts.dataTypes, doc.dataTypes)?.length > 0) &&
+          (!opts.names || opts.names.includes(doc.name));
+      }
+    });
+    
+    return rawHits.length;
+  }
+
+  /**
    * Search by free-text; returns up to `limit` descriptors
    * sorted by α·relevance + (1-α)·recencyBoost.
    */
@@ -215,9 +239,15 @@ export class SearchService implements OnModuleInit {
       return { desc, combined };
     });
 
-    return scored
-      .sort((a: { combined: number }, b: { combined: number }) => b.combined - a.combined)
-      .slice(0, opts.limit ?? 20)
+    const sorted = scored
+      .sort((a: { combined: number }, b: { combined: number }) => b.combined - a.combined);
+    
+    // Apply offset and limit for pagination
+    const offset = opts.offset ?? 0;
+    const limit = opts.limit ?? 20;
+    
+    return sorted
+      .slice(offset, offset + limit)
       .map((x: { desc: ResourceDescriptor<any> }) => x.desc);
   }
 

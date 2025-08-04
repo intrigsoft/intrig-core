@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SearchIcon, BracesIcon, Link2Icon } from "lucide-react";
+import { SearchIcon, BracesIcon, Link2Icon, UploadIcon, FileTextIcon, DownloadIcon, RadioIcon } from "lucide-react";
 import { 
   CommandDialog, 
   CommandEmpty, 
@@ -15,6 +15,12 @@ import {useDebounceState} from "@/lib/useDebounceState";
 import {useEffect} from "react";
 import {ResourceDescriptor} from "@intrig/react/deamon_api/components/schemas/ResourceDescriptor";
 import { Link } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Interface for search result data items
 interface DashboardSearchProps {
@@ -149,6 +155,72 @@ export function DashboardSearch({ placeholder = "Search endpoints and data types
                           {item.data.summary}
                         </span>
                       )}
+                      
+                      {/* Badges */}
+                      <div className="flex gap-1 mt-1">
+                        <TooltipProvider>
+                          {/* Upload badge for multipart/form-data */}
+                          {item.data?.contentType?.includes('multipart/form-data') && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="p-1 rounded-md bg-purple-100 text-purple-700">
+                                  <UploadIcon className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Multipart Form Data</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          
+                          {/* Form badge for application/x-www-form-urlencoded */}
+                          {item.data?.contentType?.includes('application/x-www-form-urlencoded') && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="p-1 rounded-md bg-blue-100 text-blue-700">
+                                  <FileTextIcon className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Form URL Encoded</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          
+                          {/* SSE badge for text/event-stream */}
+                          {item.data?.responseType?.includes('text/event-stream') && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="p-1 rounded-md bg-green-100 text-green-700">
+                                  <RadioIcon className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>SSE (Server-Sent Events)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          
+                          {/* Download badge for downloadable content */}
+                          {(item.data?.responseType?.includes('application/octet-stream') || 
+                           item.data?.responseType?.includes('application/pdf') ||
+                           item.data?.responseType?.includes('application/zip') ||
+                           item.data?.responseType?.includes('application/x-msdownload') ||
+                           item.data?.responseType?.includes('application/vnd.ms-excel') ||
+                           item.data?.responseType?.includes('application/vnd.openxmlformats-officedocument')) && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="p-1 rounded-md bg-amber-100 text-amber-700">
+                                  <DownloadIcon className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Downloadable Content</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </TooltipProvider>
+                      </div>
                     </div>
                   </Link>
                 </CommandItem>
