@@ -4,9 +4,10 @@ interface StatCardProps {
   title: string;
   value: number;
   icon?: React.ReactNode;
+  description?: string;
 }
 
-export function StatCard({ title, value, icon }: StatCardProps) {
+export function StatCard({ title, value, icon, description }: StatCardProps) {
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
       <div className="flex items-center justify-between space-y-0 pb-2">
@@ -14,6 +15,9 @@ export function StatCard({ title, value, icon }: StatCardProps) {
         {icon && <div className="text-muted-foreground">{icon}</div>}
       </div>
       <div className="text-3xl font-bold">{value}</div>
+      {description && (
+        <div className="text-xs text-muted-foreground mt-2">{description}</div>
+      )}
     </div>
   );
 }

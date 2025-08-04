@@ -1,138 +1,230 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
-import { BracesIcon, ArrowLeftIcon } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-
-// Mock data for demonstration purposes
-// In a real application, this would come from an API or state management
-const mockSources = [
-  { id: "1", name: "User API", specUrl: "https://api.example.com/users/openapi.json", isOpenApi: true },
-  { id: "2", name: "Products API", specUrl: "https://api.example.com/products/openapi.yaml", isOpenApi: true },
-  { id: "3", name: "Orders API", specUrl: "https://api.example.com/orders/schema.json", isOpenApi: false },
-  { id: "4", name: "Customers API", specUrl: "https://api.example.com/customers/openapi.json", isOpenApi: true }
-];
-
-// Mock datatypes data
-const mockDatatypes = {
-  "1": [
-    { id: "d1", name: "User", fields: ["id", "name", "email", "createdAt"], description: "User account information" },
-    { id: "d2", name: "UserPreferences", fields: ["userId", "theme", "notifications"], description: "User preference settings" },
-    { id: "d3", name: "UserRole", fields: ["id", "name", "permissions"], description: "User role and permissions" }
-  ],
-  "2": [
-    { id: "d4", name: "Product", fields: ["id", "name", "price", "description", "category"], description: "Product information" },
-    { id: "d5", name: "Category", fields: ["id", "name", "parentId"], description: "Product category" }
-  ],
-  "3": [
-    { id: "d6", name: "Order", fields: ["id", "userId", "products", "total", "status"], description: "Customer order information" }
-  ],
-  "4": [
-    { id: "d7", name: "Customer", fields: ["id", "name", "email", "address"], description: "Customer information" }
-  ]
-};
-
-// Sample markdown content for demonstration
-const sampleMarkdown = `
-# Data Type Documentation
-
-## Overview
-This data type represents a structured entity in the API.
-
-## Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| id | string | Yes | The unique identifier |
-| name | string | Yes | The name of the entity |
-| email | string | Yes | The email address |
-| createdAt | datetime | Yes | Creation timestamp |
-
-## Example
-
-\`\`\`json
-{
-  "id": "123",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "createdAt": "2023-01-01T12:00:00Z"
-}
-\`\`\`
-
-## Related Types
-
-- UserPreferences
-- UserRole
-`;
+import React, {useEffect, useMemo} from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { FileJson } from 'lucide-react';
+import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
+import {isSuccess, isPending, isError} from "@intrig/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { 
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
+import { OpenAPIV3_1 } from "openapi-types";
 
 export function DatatypeDetailPage() {
   const { sourceId, datatypeId } = useParams<{ sourceId: string; datatypeId: string }>();
-  const [source, setSource] = useState<typeof mockSources[0] | null>(null);
-  const [datatype, setDatatype] = useState<typeof mockDatatypes[keyof typeof mockDatatypes][0] | null>(null);
-  
-  useEffect(() => {
-    // In a real application, this would be an API call
-    if (sourceId) {
-      const foundSource = mockSources.find(s => s.id === sourceId);
-      if (foundSource) {
-        setSource(foundSource);
-        
-        if (datatypeId && mockDatatypes[sourceId as keyof typeof mockDatatypes]) {
-          const foundDatatype = mockDatatypes[sourceId as keyof typeof mockDatatypes].find(d => d.id === datatypeId);
-          if (foundDatatype) {
-            setDatatype(foundDatatype);
-          }
-        }
-      }
+
+  const [resp, fetch] = useDataSearchControllerGetSchemaDocsById({
+    clearOnUnmount: true,
+    fetchOnMount: true,
+    params: {
+      id: datatypeId ?? ''
     }
-  }, [sourceId, datatypeId]);
+  });
+
+  useEffect(() => {
+    fetch({
+      id: datatypeId ?? ''
+    });
+  }, [datatypeId]);
+
+  const data = useMemo(() => {
+    if (isSuccess(resp)) {
+      return resp.data;
+    } else if (isError(resp)) {
+      console.error(resp);
+    }
+    return null;
+  }, [resp]);
+
+  const jsonSchema: OpenAPIV3_1.SchemaObject | undefined = useMemo(() => {
+    return data?.jsonSchema;
+  }, [data]);
+
+  if (isPending(resp)) {
+    return (
+      <div className="container mx-auto space-y-8 py-6">
+        <div className="flex flex-col gap-2">
+          <div className="h-4 w-48 bg-muted rounded animate-pulse"/>
+          <div className="h-8 w-96 bg-muted rounded animate-pulse"/>
+          <div className="h-4 w-72 bg-muted rounded animate-pulse"/>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="h-6 w-32 bg-muted rounded animate-pulse"/>
+            <div className="h-4 w-64 bg-muted rounded animate-pulse"/>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="h-4 w-32 bg-muted rounded animate-pulse"/>
+                  <div className="h-4 w-24 bg-muted rounded animate-pulse"/>
+                  <div className="h-4 w-24 bg-muted rounded animate-pulse"/>
+                  <div className="h-4 w-16 bg-muted rounded animate-pulse"/>
+                  <div className="h-4 w-48 bg-muted rounded animate-pulse"/>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="h-6 w-40 bg-muted rounded animate-pulse"/>
+            <div className="h-4 w-56 bg-muted rounded animate-pulse"/>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex justify-between items-center p-3 border rounded-md">
+                  <div className="h-4 w-64 bg-muted rounded animate-pulse"/>
+                  <div className="h-8 w-24 bg-muted rounded animate-pulse"/>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <h1 className="text-2xl font-bold">Data Type not found</h1>
+        <p className="mt-4">The data type you're looking for doesn't exist or hasn't been configured yet.</p>
+        <Button asChild className="mt-6">
+          <Link to={`/sources/${sourceId}`}>Back to Source</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-4 w-full flex flex-col">
-      {source && datatype ? (
-        <>
-          <div className="mb-6">
-            <Link to={`..`} className="inline-flex items-center text-blue-600 hover:text-blue-800">
-              <ArrowLeftIcon className="h-4 w-4 mr-1" />
-              Back to {source.name}
-            </Link>
+    <div className="container mx-auto space-y-8 py-6">
+      <div className="flex flex-col gap-2">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/sources">Sources</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={`/sources/${sourceId}`}>{sourceId}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{data.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+        <p className="text-muted-foreground">{data.description}</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Properties</CardTitle>
+          <CardDescription>Fields and types for the {data.name} model</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-md overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted">
+              <tr>
+                <th className="text-left p-2 font-medium">Property</th>
+                <th className="text-left p-2 font-medium">Type</th>
+                <th className="text-left p-2 font-medium">Format</th>
+                <th className="text-left p-2 font-medium">Required</th>
+                <th className="text-left p-2 font-medium">Description</th>
+              </tr>
+              </thead>
+              <tbody className="divide-y">
+              {Object.entries(jsonSchema?.properties ?? {})?.map(([name, prop]) => {
+                const _prop = prop as OpenAPIV3_1.SchemaObject;
+                return (<tr key={name}>
+                  <td className="p-2 font-mono">{name}</td>
+                  <td className="p-2 font-mono">{_prop?.type}</td>
+                  <td className="p-2 font-mono text-xs">{_prop?.format || _prop?.enum?.join(", ") || "-"}</td>
+                  <td className="p-2">{jsonSchema?.required?.includes(name) ? "Yes" : "No"}</td>
+                  <td className="p-2">{_prop?.description}</td>
+                </tr>);
+              })}
+              </tbody>
+            </table>
           </div>
-          
-          <h1 className="text-2xl font-bold mb-6">
-            {datatype.name}
-          </h1>
-          
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-1 rounded-md bg-purple-100 text-purple-800 font-medium">
-                <BracesIcon className="h-4 w-4 inline mr-1" />
-                Data Type
-              </span>
-            </div>
-            <div className="text-sm text-muted-foreground mb-4">
-              {datatype.description}
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-medium mb-2">Fields:</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {datatype.fields.map((field, index) => (
-                  <div key={index} className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">
-                    {field}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="border rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Documentation</h2>
-            <div className="prose max-w-none">
-              <ReactMarkdown>{sampleMarkdown}</ReactMarkdown>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div>Loading...</div>
+        </CardContent>
+      </Card>
+
+      {data.tabs && data.tabs.length > 0 && (
+        <Tabs defaultValue={data.tabs[0].name} className="w-full">
+          <TabsList className="mb-4">
+            {data.tabs.map(tab => <TabsTrigger key={tab.name} value={tab.name}>{tab.name}</TabsTrigger>)}
+          </TabsList>
+
+          {data.tabs.map(tab => (
+            <TabsContent key={tab.name} value={tab.name} className="mt-0">
+              <Card>
+                <CardContent className="pt-6">
+                  <MarkdownRenderer content={tab.content.trim()} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Related Endpoints</CardTitle>
+          <CardDescription>Endpoints that use this model</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {data.relatedEndpoints?.map((endpoint) => (
+              <div key={endpoint.id} className="flex justify-between items-center p-3 border rounded-md">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-md text-white ${
+                        endpoint.method === "GET"
+                          ? "bg-blue-600"
+                          : endpoint.method === "POST"
+                            ? "bg-green-600"
+                            : endpoint.method === "PUT"
+                              ? "bg-yellow-600"
+                              : "bg-red-600"
+                      }`}
+                    >
+                      {endpoint.method}
+                    </span>
+                    <span className="font-medium">{endpoint.name}</span>
+                  </div>
+                  <code className="font-mono text-sm bg-muted px-2 py-1 rounded">{endpoint.path}</code>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/sources/${sourceId}/endpoints/${endpoint.id}`}>View Details</Link>
+                </Button>
+              </div>
+            ))}
+            {(!data.relatedEndpoints || data.relatedEndpoints.length === 0) && (
+              <p className="text-muted-foreground">No related endpoints found for this data type.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
