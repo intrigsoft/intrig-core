@@ -9,17 +9,20 @@ import {
 import { Logo } from "@/components/logo";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { GitHubLink } from "@/components/github-link";
-import { SearchBox } from "@/components/search-box";
+import { DashboardSearch } from "@/components/dashboard-search";
+import { Link } from "react-router-dom";
 
 export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Logo />
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Logo />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <div className="px-4 py-2">
-          <SearchBox />
+          <DashboardSearch placeholder="Search..." />
         </div>
         {/* Sidebar links removed as requested */}
       </SidebarContent>
