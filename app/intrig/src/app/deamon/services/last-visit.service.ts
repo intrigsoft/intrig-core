@@ -4,12 +4,12 @@ import { join } from 'path';
 import { ensureDirSync } from 'fs-extra';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-import { LastVisitItem } from '../models/last-visit.model';
+import { EntityView } from '../models/entity-view.model';
 
 // Define the database structure
 interface LastVisitDB {
-  items: LastVisitItem[];
-  pinnedItems: LastVisitItem[];
+  items: EntityView[];
+  pinnedItems: EntityView[];
 }
 
 @Injectable()
@@ -69,7 +69,7 @@ export class LastVisitService {
    * @param source Schema source
    */
   async trackSchemaView(id: string, name: string, source: string): Promise<void> {
-    await this.trackItem(new LastVisitItem({
+    await this.trackItem(new EntityView({
       id,
       name,
       source,
@@ -84,7 +84,7 @@ export class LastVisitService {
    * @param source Endpoint source
    */
   async trackEndpointView(id: string, name: string, source: string): Promise<void> {
-    await this.trackItem(new LastVisitItem({
+    await this.trackItem(new EntityView({
       id,
       name,
       source,
@@ -97,7 +97,7 @@ export class LastVisitService {
    * @param item The item to track
    * @private
    */
-  private async trackItem(item: LastVisitItem): Promise<void> {
+  private async trackItem(item: EntityView): Promise<void> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();
@@ -122,7 +122,7 @@ export class LastVisitService {
   /**
    * Get all tracked items
    */
-  async getItems(): Promise<LastVisitItem[]> {
+  async getItems(): Promise<EntityView[]> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();
@@ -134,7 +134,7 @@ export class LastVisitService {
    * Get tracked items by type
    * @param type The type of items to get
    */
-  async getItemsByType(type: 'schema' | 'endpoint'): Promise<LastVisitItem[]> {
+  async getItemsByType(type: 'schema' | 'endpoint'): Promise<EntityView[]> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();
@@ -147,7 +147,7 @@ export class LastVisitService {
    * @param limit Number of items to return (default: 10)
    * @param type Optional filter by item type
    */
-  async getLastNItems(limit = 10, type?: 'schema' | 'endpoint'): Promise<LastVisitItem[]> {
+  async getLastNItems(limit = 10, type?: 'schema' | 'endpoint'): Promise<EntityView[]> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();
@@ -217,7 +217,7 @@ export class LastVisitService {
         }
         
         // Create a new item with the provided information
-        item = new LastVisitItem({
+        item = new EntityView({
           id,
           type,
           source,
@@ -228,7 +228,7 @@ export class LastVisitService {
       }
 
       // Add the item to pinnedItems
-      const pinnedItem = new LastVisitItem({
+      const pinnedItem = new EntityView({
         id: item.id,
         name: item.name,
         source: item.source,
@@ -281,7 +281,7 @@ export class LastVisitService {
    * Get all pinned items
    * @param type Optional filter by item type
    */
-  async getPinnedItems(type?: 'schema' | 'endpoint'): Promise<LastVisitItem[]> {
+  async getPinnedItems(type?: 'schema' | 'endpoint'): Promise<EntityView[]> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();

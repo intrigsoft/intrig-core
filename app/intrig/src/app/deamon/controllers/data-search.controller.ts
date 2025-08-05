@@ -6,11 +6,11 @@ import {SourceStats} from "../models/source-stats";
 import {DataStats} from "../models/data-stats";
 import {SearchQuery} from "../models/search-query";
 import {LastVisitService} from "../services/last-visit.service";
-import {LastVisitItem} from "../models/last-visit.model";
+import {EntityView} from "../models/entity-view.model";
 import {PinItemDto} from "../models/pin-item.dto";
 
 @Controller('data')
-@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, LastVisitItem, PinItemDto)
+@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, EntityView, PinItemDto)
 export class DataSearchController {
 
   constructor(
@@ -95,23 +95,23 @@ export class DataSearchController {
 
   @Get("/last-visited")
   @ApiOperation({summary: 'Get the last visited items'})
-  @ApiResponse({status: 200, description: 'Returns the last visited items', type: [LastVisitItem]})
+  @ApiResponse({status: 200, description: 'Returns the last visited items', type: [EntityView]})
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of items to return (default: 10)' })
   @ApiQuery({ name: 'type', required: false, enum: ['schema', 'endpoint'], description: 'Filter by item type' })
   async getLastVisitedItems(
     @Query('limit') limit?: number,
     @Query('type') type?: 'schema' | 'endpoint'
-  ): Promise<LastVisitItem[]> {
+  ): Promise<EntityView[]> {
     return await this.lastVisitService.getLastNItems(limit, type);
   }
 
   @Get("/pinned")
   @ApiOperation({summary: 'Get all pinned items'})
-  @ApiResponse({status: 200, description: 'Returns all pinned items', type: [LastVisitItem]})
+  @ApiResponse({status: 200, description: 'Returns all pinned items', type: [EntityView]})
   @ApiQuery({ name: 'type', required: false, enum: ['schema', 'endpoint'], description: 'Filter by item type' })
   async getPinnedItems(
     @Query('type') type?: 'schema' | 'endpoint'
-  ): Promise<LastVisitItem[]> {
+  ): Promise<EntityView[]> {
     return await this.lastVisitService.getPinnedItems(type);
   }
 
