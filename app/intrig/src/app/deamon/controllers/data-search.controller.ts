@@ -1,16 +1,22 @@
-import {Controller, Get, Query, Param, NotFoundException, UsePipes, ValidationPipe} from '@nestjs/common';
-import {ApiExtraModels, ApiOperation, ApiResponse, getSchemaPath} from '@nestjs/swagger';
+import {Controller, Get, Post, Delete, Query, Param, NotFoundException, UsePipes, ValidationPipe, HttpCode, HttpStatus, Body} from '@nestjs/common';
+import {ApiExtraModels, ApiOperation, ApiResponse, ApiQuery, getSchemaPath, ApiBody} from '@nestjs/swagger';
 import {Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation} from "common";
 import {DataSearchService} from "../services/data-search.service";
 import {SourceStats} from "../models/source-stats";
 import {DataStats} from "../models/data-stats";
 import {SearchQuery} from "../models/search-query";
+import {LastVisitService} from "../services/last-visit.service";
+import {LastVisitItem} from "../models/last-visit.model";
+import {PinItemDto} from "../models/pin-item.dto";
 
 @Controller('data')
-@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery)
+@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, LastVisitItem, PinItemDto)
 export class DataSearchController {
 
-  constructor(private dataSearchService: DataSearchService) {
+  constructor(
+    private dataSearchService: DataSearchService,
+    private lastVisitService: LastVisitService
+  ) {
   }
 
   @Get("/search")
@@ -85,5 +91,66 @@ export class DataSearchController {
   @ApiResponse({status: 200, description: 'Returns data statistics', type: DataStats})
   async getDataStats(@Query('source') source?: string): Promise<DataStats> {
     return await this.dataSearchService.getDataStats(source);
+  }
+
+  @Get("/last-visited")
+  @ApiOperation({summary: 'Get the last visited items'})
+  @ApiResponse({status: 200, description: 'Returns the last visited items', type: [LastVisitItem]})
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of items to return (default: 10)' })
+  @ApiQuery({ name: 'type', required: false, enum: ['schema', 'endpoint'], description: 'Filter by item type' })
+  async getLastVisitedItems(
+    @Query('limit') limit?: number,
+    @Query('type') type?: 'schema' | 'endpoint'
+  ): Promise<LastVisitItem[]> {
+    return await this.lastVisitService.getLastNItems(limit, type);
+  }
+
+  @Get("/pinned")
+  @ApiOperation({summary: 'Get all pinned items'})
+  @ApiResponse({status: 200, description: 'Returns all pinned items', type: [LastVisitItem]})
+  @ApiQuery({ name: 'type', required: false, enum: ['schema', 'endpoint'], description: 'Filter by item type' })
+  async getPinnedItems(
+    @Query('type') type?: 'schema' | 'endpoint'
+  ): Promise<LastVisitItem[]> {
+    return await this.lastVisitService.getPinnedItems(type);
+  }
+
+  @Post("/pin")
+  @ApiOperation({summary: 'Pin an item'})
+  @ApiResponse({status: 200, description: 'Item pinned successfully'})
+  @ApiResponse({status: 404, description: 'Item not found or missing required parameters'})
+  @ApiBody({ type: PinItemDto })
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async pinItem(
+    @Body() pinItemDto: PinItemDto
+  ): Promise<{ success: boolean, message: string }> {
+    const { id, type, source, name } = pinItemDto;
+    
+    const success = await this.lastVisitService.pinItem(id, type, source, name);
+    if (!success) {
+      throw new NotFoundException(`Item with id ${id} and type ${type} not found and source not provided`);
+    }
+    return { success, message: `Item ${id} pinned successfully` };
+  }
+
+  @Delete("/pin")
+  @ApiOperation({summary: 'Unpin an item'})
+  @ApiResponse({status: 200, description: 'Item unpinned successfully'})
+  @ApiResponse({status: 404, description: 'Item not found or not pinned or missing required parameters'})
+  @HttpCode(HttpStatus.OK)
+  async unpinItem(
+    @Query('id') id: string,
+    @Query('type') type: 'schema' | 'endpoint'
+  ): Promise<{ success: boolean, message: string }> {
+    if (!id || !type) {
+      throw new NotFoundException('Missing required parameters: id and type are required');
+    }
+    
+    const success = await this.lastVisitService.unpinItem(id, type);
+    if (!success) {
+      throw new NotFoundException(`Pinned item with id ${id} and type ${type} not found`);
+    }
+    return { success, message: `Item ${id} unpinned successfully` };
   }
 }

@@ -1,11 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {GeneratorBinding, Page, ResourceDescriptor, RestData} from "common";
 import {SearchService} from "./search.service";
+import {LastVisitService} from "./last-visit.service";
 
 @Injectable()
 export class DataSearchService {
   private readonly logger = new Logger(DataSearchService.name);
-  constructor(private readonly searchService: SearchService, private generatorBinding: GeneratorBinding) {}
+  constructor(
+    private readonly searchService: SearchService, 
+    private generatorBinding: GeneratorBinding,
+    private lastVisitService: LastVisitService
+  ) {}
 
   /**
    * @param query  The search string; if falsy, returns recent descriptors
@@ -72,6 +77,10 @@ export class DataSearchService {
     const result = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
+    
+    // Track the schema view
+    await this.lastVisitService.trackSchemaView(id, result.name, result.source);
+    
     const dataTypes = this.searchService.search("", {
       dataTypes: [result.name],
       type: 'rest'
@@ -91,6 +100,10 @@ export class DataSearchService {
     const result = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
+    
+    // Track the endpoint view
+    await this.lastVisitService.trackEndpointView(id, result.name, result.source);
+    
     const restData = result.data as RestData;
     const schemas = this.searchService.search("", {
       type: 'schema',

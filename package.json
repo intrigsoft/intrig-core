@@ -110,6 +110,7 @@
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
+    "lowdb": "^7.0.1",
     "minisearch": "^7.1.2",
     "nest-commander": "^3.17.0",
     "next": "~15.2.4",
