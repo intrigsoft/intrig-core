@@ -20,6 +20,9 @@
       "configurations": {
         "development": {
           "command": "webpack-cli build --config ./webpack.config.cjs --node-env development"
+        },
+        "production": {
+          "command": "webpack-cli build --config ./webpack.config.cjs --node-env production"
         }
       }
     },

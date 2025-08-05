@@ -12,6 +12,7 @@ import {NextCliModule, NextCliService} from "next-binding";
 import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
 import {ReactCliModule, ReactCliService} from "react-binding";
+import {InsightCommand} from "./commands/insight.command";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 
@@ -26,6 +27,7 @@ import {PostbuildCommand} from "./commands/postbuild.command";
     SyncCommand,
     SearchCommand,
     HttpModule,
+    InsightCommand,
     PrebuildCommand,
     PostbuildCommand,
     {
