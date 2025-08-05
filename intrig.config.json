@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "id": "deamon_api",
+      "name": "Intrig Deamon API",
+      "specUrl": "http://localhost:3000/api/swagger.json"
+    }
+  ],
+  "generator": "react",
+  "__dangorouslyOverrideBuild": {
+    "srcDir": "app/insight/src",
+    "tsConfig": "app/insight/tsconfig.json"
+  }
+}

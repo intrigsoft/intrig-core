@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {GeneratorBinding, Page, ResourceDescriptor, RestData} from "common";
 import {SearchService} from "./search.service";
-import {DataStats} from "../models/data-stats";
 
 @Injectable()
 export class DataSearchService {

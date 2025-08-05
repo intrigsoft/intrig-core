@@ -1,20 +1,25 @@
 import {Injectable, Logger} from '@nestjs/common';
+import type {GenerateEventContext, IIntrigSourceConfig, IntrigConfig} from "common";
 import {
-  GeneratorBinding, IntrigSourceConfig,
+  GeneratorBinding,
+  IntrigSourceConfig,
   PackageManagerService,
-  ResourceDescriptor, RestData, Schema,
+  ResourceDescriptor,
+  RestData,
+  Schema,
   SyncEventContext,
   WithStatus
 } from "common";
-import type {IntrigConfig} from "common";
-import type {GenerateEventContext, IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "./intrig-config.service";
 import * as path from "path";
 import * as fs from 'fs-extra'
-import { ConfigService } from '@nestjs/config';
+import {ConfigService} from '@nestjs/config';
 import {IntrigOpenapiService} from "openapi-source";
-import _ from "lodash";
 import {SearchService} from "./search.service";
+
+interface TempBuildContext {
+  srcDir: string;
+}
 
 @Injectable()
 export class OperationsService {
@@ -113,7 +118,12 @@ export class OperationsService {
     await this.generateGlobalContent(ctx, config.sources);
     await this.installDependencies(ctx);
     await this.buildContent(ctx);
-    await this.copyContentToNodeModules(ctx);
+    const tempBuildContext: TempBuildContext = (config as any).__dangorouslyOverrideBuild;
+    if (tempBuildContext) {
+      this.copyContentToSource(ctx, tempBuildContext);
+    } else {
+      await this.copyContentToNodeModules(ctx);
+    }
     await this.executePostBuild(ctx);
   }
 
@@ -175,6 +185,20 @@ export class OperationsService {
       this.logger.error(`Failed to copy content to node_modules: ${error}`);
       throw error;
     }
+  }
+
+  @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
+  private async copyContentToSource(ctx: GenerateEventContext, tempBuildContext: TempBuildContext) {
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, '@intrig', this.generatorBinding.getLibName())
+    if (fs.pathExistsSync(targetLibDir)) {
+      await fs.remove(targetLibDir);
+      this.logger.log(`Removed existing ${targetLibDir}`);
+    }
+
+    await fs.ensureDir(targetLibDir);
+    await fs.copy(path.join(this.generateDir, 'src'), targetLibDir);
+    this.logger.log(`Copied ${targetLibDir}`);
+    return "";
   }
 
   @WithStatus(event => ({sourceId: '', step: 'build'}))
