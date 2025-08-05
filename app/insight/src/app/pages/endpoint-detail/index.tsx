@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { SchemaViewButton } from "@/components/schema-view-button";
+import { PinButton, PinContextProvider } from "@/components/pin-button";
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -79,7 +80,7 @@ export function EndpointDetailPage() {
 
   return (
     <div className="container mx-auto space-y-8 py-6">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 relative">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -99,6 +100,17 @@ export function EndpointDetailPage() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+        <div className="absolute top-0 right-0">
+          <PinButton 
+            item={{
+              id: data.id || endpointId || '',
+              name: data.name,
+              source: sourceId || '',
+              type: 'endpoint',
+              accessTime: new Date().toISOString()
+            }} 
+          />
+        </div>
         <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
         <div className="flex items-center gap-2">
           <span
@@ -231,4 +243,10 @@ export function EndpointDetailPage() {
   );
 }
 
-export default EndpointDetailPage;
+export default function EndpointDetailPageWrapper() {
+  return (
+    <PinContextProvider>
+      <EndpointDetailPage />
+    </PinContextProvider>
+  );
+}

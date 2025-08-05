@@ -45,6 +45,16 @@ const createDynamicImportWrapper = () => {
               }
             );
 
+            // Handle lowdb as a dynamic import
+            content = content.replace(
+              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb"\)/g,
+              `await import("lowdb")`
+            );
+            content = content.replace(
+              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb\/node"\)/g,
+              `await import("lowdb/node")`
+            );
+
             content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("nypm")`, `await import("nypm")`)
 
             // Update the asset
@@ -68,6 +78,12 @@ module.exports = {
   },
   experiments: {
     outputModule: true,
+  },
+  externalsType: 'module',
+  externals: {
+    // Explicitly mark lowdb as non-external to bundle it with the application
+    'lowdb': 'module lowdb',
+    'lowdb/node': 'module lowdb/node',
   },
   plugins: [
     new webpack.BannerPlugin({

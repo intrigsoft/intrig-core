@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import router from './app/router';
 import {IntrigProvider} from "@intrig/react";
+import {PinContextProvider} from "@/components/pin-button";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
@@ -15,7 +16,9 @@ root.render(
         baseURL: 'http://localhost:3000'
       }
     }}>
-      <RouterProvider router={router} />
+      <PinContextProvider>
+        <RouterProvider router={router} />
+      </PinContextProvider>
     </IntrigProvider>
   </StrictMode>,
 );

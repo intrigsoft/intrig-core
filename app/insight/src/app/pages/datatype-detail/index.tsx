@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { PinButton, PinContextProvider } from "@/components/pin-button";
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -110,7 +111,7 @@ export function DatatypeDetailPage() {
 
   return (
     <div className="container mx-auto space-y-8 py-6">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 relative">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -130,6 +131,17 @@ export function DatatypeDetailPage() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+        <div className="absolute top-0 right-0">
+          <PinButton 
+            item={{
+              id: data.id || datatypeId || '',
+              name: data.name,
+              source: sourceId || '',
+              type: 'schema',
+              accessTime: new Date().toISOString()
+            }} 
+          />
+        </div>
         <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
         <p className="text-muted-foreground">{data.description}</p>
       </div>
@@ -229,4 +241,10 @@ export function DatatypeDetailPage() {
   );
 }
 
-export default DatatypeDetailPage;
+export default function DatatypeDetailPageWrapper() {
+  return (
+    <PinContextProvider>
+      <DatatypeDetailPage />
+    </PinContextProvider>
+  );
+}

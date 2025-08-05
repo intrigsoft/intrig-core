@@ -13,25 +13,15 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import { GitHubLink } from "@/components/github-link";
 import { DashboardSearch } from "@/components/dashboard-search";
 import { Link } from "react-router-dom";
-import { Combobox, ComboboxOption } from "@/components/ui/combobox";
+import { RecentComponentsList } from "@/components/recent-components-list";
+import { PinnedComponentsList } from "@/components/pinned-components-list";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Clock, Pin, Search } from "lucide-react";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [selectedOption, setSelectedOption] = React.useState("recent-viewed");
-  
-  // Options for the sidebar combobox filter
-  const searchOptions: ComboboxOption[] = [
-    { value: "recent-viewed", label: "Recent Viewed" },
-    { value: "pinned", label: "Pinned" },
-    { value: "recent-searches", label: "Recent Searches" },
-  ];
-  
-  // Handle option change
-  const handleOptionChange = (value: string) => {
-    setSelectedOption(value);
-    // Additional logic for filtering based on selected option can be added here
-  };
 
   return (
     <Sidebar className="relative">
@@ -50,14 +40,32 @@ export function AppSidebar() {
           <DashboardSearch placeholder="Search..." />
         </div>
         <div className="px-4 py-2">
-          <Combobox 
-            options={searchOptions} 
-            value={selectedOption}
-            onValueChange={handleOptionChange}
-            placeholder="Select view"
-          />
+          <Tabs value={selectedOption} onValueChange={setSelectedOption} className="w-full">
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="recent-viewed" className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="pinned" className="flex items-center gap-1">
+                <Pin className="h-4 w-4" />
+              </TabsTrigger>
+              {/*<TabsTrigger value="recent-searches" className="flex items-center gap-1">*/}
+              {/*  <Search className="h-4 w-4" />*/}
+              {/*</TabsTrigger>*/}
+            </TabsList>
+            
+            <TabsContent value="recent-viewed">
+              <RecentComponentsList/>
+            </TabsContent>
+            <TabsContent value="pinned">
+              <PinnedComponentsList/>
+            </TabsContent>
+            <TabsContent value="recent-searches">
+              <div className="p-4 text-center text-gray-500">
+                Recent searches feature coming soon.
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-        {/* Sidebar links removed as requested */}
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>

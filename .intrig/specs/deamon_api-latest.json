@@ -433,6 +433,293 @@
           "DataSearch"
         ]
       }
+    },
+    "/api/data/last-visited": {
+      "get": {
+        "operationId": "DataSearchController_getLastVisitedItems",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return (default: 10)",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$Limit"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by item type",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the last visited items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the last visited items",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/pinned": {
+      "get": {
+        "operationId": "DataSearchController_getPinnedItems",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by item type",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetPinnedItems$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all pinned items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetPinnedItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all pinned items",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/toggle-pin": {
+      "post": {
+        "operationId": "DataSearchController_togglePinItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item pin status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerTogglePinItem$ResponseBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Item not found or missing required parameters"
+          }
+        },
+        "summary": "Toggle pin status of an item",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/pin": {
+      "post": {
+        "deprecated": true,
+        "operationId": "DataSearchController_pinItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item pinned successfully"
+          },
+          "404": {
+            "description": "Item not found or missing required parameters"
+          }
+        },
+        "summary": "Pin an item",
+        "tags": [
+          "DataSearch"
+        ]
+      },
+      "delete": {
+        "deprecated": true,
+        "operationId": "DataSearchController_unpinItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerUnpinItem$Id"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerUnpinItem$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item unpinned successfully"
+          },
+          "404": {
+            "description": "Item not found or not pinned or missing required parameters"
+          }
+        },
+        "summary": "Unpin an item",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/api/last-visit/recent": {
+      "get": {
+        "operationId": "LastVisitController_getRecentItems",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all recently viewed items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LastVisit$LastVisitControllerGetRecentItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all recently viewed items",
+        "tags": [
+          "LastVisit"
+        ]
+      }
+    },
+    "/api/api/last-visit/pinned": {
+      "get": {
+        "operationId": "LastVisitController_getPinnedItems",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all pinned items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LastVisit$LastVisitControllerGetPinnedItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all pinned items",
+        "tags": [
+          "LastVisit"
+        ]
+      }
+    },
+    "/api/api/last-visit/pin/{type}/{id}": {
+      "post": {
+        "operationId": "LastVisitController_pinItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Item ID",
+            "schema": {
+              "$ref": "#/components/schemas/LastVisit$LastVisitControllerPinItem$Id"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "description": "Item type",
+            "schema": {
+              "$ref": "#/components/schemas/LastVisit$LastVisitControllerPinItem$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item pinned successfully"
+          },
+          "404": {
+            "description": "Item not found"
+          }
+        },
+        "summary": "Pin an item",
+        "tags": [
+          "LastVisit"
+        ]
+      },
+      "delete": {
+        "operationId": "LastVisitController_unpinItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Item ID",
+            "schema": {
+              "$ref": "#/components/schemas/LastVisit$LastVisitControllerUnpinItem$Id"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "description": "Item type",
+            "schema": {
+              "$ref": "#/components/schemas/LastVisit$LastVisitControllerUnpinItem$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item unpinned successfully"
+          },
+          "404": {
+            "description": "Item not found or not pinned"
+          }
+        },
+        "summary": "Unpin an item",
+        "tags": [
+          "LastVisit"
+        ]
+      }
     }
   },
   "info": {
@@ -453,6 +740,9 @@
     },
     {
       "name": "DataSearch"
+    },
+    {
+      "name": "LastVisit"
     }
   ],
   "servers": [],
@@ -997,6 +1287,85 @@
           }
         }
       },
+      "LastVisitItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the item",
+            "example": "123456"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the item",
+            "example": "User Schema"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the item",
+            "example": "petstore"
+          },
+          "accessTime": {
+            "type": "string",
+            "description": "Timestamp when the item was last accessed",
+            "example": "2025-08-05T21:07:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the item",
+            "enum": [
+              "schema",
+              "endpoint"
+            ],
+            "example": "schema"
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "Whether the item is pinned",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source",
+          "accessTime",
+          "type"
+        ]
+      },
+      "PinItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Item ID",
+            "example": "123456"
+          },
+          "type": {
+            "type": "string",
+            "description": "Item type",
+            "enum": [
+              "schema",
+              "endpoint"
+            ],
+            "example": "schema"
+          },
+          "source": {
+            "type": "string",
+            "description": "Item source",
+            "example": "petstore"
+          },
+          "name": {
+            "type": "string",
+            "description": "Item name",
+            "example": "Pet"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ]
+      },
       "Sources$SourcesControllerRemove$Id": {
         "type": "string"
       },
@@ -1083,6 +1452,79 @@
         "type": "string"
       },
       "DataSearch$DataSearchControllerGetDataStats$Source": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$Limit": {
+        "type": "number"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LastVisitItem"
+        }
+      },
+      "DataSearch$DataSearchControllerGetPinnedItems$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetPinnedItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LastVisitItem"
+        }
+      },
+      "DataSearch$DataSearchControllerTogglePinItem$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PinItemDto"
+        }
+      },
+      "DataSearch$DataSearchControllerUnpinItem$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerUnpinItem$Type": {
+        "type": "string"
+      },
+      "LastVisit$LastVisitControllerGetRecentItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LastVisitItem"
+        }
+      },
+      "LastVisit$LastVisitControllerGetPinnedItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LastVisitItem"
+        }
+      },
+      "LastVisit$LastVisitControllerPinItem$Id": {
+        "type": "string"
+      },
+      "LastVisit$LastVisitControllerPinItem$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
+        "type": "string"
+      },
+      "LastVisit$LastVisitControllerUnpinItem$Id": {
+        "type": "string"
+      },
+      "LastVisit$LastVisitControllerUnpinItem$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
         "type": "string"
       }
     }

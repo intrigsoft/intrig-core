@@ -115,8 +115,27 @@ export class DataSearchController {
     return await this.lastVisitService.getPinnedItems(type);
   }
 
+  @Post("/toggle-pin")
+  @ApiOperation({summary: 'Toggle pin status of an item'})
+  @ApiResponse({status: 200, description: 'Item pin status toggled successfully', type: [PinItemDto]})
+  @ApiResponse({status: 404, description: 'Item not found or missing required parameters'})
+  @ApiBody({ type: PinItemDto })
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async togglePinItem(
+    @Body() pinItemDto: PinItemDto
+  ): Promise<PinItemDto> {
+    const { id, type, source, name } = pinItemDto;
+    
+    const result = await this.lastVisitService.togglePinItem(id, type, source, name);
+    if (!result.success) {
+      throw new NotFoundException(`Item with id ${id} and type ${type} not found and source not provided`);
+    }
+    return pinItemDto;
+  }
+
   @Post("/pin")
-  @ApiOperation({summary: 'Pin an item'})
+  @ApiOperation({summary: 'Pin an item', deprecated: true})
   @ApiResponse({status: 200, description: 'Item pinned successfully'})
   @ApiResponse({status: 404, description: 'Item not found or missing required parameters'})
   @ApiBody({ type: PinItemDto })
@@ -135,7 +154,7 @@ export class DataSearchController {
   }
 
   @Delete("/pin")
-  @ApiOperation({summary: 'Unpin an item'})
+  @ApiOperation({summary: 'Unpin an item', deprecated: true})
   @ApiResponse({status: 200, description: 'Item unpinned successfully'})
   @ApiResponse({status: 404, description: 'Item not found or not pinned or missing required parameters'})
   @HttpCode(HttpStatus.OK)

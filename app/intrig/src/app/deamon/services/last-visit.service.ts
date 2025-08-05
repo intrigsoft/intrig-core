@@ -163,13 +163,14 @@ export class LastVisitService {
   }
 
   /**
-   * Pin an item
+   * Toggle pin status of an item
    * @param id Item ID
    * @param type Item type ('schema' or 'endpoint')
    * @param source Item source (optional if item exists in last visit)
    * @param name Item name (optional if item exists in last visit)
+   * @returns Object containing success status and the new pin state (true if pinned, false if unpinned)
    */
-  async pinItem(id: string, type: 'schema' | 'endpoint', source?: string, name?: string): Promise<boolean> {
+  async togglePinItem(id: string, type: 'schema' | 'endpoint', source?: string, name?: string): Promise<{ success: boolean, pinned: boolean }> {
     // Ensure the database is loaded
     if (!this.db.data) {
       await this.loadDb();
@@ -177,89 +178,103 @@ export class LastVisitService {
 
     // Check if the item is already pinned
     const alreadyPinned = this.db.data.pinnedItems.some(i => i.id === id && i.type === type);
-    if (alreadyPinned) {
-      this.logger.debug(`Item already pinned: ${id} (${type})`);
-      return true;
-    }
-
-    // Find the item in the items array
-    let item = this.db.data.items.find(i => i.id === id && i.type === type);
     
-    // If item doesn't exist in last visit but we have source and name, we can still pin it
-    if (!item) {
-      if (!source) {
-        this.logger.warn(`Item not found for pinning and source not provided: ${id} (${type})`);
-        return false;
+    if (alreadyPinned) {
+      // Item is already pinned, so unpin it
+      const pinnedItemIndex = this.db.data.pinnedItems.findIndex(i => i.id === id && i.type === type);
+      if (pinnedItemIndex === -1) {
+        // This shouldn't happen since we already checked alreadyPinned
+        this.logger.warn(`Inconsistent state: Item marked as pinned but not found in pinnedItems: ${id} (${type})`);
+        return { success: false, pinned: false };
       }
+
+      // Get the pinned item before removing it (for logging)
+      const pinnedItem = this.db.data.pinnedItems[pinnedItemIndex];
       
-      // Create a new item with the provided information
-      item = new LastVisitItem({
-        id,
-        type,
-        source,
-        name: name || id, // Use id as name if name not provided
+      // Remove the item from pinnedItems
+      this.db.data.pinnedItems.splice(pinnedItemIndex, 1);
+
+      // Also update the item in the items array if it exists
+      const itemIndex = this.db.data.items.findIndex(i => i.id === id && i.type === type);
+      if (itemIndex !== -1) {
+        this.db.data.items[itemIndex].pinned = false;
+      }
+
+      // Save the database
+      await this.saveDb();
+      this.logger.debug(`Unpinned ${type}: ${pinnedItem.name} (${id})`);
+      return { success: true, pinned: false };
+    } else {
+      // Item is not pinned, so pin it
+      // Find the item in the items array
+      let item = this.db.data.items.find(i => i.id === id && i.type === type);
+      
+      // If item doesn't exist in last visit but we have source and name, we can still pin it
+      if (!item) {
+        if (!source) {
+          this.logger.warn(`Item not found for pinning and source not provided: ${id} (${type})`);
+          return { success: false, pinned: false };
+        }
+        
+        // Create a new item with the provided information
+        item = new LastVisitItem({
+          id,
+          type,
+          source,
+          name: name || id, // Use id as name if name not provided
+        });
+        
+        this.logger.debug(`Creating new pin for item not in last visit: ${id} (${type})`);
+      }
+
+      // Add the item to pinnedItems
+      const pinnedItem = new LastVisitItem({
+        id: item.id,
+        name: item.name,
+        source: item.source,
+        type: item.type,
+        pinned: true,
+        accessTime: new Date().toISOString()
       });
-      
-      this.logger.debug(`Creating new pin for item not in last visit: ${id} (${type})`);
+      this.db.data.pinnedItems.push(pinnedItem);
+
+      // Also update the item in the items array if it exists
+      const itemIndex = this.db.data.items.findIndex(i => i.id === id && i.type === type);
+      if (itemIndex !== -1) {
+        this.db.data.items[itemIndex].pinned = true;
+      }
+
+      // Save the database
+      await this.saveDb();
+      this.logger.debug(`Pinned ${type}: ${pinnedItem.name} (${id})`);
+      return { success: true, pinned: true };
     }
-
-    // Add the item to pinnedItems
-    const pinnedItem = new LastVisitItem({
-      id: item.id,
-      name: item.name,
-      source: item.source,
-      type: item.type,
-      pinned: true,
-      accessTime: new Date().toISOString()
-    });
-    this.db.data.pinnedItems.push(pinnedItem);
-
-    // Also update the item in the items array if it exists
-    const itemIndex = this.db.data.items.findIndex(i => i.id === id && i.type === type);
-    if (itemIndex !== -1) {
-      this.db.data.items[itemIndex].pinned = true;
-    }
-
-    // Save the database
-    await this.saveDb();
-    this.logger.debug(`Pinned ${type}: ${pinnedItem.name} (${id})`);
-    return true;
   }
 
   /**
-   * Unpin an item
+   * Pin an item (deprecated, use togglePinItem instead)
    * @param id Item ID
    * @param type Item type ('schema' or 'endpoint')
+   * @param source Item source (optional if item exists in last visit)
+   * @param name Item name (optional if item exists in last visit)
+   * @deprecated Use togglePinItem instead
+   */
+  async pinItem(id: string, type: 'schema' | 'endpoint', source?: string, name?: string): Promise<boolean> {
+    const result = await this.togglePinItem(id, type, source, name);
+    return result.success && result.pinned;
+  }
+
+  /**
+   * Unpin an item (deprecated, use togglePinItem instead)
+   * @param id Item ID
+   * @param type Item type ('schema' or 'endpoint')
+   * @deprecated Use togglePinItem instead
    */
   async unpinItem(id: string, type: 'schema' | 'endpoint'): Promise<boolean> {
-    // Ensure the database is loaded
-    if (!this.db.data) {
-      await this.loadDb();
-    }
-
-    // Check if the item is pinned
-    const pinnedItemIndex = this.db.data.pinnedItems.findIndex(i => i.id === id && i.type === type);
-    if (pinnedItemIndex === -1) {
-      this.logger.warn(`Item not found for unpinning: ${id} (${type})`);
-      return false;
-    }
-
-    // Get the pinned item before removing it (for logging)
-    const pinnedItem = this.db.data.pinnedItems[pinnedItemIndex];
-    
-    // Remove the item from pinnedItems
-    this.db.data.pinnedItems.splice(pinnedItemIndex, 1);
-
-    // Also update the item in the items array if it exists
-    const itemIndex = this.db.data.items.findIndex(i => i.id === id && i.type === type);
-    if (itemIndex !== -1) {
-      this.db.data.items[itemIndex].pinned = false;
-    }
-
-    // Save the database
-    await this.saveDb();
-    this.logger.debug(`Unpinned ${type}: ${pinnedItem.name} (${id})`);
-    return true;
+    // If the item is not pinned, this will return success: true, pinned: false
+    // If the item is pinned, it will be unpinned and return success: true, pinned: false
+    const result = await this.togglePinItem(id, type);
+    return result.success;
   }
 
   /**

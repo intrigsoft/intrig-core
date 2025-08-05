@@ -12,6 +12,7 @@ import { DataSearchController } from './controllers/data-search.controller';
 import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
+import { LastVisitController } from './controllers/last-visit.controller';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { LastVisitService } from './services/last-visit.service';
     OpenapiSourceModule,
     HttpModule,
   ],
-  controllers: [SourcesController, OperationsController, DataSearchController],
+  controllers: [SourcesController, OperationsController, DataSearchController, LastVisitController],
   providers: [
     IntrigConfigService,
     OpenapiService,
