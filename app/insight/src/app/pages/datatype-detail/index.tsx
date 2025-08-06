@@ -1,6 +1,5 @@
-import React, {useEffect, useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FileJson } from 'lucide-react';
 import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
 import {isSuccess, isPending, isError} from "@intrig/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

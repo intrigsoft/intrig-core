@@ -12,8 +12,8 @@ import { BracesIcon, Link2Icon, ServerIcon } from "lucide-react";
 import {useDataSearchControllerGetLastVisitedItems} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetLastVisitedItems/client'
 import {useLocation, Link} from "react-router-dom";
 import {isSuccess} from "@intrig/react";
-import {LastVisitItem} from "@intrig/react/deamon_api/components/schemas/LastVisitItem";
 import { PinButton } from "@/components/pin-button";
+import {EntityView} from "@intrig/react/deamon_api/components/schemas/EntityView";
 
 export function RecentComponentsList() {
 
@@ -27,7 +27,7 @@ export function RecentComponentsList() {
     }
   });
 
-  const [items, setItems] = useState<LastVisitItem[]>([]);
+  const [items, setItems] = useState<EntityView[]>([]);
 
   useEffect(() => {
     if (isSuccess(itemsResp)) {
@@ -56,13 +56,13 @@ export function RecentComponentsList() {
       <div className="px-2 py-1">
         {items.map((item, index) => (
           <React.Fragment key={`${item.type}-${item.id}`}>
-            <Link 
-              to={item.type === "schema" 
-                ? `/sources/${item.source}/datatype/${item.id}` 
+            <Link
+              to={item.type === "schema"
+                ? `/sources/${item.source}/datatype/${item.id}`
                 : `/sources/${item.source}/endpoint/${item.id}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
-              <div className="flex items-center py-2 px-2 hover:bg-accent/50 rounded-md relative w-[85%] group" >
+              <div className="flex items-center py-2 px-2 hover:bg-accent/50 rounded-md relative group" >
                 {/* Icon based on item type */}
                 <div className="mr-2 flex-shrink-0">
                   {item.type === "schema" && <BracesIcon className="h-4 w-4 text-muted-foreground" />}

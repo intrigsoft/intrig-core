@@ -1,4 +1,4 @@
-import {Command, CommandRunner} from "nest-commander";
+import {Command, CommandRunner, Option} from "nest-commander";
 import {HttpService} from "@nestjs/axios";
 import {lastValueFrom} from "rxjs";
 import {Page, ResourceDescriptor} from "common";
@@ -11,6 +11,23 @@ export class SearchCommand extends CommandRunner {
 
   constructor(private pm: ProcessManagerService, private httpService: HttpService) {
     super();
+  }
+
+  @Option({
+    flags: '--no-interactive',
+    description: 'Display options without an interactive prompt',
+    defaultValue: false
+  })
+  parseNoInteractiveOption(val: boolean): boolean {
+    return Boolean(val);
+  }
+
+  @Option({
+    flags: '--option [index]',
+    description: 'Select option by index (works with --no-interactive)',
+  })
+  parseOptionIndexOption(val: string): number {
+    return parseInt(val, 10);
   }
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
@@ -48,10 +65,38 @@ export class SearchCommand extends CommandRunner {
           const summary = rest.summary ? ` — ${rest.summary}` : '';
           title = `${method} ${path}${summary}`.trim();
         }
-        return { name: title, value: desc.id };
+        return { 
+          name: title, 
+          value: desc.id,
+          type: desc.type,
+          source: desc.source
+        };
       });
 
-      // Prompt user to select one
+      // Handle non-interactive mode
+      if (!options?.interactive) {
+        if (!options?.option) {
+          console.log('Select a resource.');
+          choices.forEach((choice, index) => {
+            console.log(` ${index + 1}. ${choice.name}`);
+          });
+        } else {
+          const optionIndex = options.option;
+          if (optionIndex < 1 || optionIndex > choices.length) {
+            console.error(`Error: Option index out of range. Must be between 1 and ${choices.length}.`);
+            process.exit(1);
+          }
+          
+          const selected = choices[optionIndex - 1];
+          console.log(`Selected resource: ID: ${selected.value}, Type: ${selected.type}`);
+          return;
+        }
+        
+        // If no option index is provided, just exit after displaying options
+        return;
+      }
+
+      // Interactive mode: prompt user to select one
       const answers = await inquirer.prompt([
         {
           type: 'list',
@@ -62,7 +107,9 @@ export class SearchCommand extends CommandRunner {
         },
       ]);
 
-      console.log(`Selected resource ID: ${answers.id}`);
+      // Find the selected resource to get its type
+      const selectedResource = choices.find(choice => choice.value === answers.id);
+      console.log(`Selected resource: ID: ${answers.id}, Type: ${selectedResource?.type}`);
     } catch (err: any) {
       console.error('Search failed:', err.message || err);
     }

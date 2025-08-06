@@ -1,4 +1,4 @@
-import {Command, CommandRunner} from "nest-commander";
+import {Command, CommandRunner, Option} from "nest-commander";
 import { ProcessManagerService } from "../process-manager.service";
 import chalk from 'chalk';
 import {lastValueFrom} from "rxjs";
@@ -12,6 +12,22 @@ export class SyncCommand extends CommandRunner {
 
   constructor(private pm: ProcessManagerService, private httpService: HttpService) {
     super();
+  }
+
+  @Option({
+    flags: '--all',
+    description: 'Bypass source selection and sync all sources',
+  })
+  parseAllOption(): boolean {
+    return true;
+  }
+
+  @Option({
+    flags: '--id [id]',
+    description: 'Bypass source selection and use the given id as the source to sync',
+  })
+  parseIdOption(val: string): string {
+    return val;
   }
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
@@ -29,22 +45,36 @@ export class SyncCommand extends CommandRunner {
       this.httpService.get(listUrl, { headers: { Accept: 'application/json' } }),
     );
 
-    // 3) prompt user to select one or all
-    const choices = [
-      { name: '→ All sources', value: '' },
-      ...sources.map((s: any) => ({
-        name: `→ ${s.id} (${s.name ?? 'N/A'})`,
-        value: s.id,
-      })),
-    ];
-    const { id } = await inquirer.prompt<{ id: string }>([
-      {
-        type: 'list',
-        name: 'id',
-        message: chalk.yellow('Which source would you like to sync?'),
-        choices,
-      },
-    ]);
+    // 3) determine source id to sync (from flags or prompt)
+    let id = '';
+    
+    // Check if --id flag was provided
+    if (options?.id) {
+      id = options.id;
+    } 
+    // Check if --all flag was provided
+    else if (options?.all) {
+      id = ''; // Empty id means all sources
+    } 
+    // If no flags provided, prompt user to select
+    else {
+      const choices = [
+        { name: '→ All sources', value: '' },
+        ...sources.map((s: any) => ({
+          name: `→ ${s.id} (${s.name ?? 'N/A'})`,
+          value: s.id,
+        })),
+      ];
+      const result = await inquirer.prompt<{ id: string }>([
+        {
+          type: 'list',
+          name: 'id',
+          message: chalk.yellow('Which source would you like to sync?'),
+          choices,
+        },
+      ]);
+      id = result.id;
+    }
 
     // 4) build sync URL with optional query parameter
     let syncUrl = `${metadata.url}/api/operations/sync`;

@@ -15,6 +15,7 @@ import {ReactCliModule, ReactCliService} from "react-binding";
 import {InsightCommand} from "./commands/insight.command";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
+import {ViewCommand} from "./commands/view.command";
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
@@ -26,6 +27,7 @@ import {PostbuildCommand} from "./commands/postbuild.command";
     ...SourcesCommand.registerWithSubCommands(),
     SyncCommand,
     SearchCommand,
+    ViewCommand,
     HttpModule,
     InsightCommand,
     PrebuildCommand,

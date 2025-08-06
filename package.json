@@ -37,6 +37,7 @@
     "@swc/core": "^1.12.3",
     "@swc/helpers": "~0.5.11",
     "@swc/jest": "~0.2.36",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/cross-spawn": "^6.0.6",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",
