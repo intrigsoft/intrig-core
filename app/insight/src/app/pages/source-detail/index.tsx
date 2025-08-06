@@ -134,18 +134,21 @@ export function SourceDetailPage() {
                   <StatCard
                     title="Controllers"
                     value={stats.controllerCount}
+                    usedValue={stats.usedControllerCount}
                     icon={<ComponentIcon className="h-4 w-4" />}
                     description="Total number of API controllers"
                   />
                   <StatCard
                     title="Endpoints" 
                     value={stats.endpointCount}
+                    usedValue={stats.usedEndpointCount}
                     icon={<Link2Icon className="h-4 w-4" />}
                     description="Total number of API endpoints" 
                   />
                   <StatCard
                     title="Data Types" 
                     value={stats.dataTypeCount}
+                    usedValue={stats.usedDataTypeCount}
                     icon={<BracesIcon className="h-4 w-4" />}
                     description="Total number of data models" 
                   />

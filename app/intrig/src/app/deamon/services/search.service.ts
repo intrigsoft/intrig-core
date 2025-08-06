@@ -6,6 +6,7 @@ import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";
 import {DataStats} from "../models/data-stats";
 import _ from "lodash";
+import { CodeAnalyzer } from "../../utils/code-analyzer";
 
 export interface SearchOptions {
   /** fuzzy tolerance: 0–1 */
@@ -47,8 +48,11 @@ export class SearchService implements OnModuleInit {
   /** Half-life in hours for recency decay */
   private readonly halfLifeHours = 24;
 
-  constructor(private configService: IntrigConfigService,
-              private openApiService: IntrigOpenapiService,) {
+  constructor(
+    private configService: IntrigConfigService,
+    private openApiService: IntrigOpenapiService,
+    private codeAnalyzer: CodeAnalyzer
+  ) {
     this.mini = new MiniSearch({
       fields: [
         'name',
@@ -80,7 +84,29 @@ export class SearchService implements OnModuleInit {
         const descriptors = await this.openApiService.getResourceDescriptors(source.id);
         descriptors.forEach(descriptor => this.addDescriptor(descriptor));
       }
+      
+      // Update the CodeAnalyzer with all descriptors
+      this.updateCodeAnalyzer();
+      
+      // Perform initial code analysis
+      this.reindexCodebase();
     } catch (e) { /* empty */ }
+  }
+  
+  /**
+   * Update the CodeAnalyzer with the current descriptors
+   */
+  private updateCodeAnalyzer(): void {
+    const descriptors = Array.from(this.descriptors.values());
+    this.codeAnalyzer.setResourceDescriptors(descriptors);
+  }
+  
+  /**
+   * Trigger reindexing of the codebase
+   */
+  public reindexCodebase(): void {
+    // Focus analysis on app/insight directory where React components are likely to be
+    this.codeAnalyzer.reindex(['app/insight/src/**/*.ts', 'app/insight/src/**/*.tsx']);
   }
 
 
@@ -90,6 +116,9 @@ export class SearchService implements OnModuleInit {
   addDescriptor<T>(desc: ResourceDescriptor<T>) {
     this.descriptors.set(desc.id, desc);
     this.indexDescriptor(desc);
+    
+    // Update the CodeAnalyzer with the updated descriptors
+    this.updateCodeAnalyzer();
   }
 
   /**
@@ -121,6 +150,9 @@ export class SearchService implements OnModuleInit {
         this.mini.remove(base);
       }
     }
+    
+    // Update the CodeAnalyzer with the updated descriptors
+    this.updateCodeAnalyzer();
   }
 
   /**
@@ -304,11 +336,13 @@ export class SearchService implements OnModuleInit {
   }
 
   /**
-   * Get data stats including source count, endpoint count, data type count, and controller count.
+   * Get data stats including source count, endpoint count, data type count, controller count,
+   * used endpoint count, and used data type count.
    * Optionally filter by source.
    * @param source Optional source to filter by
+   * @param forceReindex Whether to force reindexing before calculating stats
    */
-  getDataStats(source?: string) {
+  getDataStats(source?: string, forceReindex = false) {
     // Get all descriptors or filter by source if provided
     const all = Array.from(this.descriptors.values())
       .filter(d => !source || d.source === source);
@@ -335,12 +369,22 @@ export class SearchService implements OnModuleInit {
       }
     });
     const controllerCount = paths.size;
+    
+    // Get usage counts from the cached analysis
+    const usedEndpointCount = this.codeAnalyzer.getUsageCounts(source, 'endpoint');
+    const usedDataTypeCount = this.codeAnalyzer.getUsageCounts(source, 'datatype');
+    const usedSourceCount = this.codeAnalyzer.getUsageCounts(source, 'source');
+    const usedControllerCount = this.codeAnalyzer.getUsageCounts(source, 'controller');
 
     return DataStats.from({
       sourceCount: sources.size,
       endpointCount,
       dataTypeCount,
       controllerCount,
+      usedEndpointCount,
+      usedDataTypeCount,
+      usedSourceCount,
+      usedControllerCount,
     });
   }
 }

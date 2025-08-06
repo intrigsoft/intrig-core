@@ -8,14 +8,17 @@ import {SearchQuery} from "../models/search-query";
 import {LastVisitService} from "../services/last-visit.service";
 import {EntityView} from "../models/entity-view.model";
 import {PinItemDto} from "../models/pin-item.dto";
+import {FileListResponseDto} from "../models/file-list-response.dto";
+import { CodeAnalyzer } from "../../utils/code-analyzer";
 
 @Controller('data')
-@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, EntityView, PinItemDto)
+@ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, EntityView, PinItemDto, FileListResponseDto)
 export class DataSearchController {
 
   constructor(
     private dataSearchService: DataSearchService,
-    private lastVisitService: LastVisitService
+    private lastVisitService: LastVisitService,
+    private codeAnalyzer: CodeAnalyzer
   ) {
   }
 
@@ -171,5 +174,25 @@ export class DataSearchController {
       throw new NotFoundException(`Pinned item with id ${id} and type ${type} not found`);
     }
     return { success, message: `Item ${id} unpinned successfully` };
+  }
+
+  @Get("/files")
+  @ApiOperation({summary: 'Get list of files per endpoint/datatype'})
+  @ApiResponse({status: 200, description: 'Returns list of files where the endpoint/datatype is used', type: FileListResponseDto})
+  @ApiResponse({status: 404, description: 'Resource not found or missing required parameters'})
+  @ApiQuery({ name: 'sourceId', required: true, type: String, description: 'Source identifier' })
+  @ApiQuery({ name: 'type', required: true, enum: ['endpoint', 'datatype'], description: 'Type of resource' })
+  @ApiQuery({ name: 'id', required: true, type: String, description: 'Endpoint or datatype identifier' })
+  async getFileList(
+    @Query('sourceId') sourceId: string,
+    @Query('type') type: 'endpoint' | 'datatype',
+    @Query('id') id: string
+  ): Promise<FileListResponseDto> {
+    if (!sourceId || !type || !id) {
+      throw new NotFoundException('Missing required parameters: sourceId, type, and id are required');
+    }
+    
+    const files = this.codeAnalyzer.getFileList(sourceId, type, id);
+    return new FileListResponseDto(files);
   }
 }

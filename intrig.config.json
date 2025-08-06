@@ -8,7 +8,9 @@
   ],
   "generator": "react",
   "__dangorouslyOverrideBuild": {
-    "srcDir": "app/insight/src",
-    "tsConfig": "app/insight/tsconfig.json"
+    "srcDir": "app/insight/src"
+  },
+  "codeAnalyzer": {
+    "tsConfigPath": "app/insight/tsconfig.json"
   }
 }

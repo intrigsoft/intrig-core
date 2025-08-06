@@ -17,9 +17,23 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import { OpenAPIV3_1 } from "openapi-types";
+import {
+  useDataSearchControllerGetFileList
+} from "@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList";
+import {UsageCountBadge, UsageFilesList} from "@/components/usage-files-list";
 
 export function DatatypeDetailPage() {
   const { sourceId, datatypeId } = useParams<{ sourceId: string; datatypeId: string }>();
+
+  useDataSearchControllerGetFileList({
+    clearOnUnmount: true,
+    fetchOnMount: true,
+    params: {
+      sourceId: sourceId ?? '',
+      id: datatypeId ?? '',
+      type: 'datatype'
+    }
+  })
 
   const [resp, fetch] = useDataSearchControllerGetSchemaDocsById({
     clearOnUnmount: true,
@@ -142,7 +156,10 @@ export function DatatypeDetailPage() {
             }} 
           />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+          <UsageCountBadge />
+        </div>
         <p className="text-muted-foreground">{data.description}</p>
       </div>
 
@@ -198,45 +215,53 @@ export function DatatypeDetailPage() {
         </Tabs>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Related Endpoints</CardTitle>
-          <CardDescription>Endpoints that use this model</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {data.relatedEndpoints?.map((endpoint) => (
-              <div key={endpoint.id} className="flex justify-between items-center p-3 border rounded-md">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-md text-white ${
-                        endpoint.method === "GET"
-                          ? "bg-blue-600"
-                          : endpoint.method === "POST"
-                            ? "bg-green-600"
-                            : endpoint.method === "PUT"
-                              ? "bg-yellow-600"
-                              : "bg-red-600"
-                      }`}
-                    >
-                      {endpoint.method}
-                    </span>
-                    <span className="font-medium">{endpoint.name}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Related Endpoints</CardTitle>
+            <CardDescription>Endpoints that use this model</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.relatedEndpoints?.map((endpoint) => (
+                <div key={endpoint.id} className="flex justify-between items-center p-3 border rounded-md">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-md text-white ${
+                          endpoint.method === "GET"
+                            ? "bg-blue-600"
+                            : endpoint.method === "POST"
+                              ? "bg-green-600"
+                              : endpoint.method === "PUT"
+                                ? "bg-yellow-600"
+                                : "bg-red-600"
+                        }`}
+                      >
+                        {endpoint.method}
+                      </span>
+                      <span className="font-medium">{endpoint.name}</span>
+                    </div>
+                    <code className="font-mono text-sm bg-muted px-2 py-1 rounded">{endpoint.path}</code>
                   </div>
-                  <code className="font-mono text-sm bg-muted px-2 py-1 rounded">{endpoint.path}</code>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={`/sources/${sourceId}/endpoints/${endpoint.id}`}>View Details</Link>
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/sources/${sourceId}/endpoints/${endpoint.id}`}>View Details</Link>
-                </Button>
-              </div>
-            ))}
-            {(!data.relatedEndpoints || data.relatedEndpoints.length === 0) && (
-              <p className="text-muted-foreground">No related endpoints found for this data type.</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+              {(!data.relatedEndpoints || data.relatedEndpoints.length === 0) && (
+                <p className="text-muted-foreground">No related endpoints found for this data type.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <UsageFilesList 
+          sourceId={sourceId || ''} 
+          id={data.id || datatypeId || ''} 
+          type="datatype" 
+        />
+      </div>
     </div>
   );
 }

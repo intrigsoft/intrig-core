@@ -2,11 +2,10 @@ import {useMemo} from 'react';
 import { ServerIcon, Link2Icon, BracesIcon, ComponentIcon, LayoutDashboardIcon } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SourceCard } from '@/components/source-card';
 import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats';
 import {useSourcesControllerList} from '@intrig/react/deamon_api/Sources/sourcesControllerList/useSourcesControllerList'
-import {isSuccess} from "@intrig/react";
+import {isError, isSuccess} from "@intrig/react";
 
 export function HomePage() {
 
@@ -36,6 +35,8 @@ export function HomePage() {
   const stats = useMemo(() => {
     if (isSuccess(statsResp)) {
       return statsResp.data;
+    } else if (isError(statsResp)) {
+      console.error('Error fetching stats:', statsResp.error);
     }
     return null;
   }, [statsResp]);
@@ -61,24 +62,28 @@ export function HomePage() {
             <StatCard
               title="Sources"
               value={stats.sourceCount}
+              usedValue={stats.usedSourceCount}
               icon={<ServerIcon className="h-4 w-4" />}
               description="Total number of API sources"
             />
             <StatCard
               title="Controllers"
               value={stats.controllerCount}
+              usedValue={stats.usedControllerCount}
               icon={<ComponentIcon className="h-4 w-4" />}
               description="Total number of API controllers"
             />
             <StatCard
               title="Endpoints"
               value={stats.endpointCount}
+              usedValue={stats.usedEndpointCount}
               icon={<Link2Icon className="h-4 w-4" />}
               description="Total number of API endpoints"
             />
             <StatCard
               title="Data Types"
               value={stats.dataTypeCount}
+              usedValue={stats.usedDataTypeCount}
               icon={<BracesIcon className="h-4 w-4" />}
               description="Total number of data models"
             />

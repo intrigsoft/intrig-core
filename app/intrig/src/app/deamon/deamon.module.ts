@@ -12,6 +12,7 @@ import { DataSearchController } from './controllers/data-search.controller';
 import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
+import { CodeAnalyzer } from '../utils/code-analyzer';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { LastVisitService } from './services/last-visit.service';
     DataSearchService,
     SearchService,
     LastVisitService,
+    CodeAnalyzer,
   ],
 })
 export class DeamonModule {}

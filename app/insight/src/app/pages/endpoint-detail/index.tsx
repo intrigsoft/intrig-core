@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Play, FileJson, ArrowLeftIcon, ExternalLink } from 'lucide-react';
 import {useDataSearchControllerGetEndpointById} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetEndpointById/useDataSearchControllerGetEndpointById';
+import {useDataSearchControllerGetFileList} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList';
 import {isSuccess, isPending, isError} from "@intrig/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { SchemaViewButton } from "@/components/schema-view-button";
 import { PinButton, PinContextProvider } from "@/components/pin-button";
+import { UsageCountBadge, UsageFilesList } from "@/components/usage-files-list";
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +23,16 @@ import {
 
 export function EndpointDetailPage() {
   const { sourceId, endpointId } = useParams<{ sourceId: string; endpointId: string }>();
+
+  useDataSearchControllerGetFileList({
+    clearOnUnmount: true,
+    fetchOnMount: true,
+    params: {
+      sourceId: sourceId ?? '',
+      id: endpointId ?? '',
+      type: 'endpoint'
+    }
+  })
 
   const [resp, fetch] = useDataSearchControllerGetEndpointById({
     clearOnUnmount: true,
@@ -111,7 +123,10 @@ export function EndpointDetailPage() {
             }} 
           />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
+          <UsageCountBadge />
+        </div>
         <div className="flex items-center gap-2">
           <span
             className={`px-2 py-1 text-xs font-medium rounded-md text-white ${
@@ -202,30 +217,38 @@ export function EndpointDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Response</CardTitle>
-                <CardDescription>Response data structure</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <p className="text-sm mb-2">Response Type:</p>
-                  <code className="font-mono text-sm bg-muted px-2 py-1 rounded block overflow-auto">
-                    {data.response?.name || "No response type defined"}
-                  </code>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {data.response && (
-                    <SchemaViewButton 
-                      schemaId={data.response.id} 
-                      schemaName={data.response.name} 
-                      sourceId={sourceId || ''} 
-                      buttonText="View Response Model"
-                    />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Response</CardTitle>
+                  <CardDescription>Response data structure</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <p className="text-sm mb-2">Response Type:</p>
+                    <code className="font-mono text-sm bg-muted px-2 py-1 rounded block overflow-auto">
+                      {data.response?.name || "No response type defined"}
+                    </code>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {data.response && (
+                      <SchemaViewButton
+                        schemaId={data.response.id}
+                        schemaName={data.response.name}
+                        sourceId={sourceId || ''}
+                        buttonText="View Response Model"
+                      />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <UsageFilesList
+                sourceId={sourceId || ''}
+                id={data.id || endpointId || ''}
+                type="endpoint"
+              />
+            </div>
           </div>
         </TabsContent>
 
