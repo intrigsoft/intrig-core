@@ -68,6 +68,7 @@ export class DataSearchController {
     if (!resource) {
       throw new NotFoundException(`Resource with id ${id} not found`);
     }
+
     return resource;
   }
 
