@@ -56,6 +56,8 @@ const createDynamicImportWrapper = () => {
             );
 
             content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("nypm")`, `await import("nypm")`)
+            content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("open")`, `await import("open")`)
+            content = content.replaceAll(`external_open_default()(`, `external_open_default().default(`)
 
             // Update the asset
             compilation.updateAsset('main.js', new webpack.sources.RawSource(content));
