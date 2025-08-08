@@ -16,7 +16,9 @@ const logger = new Logger('Main');
 
 
 async function bootstrapDeamon() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: false
+  });
   app.enableShutdownHooks();
   app.enableCors();
 
@@ -64,7 +66,7 @@ async function bootstrap() {
   } else {
     try {
       await CommandFactory.run(AppModule, {
-        // logger: false,
+        logger: false,
         errorHandler(err: any) {
           if (err.code === 'commander.help') {
             return process.exit(0);

@@ -28,7 +28,6 @@ export class GenerateCommand extends CommandRunner {
 
     // 2) build URL and log
     const genUrl = `${metadata.url}/api/operations/generate`;
-    console.log(chalk.gray(`\n→ Connecting to ${genUrl}\n`));
 
     // 3) open SSE stream
     const response = await lastValueFrom(

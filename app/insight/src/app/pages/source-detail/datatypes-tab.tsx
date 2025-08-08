@@ -18,11 +18,10 @@ import {
 } from "@/components/ui/pagination";
 
 interface DataTypesTabProps {
-  datatypes?: any[];
   sourceId?: string;
 }
 
-export function DataTypesTab({ datatypes = [], sourceId }: DataTypesTabProps) {
+export function DataTypesTab({ sourceId }: DataTypesTabProps) {
   const [searchQuery, setSearchQuery, debouncedSearchQuery] = useDebounceState('', 300);
   const [page, setPage] = useState(1);
 

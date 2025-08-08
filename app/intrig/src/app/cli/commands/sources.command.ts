@@ -107,7 +107,6 @@ export class SourceListCommand extends CommandRunner {
 
     // 2) Fetch list
     const listUrl = `${metadata.url}/api/config/sources/list`;
-    console.log(chalk.gray(`\n→ Fetching sources from ${listUrl}`));
     const { data: sources } = await lastValueFrom(
       this.httpService.get(listUrl, {
         headers: { 'Accept': 'application/json' },
@@ -152,7 +151,6 @@ export class SourceRemoveCommand extends CommandRunner {
 
     // 2) fetch list of sources
     const listUrl = `${metadata.url}/api/config/sources/list`;
-    console.log(chalk.gray(`\n→ Fetching sources from ${listUrl}`));
     const { data: sources } = await lastValueFrom(
       this.httpService.get(listUrl, { headers: { Accept: 'application/json' } }),
     );

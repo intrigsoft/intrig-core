@@ -1,9 +1,13 @@
-import {Body, Controller, Delete, Get, Logger, NotFoundException, Param, Post} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Logger, NotFoundException, Param, Post, Res} from '@nestjs/common';
 import {OpenapiService} from "../services/openapi.service";
 import {IntrigSourceConfig} from "common";
 import type {IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "../services/intrig-config.service";
 import {ApiBody, ApiExtraModels, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {Response} from 'express';
+import {join} from 'path';
+import {existsSync, readFileSync} from 'fs';
+import {ConfigService} from '@nestjs/config';
 
 type ICreateSourceDto = Pick<IntrigSourceConfig, 'specUrl'>;
 
@@ -19,7 +23,8 @@ export class SourcesController {
   private readonly logger = new Logger(SourcesController.name);
 
   constructor(private configService: IntrigConfigService,
-              private openApiService: OpenapiService) {
+              private openApiService: OpenapiService,
+              private nestConfigService: ConfigService) {
   }
 
   @ApiBody({
@@ -84,5 +89,58 @@ export class SourcesController {
       throw new NotFoundException(`Source with id ${id} not found`);
     }
     return source;
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'Downloads the OpenAPI3 file for the given source',
+    headers: {
+      'Content-Type': {
+        description: 'application/json'
+      },
+      'Content-Disposition': {
+        description: 'attachment; filename="openapi.json"'
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Source or OpenAPI file not found'
+  })
+  @Get(":id/download")
+  downloadOpenApiFile(@Param('id') id: string, @Res() res: Response): void {
+    this.logger.log(`Downloading OpenAPI file for source with id: ${id}`);
+    
+    // Check if source exists
+    const source = this.configService.list().find(source => source.id === id);
+    if (!source) {
+      throw new NotFoundException(`Source with id ${id} not found`);
+    }
+
+    // Construct file path
+    const rootDir = this.nestConfigService.get('rootDir')!;
+    const filePath = join(rootDir, '.intrig', 'specs', `${id}-latest.json`);
+
+    // Check if file exists
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`OpenAPI file for source ${id} not found`);
+    }
+
+    try {
+      // Read file content
+      const fileContent = readFileSync(filePath, 'utf-8');
+      
+      // Set response headers
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="${id}-openapi.json"`);
+      
+      // Send file content
+      res.send(fileContent);
+      
+      this.logger.log(`Successfully downloaded OpenAPI file for source ${id}`);
+    } catch (error) {
+      this.logger.error(`Failed to read OpenAPI file for source ${id}:`, error);
+      throw new NotFoundException(`Failed to read OpenAPI file for source ${id}`);
+    }
   }
 }
