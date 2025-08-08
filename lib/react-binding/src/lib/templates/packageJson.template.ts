@@ -2,7 +2,7 @@ import {jsonLiteral} from "common";
 import * as path from "path";
 import * as fsx from "fs-extra";
 
-export function packageJsonTemplate(_path: string) {
+export function reactPackageJsonTemplate(_path: string) {
   const packageJson = fsx.readJsonSync(path.resolve(_path, '..', '..', 'package.json'));
   const json = jsonLiteral(path.resolve(_path, 'package.json'))
   return json`

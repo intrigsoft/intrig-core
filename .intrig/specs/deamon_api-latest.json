@@ -1,0 +1,1486 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/debug/dirname": {
+      "get": {
+        "operationId": "DebugController_getDirname",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
+    "/api/config/sources/transform": {
+      "post": {
+        "operationId": "SourcesController_createFromUrl",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSourceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntrigSourceConfig"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/api/config/sources/add": {
+      "post": {
+        "operationId": "SourcesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntrigSourceConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntrigSourceConfig"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/api/config/sources/remove/{id}": {
+      "delete": {
+        "operationId": "SourcesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/Sources$SourcesControllerRemove$Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/api/config/sources/list": {
+      "get": {
+        "operationId": "SourcesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sources$SourcesControllerList$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/api/config/sources/{id}": {
+      "get": {
+        "operationId": "SourcesController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/Sources$SourcesControllerGetById$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntrigSourceConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Source not found"
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/api/operations/sync": {
+      "get": {
+        "operationId": "OperationsController_sync",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Operations$OperationsControllerSync$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync events",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operations$OperationsControllerSync$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Operations"
+        ]
+      }
+    },
+    "/api/operations/generate": {
+      "get": {
+        "operationId": "OperationsController_generate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Generate events",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operations$OperationsControllerGenerate$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Operations"
+        ]
+      }
+    },
+    "/api/data/search": {
+      "get": {
+        "operationId": "DataSearchController_search",
+        "parameters": [
+          {
+            "name": "query",
+            "required": false,
+            "in": "query",
+            "description": "full-text query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Query"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "filter by descriptor type",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Type"
+            }
+          },
+          {
+            "name": "source",
+            "required": false,
+            "in": "query",
+            "description": "filter by source id",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Source"
+            }
+          },
+          {
+            "name": "pkg",
+            "required": false,
+            "in": "query",
+            "description": "filter by REST package path",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Pkg"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "zero-based page index",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Page"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "page size",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns paged list of resources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerSearch$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Search for resources",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/get/{id}": {
+      "get": {
+        "operationId": "DataSearchController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetById$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceDescriptor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        },
+        "summary": "Get resource by ID",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/get/schema/{id}": {
+      "get": {
+        "operationId": "DataSearchController_getSchemaDocsById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetSchemaDocsById$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaDocumentation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        },
+        "summary": "Get schema docs by ID",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/get/endpoint/{id}": {
+      "get": {
+        "operationId": "DataSearchController_getEndpointById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetEndpointById$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestDocumentation"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get schema docs by ID",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/stats": {
+      "get": {
+        "operationId": "DataSearchController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns stats for a source",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceStats"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get stats for a source",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/data-stats": {
+      "get": {
+        "operationId": "DataSearchController_getDataStats",
+        "parameters": [
+          {
+            "name": "source",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetDataStats$Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns data statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataStats"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get data statistics including source count, endpoint count, and data type count",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/last-visited": {
+      "get": {
+        "operationId": "DataSearchController_getLastVisitedItems",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return (default: 10)",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$Limit"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by item type",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the last visited items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetLastVisitedItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the last visited items",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/pinned": {
+      "get": {
+        "operationId": "DataSearchController_getPinnedItems",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by item type",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetPinnedItems$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all pinned items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetPinnedItems$ResponseBody"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all pinned items",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/toggle-pin": {
+      "post": {
+        "operationId": "DataSearchController_togglePinItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item pin status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSearch$DataSearchControllerTogglePinItem$ResponseBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Item not found or missing required parameters"
+          }
+        },
+        "summary": "Toggle pin status of an item",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/pin": {
+      "post": {
+        "deprecated": true,
+        "operationId": "DataSearchController_pinItem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item pinned successfully"
+          },
+          "404": {
+            "description": "Item not found or missing required parameters"
+          }
+        },
+        "summary": "Pin an item",
+        "tags": [
+          "DataSearch"
+        ]
+      },
+      "delete": {
+        "deprecated": true,
+        "operationId": "DataSearchController_unpinItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerUnpinItem$Id"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerUnpinItem$Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item unpinned successfully"
+          },
+          "404": {
+            "description": "Item not found or not pinned or missing required parameters"
+          }
+        },
+        "summary": "Unpin an item",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    },
+    "/api/data/files": {
+      "get": {
+        "operationId": "DataSearchController_getFileList",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "required": true,
+            "in": "query",
+            "description": "Source identifier",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetFileList$SourceId"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "description": "Type of resource",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetFileList$Type"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "description": "Endpoint or datatype identifier",
+            "schema": {
+              "$ref": "#/components/schemas/DataSearch$DataSearchControllerGetFileList$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns list of files where the endpoint/datatype is used",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileListResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found or missing required parameters"
+          }
+        },
+        "summary": "Get list of files per endpoint/datatype",
+        "tags": [
+          "DataSearch"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Intrig Deamon API",
+    "description": "API for intrig deamon integrations",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Debug"
+    },
+    {
+      "name": "Sources"
+    },
+    {
+      "name": "Operations"
+    },
+    {
+      "name": "DataSearch"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "IntrigSourceConfig": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the source config"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the source config"
+          },
+          "specUrl": {
+            "type": "string",
+            "description": "URL of the specification"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "specUrl"
+        ]
+      },
+      "CreateSourceDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SyncStatusEventDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "example": "alpha"
+          },
+          "step": {
+            "type": "string",
+            "enum": [
+              "getConfig",
+              "loadPreviousState",
+              "fetch",
+              "decode",
+              "normalize",
+              "save",
+              "loadNewState",
+              "indexDiff"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "started",
+              "success",
+              "error"
+            ]
+          },
+          "info": {
+            "type": "string",
+            "example": "200 OK"
+          },
+          "error": {
+            "type": "string",
+            "example": "disk full"
+          }
+        },
+        "required": [
+          "sourceId",
+          "step",
+          "status"
+        ]
+      },
+      "SyncDoneEventDto": {
+        "type": "object",
+        "properties": {
+          "allSources": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "allSources"
+        ]
+      },
+      "GenerateStatusEventDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "example": "alpha"
+          },
+          "step": {
+            "type": "string",
+            "enum": [
+              "getConfig",
+              "clear",
+              "read",
+              "generate",
+              "install",
+              "build",
+              "copy-to-node-modules",
+              "postBuild"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "started",
+              "success",
+              "error"
+            ]
+          },
+          "info": {
+            "type": "string",
+            "example": "200 OK"
+          },
+          "error": {
+            "type": "string",
+            "example": "disk full"
+          }
+        },
+        "required": [
+          "sourceId",
+          "step",
+          "status"
+        ]
+      },
+      "GenerateDoneEventDto": {
+        "type": "object",
+        "properties": {
+          "allSources": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "allSources"
+        ]
+      },
+      "ResourceDescriptor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the resource"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the resource"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the resource",
+            "enum": [
+              "rest",
+              "schema"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the resource"
+          },
+          "path": {
+            "type": "string",
+            "description": "Path to the resource"
+          },
+          "data": {
+            "type": "object",
+            "description": "Resource data"
+          },
+          "lastAccessed": {
+            "type": "number",
+            "description": "Last access timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "source",
+          "path",
+          "data"
+        ]
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Total number of items across all pages"
+          },
+          "page": {
+            "type": "number",
+            "description": "Current page number (1-based)"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of items per page"
+          },
+          "totalPages": {
+            "type": "number",
+            "description": "Total number of pages"
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "Whether there is a next page available"
+          },
+          "hasPrevious": {
+            "type": "boolean",
+            "description": "Whether there is a previous page available"
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "totalPages",
+          "hasNext",
+          "hasPrevious"
+        ]
+      },
+      "Tab": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the tab"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the tab"
+          }
+        },
+        "required": [
+          "name",
+          "content"
+        ]
+      },
+      "RelatedType": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the related type"
+          },
+          "id": {
+            "type": "string",
+            "description": "Identifier of the related type"
+          }
+        },
+        "required": [
+          "name",
+          "id"
+        ]
+      },
+      "RelatedEndpoint": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of the related endpoint"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the related endpoint"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method of the endpoint"
+          },
+          "path": {
+            "type": "string",
+            "description": "Path of the endpoint"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "method",
+          "path"
+        ]
+      },
+      "SchemaDocumentation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the schema documentation"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the schema"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the schema"
+          },
+          "jsonSchema": {
+            "type": "object",
+            "description": "JSON Schema object"
+          },
+          "tabs": {
+            "description": "List of tabs",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tab"
+            }
+          },
+          "relatedTypes": {
+            "description": "List of related types",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedType"
+            }
+          },
+          "relatedEndpoints": {
+            "description": "List of related endpoints",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedEndpoint"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "jsonSchema",
+          "tabs",
+          "relatedTypes",
+          "relatedEndpoints"
+        ]
+      },
+      "Variable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the variable"
+          },
+          "in": {
+            "type": "string",
+            "description": "Location of the variable"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Reference of the variable"
+          },
+          "relatedType": {
+            "description": "Related type of the variable",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedType"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "in",
+          "ref",
+          "relatedType"
+        ]
+      },
+      "RestDocumentation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the REST documentation"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method"
+          },
+          "path": {
+            "type": "string",
+            "description": "API path"
+          },
+          "description": {
+            "type": "string",
+            "description": "Documentation description"
+          },
+          "requestBody": {
+            "description": "Request body description",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedType"
+              }
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "description": "Content type"
+          },
+          "response": {
+            "description": "Response description",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RelatedType"
+              }
+            ]
+          },
+          "responseType": {
+            "type": "string",
+            "description": "Response type"
+          },
+          "requestUrl": {
+            "type": "string",
+            "description": "Request URL"
+          },
+          "variables": {
+            "description": "List of variables",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Variable"
+            }
+          },
+          "responseExamples": {
+            "type": "object",
+            "description": "Response examples"
+          },
+          "tabs": {
+            "description": "Documentation tabs",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tab"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "method",
+          "path",
+          "requestUrl",
+          "variables",
+          "responseExamples",
+          "tabs"
+        ]
+      },
+      "SourceStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "Total number of sources"
+          },
+          "countsByType": {
+            "type": "object",
+            "description": "Count of sources grouped by their type"
+          },
+          "uniqueSources": {
+            "description": "List of unique source identifiers",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uniqueSourcesCount": {
+            "type": "number",
+            "description": "Number of unique sources"
+          },
+          "controllerCount": {
+            "type": "number",
+            "description": "Number of unique paths in endpoints"
+          }
+        },
+        "required": [
+          "total",
+          "countsByType",
+          "uniqueSources",
+          "uniqueSourcesCount",
+          "controllerCount"
+        ]
+      },
+      "DataStats": {
+        "type": "object",
+        "properties": {
+          "sourceCount": {
+            "type": "number",
+            "description": "Number of unique sources"
+          },
+          "endpointCount": {
+            "type": "number",
+            "description": "Number of endpoints"
+          },
+          "dataTypeCount": {
+            "type": "number",
+            "description": "Number of data types"
+          },
+          "controllerCount": {
+            "type": "number",
+            "description": "Number of unique paths in endpoints"
+          },
+          "usedEndpointCount": {
+            "type": "number",
+            "description": "Number of unique endpoints used in the codebase"
+          },
+          "usedDataTypeCount": {
+            "type": "number",
+            "description": "Number of data types used in the codebase"
+          },
+          "usedSourceCount": {
+            "type": "number",
+            "description": "Number of sources used in the codebase"
+          },
+          "usedControllerCount": {
+            "type": "number",
+            "description": "Number of controllers used in the codebase"
+          }
+        },
+        "required": [
+          "sourceCount",
+          "endpointCount",
+          "dataTypeCount",
+          "controllerCount",
+          "usedEndpointCount",
+          "usedDataTypeCount",
+          "usedSourceCount",
+          "usedControllerCount"
+        ]
+      },
+      "SearchQuery": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "full-text query"
+          },
+          "type": {
+            "type": "string",
+            "description": "filter by descriptor type",
+            "enum": [
+              "rest",
+              "schema"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "filter by source id"
+          },
+          "pkg": {
+            "type": "string",
+            "description": "filter by REST package path"
+          },
+          "page": {
+            "type": "number",
+            "description": "zero-based page index",
+            "default": 0
+          },
+          "size": {
+            "type": "number",
+            "description": "page size",
+            "default": 10
+          }
+        }
+      },
+      "EntityView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the item",
+            "example": "123456"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the item",
+            "example": "User Schema"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the item",
+            "example": "petstore"
+          },
+          "accessTime": {
+            "type": "string",
+            "description": "Timestamp when the item was last accessed",
+            "example": "2025-08-05T21:07:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the item",
+            "enum": [
+              "schema",
+              "endpoint"
+            ],
+            "example": "schema"
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "Whether the item is pinned",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source",
+          "accessTime",
+          "type"
+        ]
+      },
+      "PinItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Item ID",
+            "example": "123456"
+          },
+          "type": {
+            "type": "string",
+            "description": "Item type",
+            "enum": [
+              "schema",
+              "endpoint"
+            ],
+            "example": "schema"
+          },
+          "source": {
+            "type": "string",
+            "description": "Item source",
+            "example": "petstore"
+          },
+          "name": {
+            "type": "string",
+            "description": "Item name",
+            "example": "Pet"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ]
+      },
+      "FileListResponseDto": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "description": "List of files where the endpoint/datatype is used",
+            "example": [
+              "src/app/components/user-profile.tsx",
+              "src/app/services/user-service.ts"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "files"
+        ]
+      },
+      "Sources$SourcesControllerRemove$Id": {
+        "type": "string"
+      },
+      "Sources$SourcesControllerList$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IntrigSourceConfig"
+        }
+      },
+      "Sources$SourcesControllerGetById$Id": {
+        "type": "string"
+      },
+      "Operations$OperationsControllerSync$Id": {
+        "type": "string"
+      },
+      "Operations$OperationsControllerSync$ResponseBody": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SyncStatusEventDto"
+          },
+          {
+            "$ref": "#/components/schemas/SyncDoneEventDto"
+          }
+        ]
+      },
+      "Operations$OperationsControllerGenerate$ResponseBody": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/GenerateStatusEventDto"
+          },
+          {
+            "$ref": "#/components/schemas/GenerateDoneEventDto"
+          }
+        ]
+      },
+      "DataSearch$DataSearchControllerSearch$Query": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerSearch$Type": {
+        "enum": [
+          "rest",
+          "schema"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerSearch$Source": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerSearch$Pkg": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerSearch$Page": {
+        "default": 0,
+        "type": "number"
+      },
+      "DataSearch$DataSearchControllerSearch$Size": {
+        "default": 10,
+        "type": "number"
+      },
+      "DataSearch$DataSearchControllerSearch$ResponseBody": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Page"
+          },
+          {
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ResourceDescriptor"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "DataSearch$DataSearchControllerGetById$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetSchemaDocsById$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetEndpointById$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetDataStats$Source": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$Limit": {
+        "type": "number"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetLastVisitedItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EntityView"
+        }
+      },
+      "DataSearch$DataSearchControllerGetPinnedItems$Type": {
+        "enum": [
+          "schema",
+          "endpoint"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetPinnedItems$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EntityView"
+        }
+      },
+      "DataSearch$DataSearchControllerTogglePinItem$ResponseBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PinItemDto"
+        }
+      },
+      "DataSearch$DataSearchControllerUnpinItem$Id": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerUnpinItem$Type": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetFileList$SourceId": {
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetFileList$Type": {
+        "enum": [
+          "endpoint",
+          "datatype"
+        ],
+        "type": "string"
+      },
+      "DataSearch$DataSearchControllerGetFileList$Id": {
+        "type": "string"
+      }
+    }
+  }
+}

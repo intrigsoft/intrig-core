@@ -1,0 +1,20 @@
+{
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../lib/react-client"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@intrig/*": ["./src/@intrig/*"],
+    }
+  },
+  "extends": "../../tsconfig.base.json"
+}

@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function indexTemplate(_path: string){
+export function reactIndexTemplate(_path: string){
 
   const ts = typescript(path.resolve(_path, "src", "index.ts"))
 

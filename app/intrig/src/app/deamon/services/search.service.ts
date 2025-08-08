@@ -4,13 +4,17 @@ import {isRestDescriptor, isSchemaDescriptor, ResourceDescriptor, RestData, Sche
 import {IntrigConfigService} from "./intrig-config.service";
 import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";
+import {DataStats} from "../models/data-stats";
 import _ from "lodash";
+import { CodeAnalyzer } from "../../utils/code-analyzer";
 
 export interface SearchOptions {
   /** fuzzy tolerance: 0–1 */
   fuzzy?: number;
   /** maximum number of results */
   limit?: number;
+  /** starting index for pagination */
+  offset?: number;
   type?: string;
   pkg?: string;
   source?: string;
@@ -44,8 +48,11 @@ export class SearchService implements OnModuleInit {
   /** Half-life in hours for recency decay */
   private readonly halfLifeHours = 24;
 
-  constructor(private configService: IntrigConfigService,
-              private openApiService: IntrigOpenapiService,) {
+  constructor(
+    private configService: IntrigConfigService,
+    private openApiService: IntrigOpenapiService,
+    private codeAnalyzer: CodeAnalyzer
+  ) {
     this.mini = new MiniSearch({
       fields: [
         'name',
@@ -77,7 +84,29 @@ export class SearchService implements OnModuleInit {
         const descriptors = await this.openApiService.getResourceDescriptors(source.id);
         descriptors.forEach(descriptor => this.addDescriptor(descriptor));
       }
+      
+      // Update the CodeAnalyzer with all descriptors
+      this.updateCodeAnalyzer();
+      
+      // Perform initial code analysis
+      this.reindexCodebase();
     } catch (e) { /* empty */ }
+  }
+  
+  /**
+   * Update the CodeAnalyzer with the current descriptors
+   */
+  private updateCodeAnalyzer(): void {
+    const descriptors = Array.from(this.descriptors.values());
+    this.codeAnalyzer.setResourceDescriptors(descriptors);
+  }
+  
+  /**
+   * Trigger reindexing of the codebase
+   */
+  public reindexCodebase(): void {
+    // Focus analysis on app/insight directory where React components are likely to be
+    this.codeAnalyzer.reindex(['app/insight/src/**/*.ts', 'app/insight/src/**/*.tsx']);
   }
 
 
@@ -87,6 +116,9 @@ export class SearchService implements OnModuleInit {
   addDescriptor<T>(desc: ResourceDescriptor<T>) {
     this.descriptors.set(desc.id, desc);
     this.indexDescriptor(desc);
+    
+    // Update the CodeAnalyzer with the updated descriptors
+    this.updateCodeAnalyzer();
   }
 
   /**
@@ -118,6 +150,9 @@ export class SearchService implements OnModuleInit {
         this.mini.remove(base);
       }
     }
+    
+    // Update the CodeAnalyzer with the updated descriptors
+    this.updateCodeAnalyzer();
   }
 
   /**
@@ -185,6 +220,28 @@ export class SearchService implements OnModuleInit {
   }
 
   /**
+   * Get the total count of search results without applying pagination
+   * @param query Search query
+   * @param opts Search options (excluding pagination)
+   * @returns Total count of matching results
+   */
+  getTotalCount(query: string, opts: Omit<SearchOptions, 'limit' | 'offset'> = {}): number {
+    const fuzzy = opts.fuzzy ?? 0.2;
+    const q = query.trim().length ? query.trim() : '__all__';
+    const rawHits = this.mini.search(q, { prefix: true, fuzzy,
+      filter(doc) {
+        return (!opts.type || doc.type === opts.type) &&
+          (!opts.pkg || doc.package === opts.pkg) &&
+          (!opts.source || doc.source === opts.source) &&
+          (!opts.dataTypes || _.intersection(opts.dataTypes, doc.dataTypes)?.length > 0) &&
+          (!opts.names || opts.names.includes(doc.name));
+      }
+    });
+    
+    return rawHits.length;
+  }
+
+  /**
    * Search by free-text; returns up to `limit` descriptors
    * sorted by α·relevance + (1-α)·recencyBoost.
    */
@@ -214,9 +271,15 @@ export class SearchService implements OnModuleInit {
       return { desc, combined };
     });
 
-    return scored
-      .sort((a: { combined: number }, b: { combined: number }) => b.combined - a.combined)
-      .slice(0, opts.limit ?? 20)
+    const sorted = scored
+      .sort((a: { combined: number }, b: { combined: number }) => b.combined - a.combined);
+    
+    // Apply offset and limit for pagination
+    const offset = opts.offset ?? 0;
+    const limit = opts.limit ?? 20;
+    
+    return sorted
+      .slice(offset, offset + limit)
       .map((x: { desc: ResourceDescriptor<any> }) => x.desc);
   }
 
@@ -234,6 +297,7 @@ export class SearchService implements OnModuleInit {
    * Get simple stats for a given source (or _all_ sources if none specified):
    *  - counts per `type`
    *  - list of unique `package` values (and its count)
+   *  - count of unique paths in endpoints (controllers)
    */
   getStatsBySource() {
     // 1) grab all descriptors (or only those matching the given source)
@@ -253,11 +317,74 @@ export class SearchService implements OnModuleInit {
       }
     });
 
+    // 4) count unique paths in endpoints (controllers)
+    const paths = new Set<string>();
+    all.forEach(d => {
+      if (isRestDescriptor(d) && d.path) {
+        paths.add(d.path);
+      }
+    });
+    const controllerCount = paths.size;
+
     return SourceStats.from({
       total: all.length,
       countsByType,                   // e.g. { endpoint: 42, model: 17, ... }
       uniqueSources: Array.from(sources),
       uniqueSourcesCount: sources.size,
+      controllerCount,
+    });
+  }
+
+  /**
+   * Get data stats including source count, endpoint count, data type count, controller count,
+   * used endpoint count, and used data type count.
+   * Optionally filter by source.
+   * @param source Optional source to filter by
+   * @param forceReindex Whether to force reindexing before calculating stats
+   */
+  getDataStats(source?: string, forceReindex = false) {
+    // Get all descriptors or filter by source if provided
+    const all = Array.from(this.descriptors.values())
+      .filter(d => !source || d.source === source);
+
+    // Count unique sources
+    const sources = new Set<string>();
+    all.forEach(d => {
+      if (d.source) {
+        sources.add(d.source);
+      }
+    });
+
+    // Count endpoints (REST descriptors)
+    const endpointCount = all.filter(d => isRestDescriptor(d)).length;
+
+    // Count data types (Schema descriptors)
+    const dataTypeCount = all.filter(d => isSchemaDescriptor(d)).length;
+
+    // Count unique paths in endpoints (controllers)
+    const paths = new Set<string>();
+    all.forEach(d => {
+      if (isRestDescriptor(d) && d.data.paths && d.data.paths.length > 0) {
+        d.data.paths.forEach(p => paths.add(p));
+      }
+    });
+    const controllerCount = paths.size;
+    
+    // Get usage counts from the cached analysis
+    const usedEndpointCount = this.codeAnalyzer.getUsageCounts(source, 'endpoint');
+    const usedDataTypeCount = this.codeAnalyzer.getUsageCounts(source, 'datatype');
+    const usedSourceCount = this.codeAnalyzer.getUsageCounts(source, 'source');
+    const usedControllerCount = this.codeAnalyzer.getUsageCounts(source, 'controller');
+
+    return DataStats.from({
+      sourceCount: sources.size,
+      endpointCount,
+      dataTypeCount,
+      controllerCount,
+      usedEndpointCount,
+      usedDataTypeCount,
+      usedSourceCount,
+      usedControllerCount,
     });
   }
 }

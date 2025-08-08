@@ -1,6 +1,6 @@
 import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from "common";
 
-export function sseHookDocs(descriptor: ResourceDescriptor<RestData>) {
+export function reactSseHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('sse-hook.md')
 
   const requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined

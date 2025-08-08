@@ -7,6 +7,12 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": ["@intrig-core/insight"]
+        }
+      ],
       "options": {
         "command": "webpack-cli build --config ./webpack.config.cjs --node-env production",
         "cwd": "app/intrig"
@@ -14,6 +20,9 @@
       "configurations": {
         "development": {
           "command": "webpack-cli build --config ./webpack.config.cjs --node-env development"
+        },
+        "production": {
+          "command": "webpack-cli build --config ./webpack.config.cjs --node-env production"
         }
       }
     },

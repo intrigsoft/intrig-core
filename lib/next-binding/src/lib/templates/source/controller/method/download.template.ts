@@ -7,7 +7,7 @@ import {
 } from 'common';
 import path from 'path';
 
-export function downloadHookTemplate(
+export function nextDownloadHookTemplate(
   {
     source,
     data: {

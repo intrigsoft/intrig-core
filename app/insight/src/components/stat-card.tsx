@@ -1,0 +1,32 @@
+import * as React from "react";
+
+interface StatCardProps {
+  title: string;
+  value: number;
+  usedValue?: number;
+  icon?: React.ReactNode;
+  description?: string;
+}
+
+export function StatCard({ title, value, usedValue, icon, description }: StatCardProps) {
+  return (
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+      <div className="flex items-center justify-between space-y-0 pb-2">
+        <h3 className="text-sm font-medium tracking-tight mr-2">{title}</h3>
+        {icon && <div className="text-muted-foreground">{icon}</div>}
+      </div>
+      <div className="text-3xl font-bold">
+        {usedValue !== undefined ? (
+          <span>
+            <span className="text-green-600">{usedValue}</span> / {value}
+          </span>
+        ) : (
+          value
+        )}
+      </div>
+      {/*{description && (*/}
+      {/*  <div className="text-xs text-muted-foreground mt-2">{description}</div>*/}
+      {/*)}*/}
+    </div>
+  );
+}

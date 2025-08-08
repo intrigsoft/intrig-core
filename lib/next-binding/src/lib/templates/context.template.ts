@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function contextTemplate(_path: string) {
+export function nextContextTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "intrig-context.ts"))
 
   return ts`

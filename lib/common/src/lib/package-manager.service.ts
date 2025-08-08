@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
-import {PackageManager, detectPackageManager} from "nypm";
 import {promisify} from "util";
 import {exec} from "child_process";
+import {PackageManager, detectPackageManager} from "nypm";
 
 const execAsync = promisify(exec);
 

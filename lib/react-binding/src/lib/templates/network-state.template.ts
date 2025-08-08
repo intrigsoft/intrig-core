@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from 'path'
 
-export function networkStateTemplate(_path: string) {
+export function reactNetworkStateTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
   return ts`import { ZodError } from 'zod';
 

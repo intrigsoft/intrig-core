@@ -1,6 +1,6 @@
 import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
 
-export function asyncFunctionHookDocs(descriptor: ResourceDescriptor<RestData>) {
+export function reactAsyncFunctionHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('async-hook.md')
 
   const requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined

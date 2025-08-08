@@ -5,7 +5,7 @@ import {
 import * as path from 'path'
 import * as _ from "lodash";
 
-export function clientIndexTemplate(
+export function nextClientIndexTemplate(
   requestProperties: ResourceDescriptor<RestData>[],
   clientExports: string[] = [],
   _path: string,

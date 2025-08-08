@@ -16,7 +16,7 @@ export interface TypeTemplateParams {
   paths: string[]
 }
 
-export async function typeTemplate({typeName, schema, sourcePath, paths}: TypeTemplateParams) {
+export async function reactTypeTemplate({typeName, schema, sourcePath, paths}: TypeTemplateParams) {
   const {imports, zodSchema, tsType} = openApiSchemaToZod(schema);
 
   const ts = typescript(path.resolve(sourcePath, 'src', ...paths, `${typeName}.ts`));

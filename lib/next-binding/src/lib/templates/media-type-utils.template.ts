@@ -1,7 +1,7 @@
 import {typescript} from "common";
 import * as path from "path";
 
-export function mediaTypeUtilsTemplate(_path: string) {
+export function nextMediaTypeUtilsTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "media-type-utils.ts"))
 
   return ts`

@@ -45,7 +45,19 @@ const createDynamicImportWrapper = () => {
               }
             );
 
+            // Handle lowdb as a dynamic import
+            content = content.replace(
+              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb"\)/g,
+              `await import("lowdb")`
+            );
+            content = content.replace(
+              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb\/node"\)/g,
+              `await import("lowdb/node")`
+            );
+
             content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("nypm")`, `await import("nypm")`)
+            content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("open")`, `await import("open")`)
+            content = content.replaceAll(`external_open_default()(`, `external_open_default().default(`)
 
             // Update the asset
             compilation.updateAsset('main.js', new webpack.sources.RawSource(content));
@@ -69,6 +81,12 @@ module.exports = {
   experiments: {
     outputModule: true,
   },
+  externalsType: 'module',
+  externals: {
+    // Explicitly mark lowdb as non-external to bundle it with the application
+    'lowdb': 'module lowdb',
+    'lowdb/node': 'module lowdb/node',
+  },
   plugins: [
     new webpack.BannerPlugin({
       banner: `#!/usr/bin/env node
@@ -85,7 +103,8 @@ module.exports = {
       tsConfig: './tsconfig.app.json',
       assets: [
         './src/assets',
-        { input: '../../', output: '.', glob: 'README.md' }
+        { input: '../../', output: '.', glob: 'README.md' },
+        { input: '../../dist/app/insight', output: './assets/insight', glob: '**/*' }
       ],
       optimization: false,
       outputHashing: 'none',

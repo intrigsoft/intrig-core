@@ -6,32 +6,32 @@ import {
   RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,
   SourceManagementService, Tab
 } from "common";
-import { networkStateTemplate } from './templates/network-state.template';
-import { providerTemplate } from './templates/provider.template';
-import { indexTemplate } from './templates/index.template';
-import { tsConfigTemplate } from './templates/tsconfig.template';
-import { packageJsonTemplate } from './templates/packageJson.template';
-import { mediaTypeUtilsTemplate } from './templates/media-type-utils.template';
-import { intrigMiddlewareTemplate } from './templates/intrigMiddleware.template';
-import { contextTemplate } from './templates/context.template';
-import { extraTemplate } from './templates/extra.template';
-import { loggerTemplate } from './templates/logger.template';
-import { intrigLayoutTemplate } from './templates/intrig-layout.template';
+import { nextNetworkStateTemplate } from './templates/network-state.template';
+import { nextProviderTemplate } from './templates/provider.template';
+import { nextIndexTemplate } from './templates/index.template';
+import { nextTsConfigTemplate } from './templates/tsconfig.template';
+import { nextPackageJsonTemplate } from './templates/packageJson.template';
+import { nextMediaTypeUtilsTemplate } from './templates/media-type-utils.template';
+import { nextIntrigMiddlewareTemplate } from './templates/intrigMiddleware.template';
+import { nextContextTemplate } from './templates/context.template';
+import { nextExtraTemplate } from './templates/extra.template';
+import { nextLoggerTemplate } from './templates/logger.template';
+import { nextIntrigLayoutTemplate } from './templates/intrig-layout.template';
 import picomatch from 'picomatch'
-import {paramsTemplate} from "./templates/source/controller/method/params.template";
-import {requestHookTemplate} from "./templates/source/controller/method/requestHook.template";
-import {requestMethodTemplate} from "./templates/source/controller/method/requestMethod.template";
-import {downloadHookTemplate} from "./templates/source/controller/method/download.template";
-import {clientIndexTemplate} from "./templates/source/controller/method/clientIndex.template";
-import {serverIndexTemplate} from "./templates/source/controller/method/serverIndex.template";
-import {typeTemplate} from "./templates/source/type/typeTemplate";
-import {requestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
+import {nextParamsTemplate} from "./templates/source/controller/method/params.template";
+import {nextRequestHookTemplate} from "./templates/source/controller/method/requestHook.template";
+import {nextRequestMethodTemplate} from "./templates/source/controller/method/requestMethod.template";
+import {nextDownloadHookTemplate} from "./templates/source/controller/method/download.template";
+import {nextClientIndexTemplate} from "./templates/source/controller/method/clientIndex.template";
+import {nextServerIndexTemplate} from "./templates/source/controller/method/serverIndex.template";
+import {nextTypeTemplate} from "./templates/source/type/typeTemplate";
+import {nextRequestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate";
 import {ConfigService} from "@nestjs/config";
-import {swcrcTemplate} from "./templates/swcrc.template";
+import {nextSwcrcTemplate} from "./templates/swcrc.template";
 import path from "path";
 import fs from "fs-extra";
 import * as process from "node:process";
-import { reactHookDocs } from './templates/docs/react-hook';
+import { nextReactHookDocs } from './templates/docs/react-hook';
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -72,18 +72,18 @@ export class IntrigNextBindingService extends GeneratorBinding {
   private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
   override async generateGlobal(): Promise<any> {
-    await this.dump(networkStateTemplate(this._path))
-    await this.dump(providerTemplate(this._path))
-    await this.dump(intrigLayoutTemplate(this._path))
-    await this.dump(indexTemplate(this._path))
-    await this.dump(tsConfigTemplate(this._path))
-    await this.dump(packageJsonTemplate(this._path))
-    await this.dump(mediaTypeUtilsTemplate(this._path))
-    await this.dump(intrigMiddlewareTemplate(this._path))
-    await this.dump(contextTemplate(this._path))
-    await this.dump(extraTemplate(this._path))
-    await this.dump(loggerTemplate(this._path))
-    await this.dump(swcrcTemplate(this._path))
+    await this.dump(nextNetworkStateTemplate(this._path))
+    await this.dump(nextProviderTemplate(this._path))
+    await this.dump(nextIntrigLayoutTemplate(this._path))
+    await this.dump(nextIndexTemplate(this._path))
+    await this.dump(nextTsConfigTemplate(this._path))
+    await this.dump(nextPackageJsonTemplate(this._path))
+    await this.dump(nextMediaTypeUtilsTemplate(this._path))
+    await this.dump(nextIntrigMiddlewareTemplate(this._path))
+    await this.dump(nextContextTemplate(this._path))
+    await this.dump(nextExtraTemplate(this._path))
+    await this.dump(nextLoggerTemplate(this._path))
+    await this.dump(nextSwcrcTemplate(this._path))
   }
 
   override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
@@ -98,26 +98,26 @@ export class IntrigNextBindingService extends GeneratorBinding {
       }
     }
     for (const [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
-      await this.dump(requestRouteTemplate(requestUrl, matchingPaths, this._path))
+      await this.dump(nextRequestRouteTemplate(requestUrl, matchingPaths, this._path))
     }
   }
 
   private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>): Promise<void> {
     const clientExports: string[] = [];
     const serverExports: string[] = [];
-    await this.dump(paramsTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(requestHookTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(requestMethodTemplate(descriptor, clientExports, serverExports, this._path))
+    await this.dump(nextParamsTemplate(descriptor, clientExports, serverExports, this._path))
+    await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path))
+    await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path))
     //TODO incorporate rest options.
     if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
-      await this.dump(downloadHookTemplate(descriptor, clientExports, serverExports, this._path))
+      await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path))
     }
-    await this.dump(clientIndexTemplate([descriptor], clientExports, this._path))
-    await this.dump(serverIndexTemplate([descriptor], serverExports, this._path))
+    await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path))
+    await this.dump(nextServerIndexTemplate([descriptor], serverExports, this._path))
   }
 
   private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
-    await this.dump(typeTemplate({
+    await this.dump(nextTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
@@ -184,7 +184,7 @@ ${"```"}
     } else {
       tabs.push({
         name: 'React Hook',
-        content: (await reactHookDocs(result)).content
+        content: (await nextReactHookDocs(result)).content
       })
     }
 

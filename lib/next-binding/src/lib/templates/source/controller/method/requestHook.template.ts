@@ -86,7 +86,7 @@ function extractErrorParams(errorTypes: (string | undefined)[]) {
   }
 }
 
-export function requestHookTemplate(
+export function nextRequestHookTemplate(
   {
     source,
     data: {
