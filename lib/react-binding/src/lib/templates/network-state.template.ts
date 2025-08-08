@@ -115,6 +115,7 @@ export function pending<T, E = unknown>(
 export interface SuccessState<T, E = unknown> extends NetworkState<T, E> {
   state: 'success';
   data: T;
+  headers?: Record<string, any | undefined>;
 }
 
 /**
@@ -129,12 +130,14 @@ export function isSuccess<T, E = unknown>(state: NetworkState<T, E>): state is S
  * Creates a success state object with the provided data.
  *
  * @param {T} data - The data to be included in the success state.
+ * @param headers
  * @return {SuccessState<T>} An object representing a success state containing the provided data.
  */
-export function success<T, E = unknown>(data: T): SuccessState<T, E> {
+export function success<T, E = unknown>(data: T, headers?: Record<string, any | undefined>): SuccessState<T, E> {
   return {
     state: 'success',
     data,
+    headers
   };
 }
 

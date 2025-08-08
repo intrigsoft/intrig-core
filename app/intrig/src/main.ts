@@ -17,7 +17,7 @@ const logger = new Logger('Main');
 
 async function bootstrapDeamon() {
   const app = await NestFactory.create(AppModule, {
-    logger: false
+    // logger: false
   });
   app.enableShutdownHooks();
   app.enableCors();

@@ -92,7 +92,9 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactParamsTemplate(descriptor, this._path))
     await this.dump(reactRequestHookTemplate(descriptor, this._path))
     await this.dump(reactAsyncFunctionHookTemplate(descriptor, this._path))
-    if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
+    if ((descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) ||
+      descriptor.data.responseHeaders?.['Content-Disposition']
+    ) {
       await this.dump(reactDownloadHookTemplate(descriptor, this._path))
     }
   }

@@ -1,6 +1,7 @@
 import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// import {} from '@intrig/react/deamon_api/Sources'
+import {useSourcesControllerDownloadOpenApiFileDownload} from '@intrig/react/deamon_api/Sources/sourcesControllerDownloadOpenApiFile/useSourcesControllerDownloadOpenApiFileDownload'
+import {useEffect} from "react";
 
 interface SourceDownloadButtonProps {
   sourceId: string;
@@ -15,28 +16,24 @@ export function SourceDownloadButton({
   size = "sm",
   className = "w-full"
 }: SourceDownloadButtonProps) {
+
+  const [
+    sourcesControllerDownloadOpenApiFileResp,
+    sourcesControllerDownloadOpenApiFile
+  ] = useSourcesControllerDownloadOpenApiFileDownload({
+    clearOnUnmount: true,
+  });
+
+  useEffect(() => {
+    console.log(sourcesControllerDownloadOpenApiFileResp)
+  }, [sourcesControllerDownloadOpenApiFileResp])
+
   const handleDownload = async () => {
     if (!sourceId) return;
-    
-    try {
-      const response = await fetch(`/api/config/sources/${sourceId}/download`);
-      if (!response.ok) {
-        throw new Error('Failed to download file');
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${sourceId}-openapi.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download failed:', error);
-      // You could add a toast notification here
-    }
+
+    sourcesControllerDownloadOpenApiFile({
+      id: sourceId
+    })
   };
 
   return (

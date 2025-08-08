@@ -101,6 +101,13 @@ export class SourcesController {
       'Content-Disposition': {
         description: 'attachment; filename="openapi.json"'
       }
+    },
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object'
+        }
+      }
     }
   })
   @ApiResponse({
@@ -128,14 +135,20 @@ export class SourcesController {
 
     try {
       // Read file content
-      const fileContent = readFileSync(filePath, 'utf-8');
+      // const fileContent = readFileSync(filePath, 'utf-8');
       
       // Set response headers
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${id}-openapi.json"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
       
       // Send file content
-      res.send(fileContent);
+      res.download(filePath, `${id}-openapi.json`, (err) => {
+        if (err) {
+          this.logger.error(`Failed to download OpenAPI file for source ${id}:`, err);
+          throw new NotFoundException(`Failed to download OpenAPI file for source ${id}`);
+        }
+      });
       
       this.logger.log(`Successfully downloaded OpenAPI file for source ${id}`);
     } catch (error) {

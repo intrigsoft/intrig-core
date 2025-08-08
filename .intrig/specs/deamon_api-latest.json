@@ -177,6 +177,13 @@
               "Content-Disposition": {
                 "description": "attachment; filename=\"openapi.json\""
               }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sources$SourcesControllerDownloadOpenApiFile$ResponseBody"
+                }
+              }
             }
           },
           "404": {
@@ -1387,6 +1394,9 @@
       },
       "Sources$SourcesControllerDownloadOpenApiFile$Id": {
         "type": "string"
+      },
+      "Sources$SourcesControllerDownloadOpenApiFile$ResponseBody": {
+        "type": "object"
       },
       "Operations$OperationsControllerSync$Id": {
         "type": "string"

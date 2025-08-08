@@ -54,10 +54,19 @@ export function extractRequestsFromSpec(spec: OpenAPIV3_1.Document) {
           for (const [mediaType, content] of Object.entries(response?.content ?? {})) {
             const ref = content.schema as OpenAPIV3_1.ReferenceObject;
 
+            const responseHeaders: Record<string, string> = {};
+            for (const key in (response?.headers ?? {})) {
+              const description = response?.headers?.[key].description;
+              if (description) {
+                responseHeaders[key] = description;
+              }
+            }
+
             params = {
               ...params,
               response: ref.$ref.split("/").pop(),
               responseType: mediaType,
+              responseHeaders,
               errorResponses,
               responseExamples: content.examples ? Object.fromEntries(
                   Object.entries(content.examples)
