@@ -52,7 +52,7 @@ export function RecentComponentsList() {
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-250px)] w-full">
+    // <ScrollArea className="h-[calc(100vh-250px)] w-full">
       <div className="px-2 py-1">
         {items.map((item, index) => (
           <React.Fragment key={`${item.type}-${item.id}`}>
@@ -76,7 +76,7 @@ export function RecentComponentsList() {
                         <div>
                           <div className="font-medium text-sm truncate">{item.name}</div>
                           <div className="text-xs text-muted-foreground truncate">
-                            {item.type} • {item.source}
+                            {item.source}
                           </div>
                         </div>
                       </TooltipTrigger>
@@ -95,6 +95,6 @@ export function RecentComponentsList() {
           </React.Fragment>
         ))}
       </div>
-    </ScrollArea>
+    // </ScrollArea>
   );
 }

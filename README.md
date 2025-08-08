@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/images/intrig-logo.svg" alt="Intrig Logo" width="300"/>
+</div>
+
 # Intrig Core
 
 A powerful TypeScript library and code generator designed to streamline OpenAPI-based network integration.

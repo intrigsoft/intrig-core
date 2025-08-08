@@ -27,14 +27,15 @@ export function AppSidebar() {
     <Sidebar className="relative">
       <SidebarHeader className="relative">
         <div className="flex items-center justify-between w-full">
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }} className="flex items-center">
             <Logo />
           </Link>
           {!isCollapsed && (
-            <SidebarTrigger className="absolute top-2 right-2" />
+            <SidebarTrigger className="absolute top-5 right-2" />
           )}
         </div>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
         <div className="px-4 py-2">
           <DashboardSearch placeholder="Search..." />
