@@ -187,7 +187,6 @@ export class ViewCommand extends CommandRunner {
   }
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
-    console.log(options)
     try {
       const metadata = await this.validateMetadata();
       const id = this.validateId(passedParams[0]);
