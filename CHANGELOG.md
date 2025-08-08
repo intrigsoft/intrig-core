@@ -1,3 +1,35 @@
+## 0.0.15-0 (2025-08-08)
+
+### 🚀 Features
+
+- enhance provider template with dynamic `configs` type generation ([eb4780b](https://github.com/intrigsoft/intrig-core/commit/eb4780b))
+- introduce MCP module with schema and endpoint resources for enhanced tooling and documentation ([0d8206f](https://github.com/intrigsoft/intrig-core/commit/0d8206f))
+- add `insight` application with Nx project configuration and Vite setup, remove deprecated Vitest config ([7cd3516](https://github.com/intrigsoft/intrig-core/commit/7cd3516))
+- add reusable `SourceCard`, `AppSidebar`, and `GitHubLink` components, implement `Sheet` and `Sidebar` UI utilities ([95e8407](https://github.com/intrigsoft/intrig-core/commit/95e8407))
+- add `EndpointDetailPage` and `DatatypeDetailPage` components with mock data and markdown rendering, update dependencies for ReactMarkdown usage ([2b44a99](https://github.com/intrigsoft/intrig-core/commit/2b44a99))
+- add `useDebounceState` hook and integrate data search capabilities in `DashboardSearch` component ([e1c6599](https://github.com/intrigsoft/intrig-core/commit/e1c6599))
+- enhance data statistics and error handling, integrate updated API support ([41b1de3](https://github.com/intrigsoft/intrig-core/commit/41b1de3))
+- implement pagination, enhance data search, update dependencies ([a700a3a](https://github.com/intrigsoft/intrig-core/commit/a700a3a))
+- add reusable Markdown rendering components and enhance `EndpointDetailPage` ([9b0b80b](https://github.com/intrigsoft/intrig-core/commit/9b0b80b))
+- add Intrig network state utilities and hooks for asynchronous operations ([fa34d3d](https://github.com/intrigsoft/intrig-core/commit/fa34d3d))
+- add Intrig source support with configurable build paths and new utilities ([d64e330](https://github.com/intrigsoft/intrig-core/commit/d64e330))
+- add Insight CLI command and production build configuration ([e7abe21](https://github.com/intrigsoft/intrig-core/commit/e7abe21))
+- add last-visited tracking and pinning functionality ([dd36300](https://github.com/intrigsoft/intrig-core/commit/dd36300))
+- integrate pinning functionality and recent views in detail pages and sidebar ([2ef0095](https://github.com/intrigsoft/intrig-core/commit/2ef0095))
+- integrate file usage tracking in EndpointDetailPage ([cf272e4](https://github.com/intrigsoft/intrig-core/commit/cf272e4))
+- enhance CLI commands and add typography support ([b8f9bec](https://github.com/intrigsoft/intrig-core/commit/b8f9bec))
+- **cli:** enhance `InsightCommand` with asset bundling and custom options ([35b9b7f](https://github.com/intrigsoft/intrig-core/commit/35b9b7f))
+- **ui:** add resizable panel components for flexible layouts ([b94141d](https://github.com/intrigsoft/intrig-core/commit/b94141d))
+- **ui:** unify branding assets and improve theme handling ([ba42c35](https://github.com/intrigsoft/intrig-core/commit/ba42c35))
+
+### 🩹 Fixes
+
+- **cli:** resolve syntax error in main file causing build failure ([1b91ea9](https://github.com/intrigsoft/intrig-core/commit/1b91ea9))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.14-7 (2025-08-08)
 
 ### 🚀 Features
