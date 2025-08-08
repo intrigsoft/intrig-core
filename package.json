@@ -5,7 +5,9 @@
   "scripts": {
     "predev": "intrig prebuild && intrig prebuild && intrig prebuild",
     "prebuild": "intrig prebuild && intrig prebuild && intrig prebuild",
-    "postbuild": "intrig postbuild && intrig postbuild && intrig postbuild"
+    "predev": "intrig prebuild",
+    "prebuild": "intrig prebuild",
+    "postbuild": "intrig postbuild"
   },
   "private": true,
   "type": "module",
