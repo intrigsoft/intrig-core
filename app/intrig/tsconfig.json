@@ -4,10 +4,10 @@
   "include": [],
   "references": [
     {
-      "path": "../../lib/react-binding"
+      "path": "../../lib/openapi-source"
     },
     {
-      "path": "../../lib/openapi-source"
+      "path": "../../lib/react-binding"
     },
     {
       "path": "../../lib/next-binding"

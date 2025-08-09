@@ -1,5 +1,5 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { join } = require('path');
+const { join, resolve } = require('path');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
@@ -87,6 +87,22 @@ module.exports = {
     'lowdb': 'module lowdb',
     'lowdb/node': 'module lowdb/node',
   },
+  module: {
+    rules: [
+      { resourceQuery: /raw/, type: 'asset/source' },
+      { resourceQuery: /(asset|inline)/, type: 'asset/inline' },
+      {
+        test: /\.(js|css|html)$/,
+        include: resolve(__dirname, '../../dist/app/insight'),
+        type: 'asset/source'
+      },
+      {
+        test: /\.(png|jpe?g|svg|ico)$/,
+        include: resolve(__dirname, '../../dist/app/insight'),
+        type: 'asset/inline'
+      }
+    ]
+  },
   plugins: [
     new webpack.BannerPlugin({
       banner: `#!/usr/bin/env node
@@ -104,7 +120,6 @@ module.exports = {
       assets: [
         './src/assets',
         { input: '../../', output: '.', glob: 'README.md' },
-        { input: '../../dist/app/insight', output: './assets/insight', glob: '**/*' }
       ],
       optimization: false,
       outputHashing: 'none',

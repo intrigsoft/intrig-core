@@ -5,6 +5,11 @@ import router from './app/router';
 import {IntrigProvider} from "@intrig/react";
 import {PinContextProvider} from "@/components/pin-button";
 
+const baseURL =
+  import.meta.env.DEV
+    ? import.meta.env.VITE_DEAMON_API
+    : undefined;
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
 );
@@ -13,7 +18,7 @@ root.render(
   <StrictMode>
     <IntrigProvider configs={{
       deamon_api: {
-        baseURL: 'http://localhost:3000'
+        baseURL
       }
     }}>
       <PinContextProvider>
