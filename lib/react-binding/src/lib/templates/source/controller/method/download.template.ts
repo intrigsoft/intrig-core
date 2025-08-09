@@ -158,7 +158,6 @@ export async function reactDownloadHookTemplate({source, data: {paths, operation
             } else if (m && m[2]) {
               filename = decodeURIComponent(m[2].replace(/\\+/g, ' '));
             }
-            a.download = filename;
           } 
           a.download = filename;
           document.body.appendChild(a);

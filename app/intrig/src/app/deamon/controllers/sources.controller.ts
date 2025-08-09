@@ -134,9 +134,6 @@ export class SourcesController {
     }
 
     try {
-      // Read file content
-      // const fileContent = readFileSync(filePath, 'utf-8');
-      
       // Set response headers
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="${id}-openapi.json"`);

@@ -24,10 +24,6 @@ export function SourceDownloadButton({
     clearOnUnmount: true,
   });
 
-  useEffect(() => {
-    console.log(sourcesControllerDownloadOpenApiFileResp)
-  }, [sourcesControllerDownloadOpenApiFileResp])
-
   const handleDownload = async () => {
     if (!sourceId) return;
 
