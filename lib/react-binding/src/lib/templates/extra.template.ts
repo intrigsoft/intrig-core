@@ -25,60 +25,6 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useIntrigContext } from '@intrig/react/intrig-context';
 
 /**
- * Converts a given hook into a promise-based function.
- *
- * @param {IntrigHook<P, B, T>} hook - The hook function to be converted.
- * @param {string} [key='default'] - An optional key to uniquely identify the hook instance.
- *
- * @return {[(...params: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => Promise<T>, () => void]}
- * Returns a tuple containing a function that invokes the hook as a promise and a function to clear the state.
- */
-export function useAsPromise<E>(hook: UnitHook<E>, options: UnitHookOptions): [() => Promise<never>, () => void];
-export function useAsPromise<T, E>(hook: ConstantHook<T, E>, options: UnitHookOptions): [() => Promise<T>, () => void];
-export function useAsPromise<P, E>(hook: UnaryProduceHook<P, E>, options?: UnaryHookOptions<P>): [(params: P) => Promise<never>, () => void];
-export function useAsPromise<P, T, E>(  hook: UnaryFunctionHook<P, T, E>, options?: UnaryHookOptions<P>): [(params: P) => Promise<T>, () => void];
-export function useAsPromise<P, B, E>(hook: BinaryProduceHook<P, B, E>, options?: BinaryHookOptions<P, B>): [(body: B, params: P) => Promise<never>, () => void];
-export function useAsPromise<P, B, T, E>(hook: BinaryFunctionHook<P, B, T, E>, options?: BinaryHookOptions<P, B>): [(body: B, params: P) => Promise<T>, () => void];
-
-// **Implementation**
-export function useAsPromise<P, B, T, E>(
-  hook: IntrigHook<P, B, T, E>,
-  options?: IntrigHookOptions<P, B>
-): [(...args: any[]) => Promise<T>, () => void] {  // <- Compatible return type
-  const resolveRef = useRef<(value: T) => void>(() => {});
-  const rejectRef = useRef<(reason?: any) => void>(() => {});
-
-  const [state, dispatch, clear] = hook(options as any);
-
-  useEffect(() => {
-    if (isSuccess(state)) {
-      resolveRef.current?.(state.data);
-      clear();
-    } else if (isError(state)) {
-      rejectRef.current?.(state.error);
-      clear()
-    }
-  }, [state]);
-
-  const promiseFn = useCallback((...args: Parameters<ReturnType<IntrigHook<P, B, T>>[1]>) => {
-    return new Promise<T>((resolve, reject) => {
-      resolveRef.current = resolve;
-      rejectRef.current = reject;
-
-      const dispatchState = (dispatch as any)(...args);
-      if (isValidationError(dispatchState)) {
-        reject(dispatchState.error);
-      }
-    });
-  }, [dispatch]);
-
-  return [
-    promiseFn,
-    clear
-  ];
-}
-
-/**
  * A custom hook that manages and returns the network state of a promise-based function,
  * providing a way to execute the function and clear its state.
  *

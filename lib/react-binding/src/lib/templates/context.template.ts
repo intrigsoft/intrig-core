@@ -24,7 +24,7 @@ interface RequestType<T = any> extends AxiosRequestConfig {
   source: string
 }
 
-export type ZodOut<T> = ZodType<T, ZodTypeDef, unknown>;
+export type SchemaOf<T> = ZodType<T, ZodTypeDef, any>;
 
 /**
  * Defines the ContextType interface for managing global state, dispatching actions,
@@ -40,7 +40,7 @@ export interface ContextType {
   filteredState: GlobalState;
   dispatch: Dispatch<NetworkAction<unknown, unknown>>;
   configs: ${configType};
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodOut<T> | undefined, errorSchema: ZodOut<T> | undefined) => Promise<void>;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: SchemaOf<T> | undefined, errorSchema: SchemaOf<T> | undefined) => Promise<void>;
 }
 
 /**
