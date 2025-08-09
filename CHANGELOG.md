@@ -1,3 +1,14 @@
+## 0.0.15-2 (2025-08-09)
+
+### 🚀 Features
+
+- add conflict resolution and enhance binary handling in generators ([8b58947](https://github.com/intrigsoft/intrig-core/commit/8b58947))
+- add conflict resolution and enhance binary handling in generators ([a83770f](https://github.com/intrigsoft/intrig-core/commit/a83770f))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-1 (2025-08-09)
 
 ### 🚀 Features
