@@ -1,3 +1,15 @@
+## 0.0.15-1 (2025-08-09)
+
+### 🚀 Features
+
+- add source OpenAPI download functionality and enhance logs in daemon commands ([910d041](https://github.com/intrigsoft/intrig-core/commit/910d041))
+- enhance file download support with improved HTTP headers and hooks ([6d8fd96](https://github.com/intrigsoft/intrig-core/commit/6d8fd96))
+- enhance asset handling and CLI functionality ([3da8249](https://github.com/intrigsoft/intrig-core/commit/3da8249))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-0 (2025-08-08)
 
 ### 🚀 Features
