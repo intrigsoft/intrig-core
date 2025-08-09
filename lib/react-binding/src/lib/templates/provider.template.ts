@@ -52,7 +52,7 @@ import logger from './logger';
 import {flushSync} from "react-dom";
 import {createParser} from "eventsource-parser";
 
-import {Context, RequestType, GlobalState, ZodOut} from './intrig-context';
+import {Context, RequestType, GlobalState, SchemaOf} from './intrig-context';
 
 /**
  * Handles state updates for network requests based on the provided action.
@@ -355,8 +355,8 @@ export interface NetworkStateProps<T, E = unknown> {
   key: string;
   operation: string;
   source: string;
-  schema?: ZodOut<T>;
-  errorSchema?: ZodOut<E>;
+  schema?: SchemaOf<T>;
+  errorSchema?: SchemaOf<E>;
   debounceDelay?: number;
 }
 
@@ -481,8 +481,8 @@ export function useTransientCall<T, E = unknown>({
                                                    schema,
                                                    errorSchema
                                                  }: {
-  schema?: ZodOut<T>;
-  errorSchema?: ZodOut<T>
+  schema?: SchemaOf<T>;
+  errorSchema?: SchemaOf<T>
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController>(null);
