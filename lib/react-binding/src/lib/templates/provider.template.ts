@@ -47,12 +47,12 @@ import axios, {
   InternalAxiosRequestConfig,
   isAxiosError,
 } from 'axios';
-import { ZodSchema, ZodType, ZodTypeDef } from 'zod';
+import { ZodSchema } from 'zod';
 import logger from './logger';
 import {flushSync} from "react-dom";
 import {createParser} from "eventsource-parser";
 
-import {Context, RequestType, GlobalState} from './intrig-context';
+import {Context, RequestType, GlobalState, ZodOut} from './intrig-context';
 
 /**
  * Handles state updates for network requests based on the provided action.
@@ -468,8 +468,6 @@ export function useNetworkState<T, E = unknown>({
 
   return [networkState, deboundedExecute, clear, dispatch];
 }
-
-type ZodOut<T> = ZodType<T, ZodTypeDef, unknown>;
 
 /**
  * A hook for making transient calls that can be aborted and validated against schemas.
