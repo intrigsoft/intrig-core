@@ -482,7 +482,7 @@ export function useTransientCall<T, E = unknown>({
                                                    errorSchema
                                                  }: {
   schema?: SchemaOf<T>;
-  errorSchema?: SchemaOf<T>
+  errorSchema?: SchemaOf<E>
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController | undefined>(undefined);
