@@ -10,9 +10,9 @@ export function reactContextTemplate(_path: string, apisToSync: IntrigSourceConf
   }`
 
   return ts`
-  import { NetworkAction, NetworkState } from '@intrig/react/network-state';
+import { NetworkAction, NetworkState } from '@intrig/react/network-state';
 import { AxiosProgressEvent, AxiosRequestConfig } from 'axios';
-import { ZodSchema } from 'zod';
+import { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import { createContext, useContext, Dispatch } from 'react';
 import { DefaultConfigs } from '@intrig/react/intrig-provider';
 
@@ -23,6 +23,8 @@ interface RequestType<T = any> extends AxiosRequestConfig {
   key: string;
   source: string
 }
+
+export type ZodOut<T> = ZodType<T, ZodTypeDef, unknown>;
 
 /**
  * Defines the ContextType interface for managing global state, dispatching actions,
@@ -38,7 +40,7 @@ export interface ContextType {
   filteredState: GlobalState;
   dispatch: Dispatch<NetworkAction<unknown, unknown>>;
   configs: ${configType};
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<T> | undefined) => Promise<void>;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodOut<T> | undefined, errorSchema: ZodOut<T> | undefined) => Promise<void>;
 }
 
 /**
