@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './app';
 import HomePage from './pages/home';
 import AboutPage from './pages/about';
-import DashboardPage from './pages/dashboard';
 import SourceDetailPage from './pages/source-detail';
 import EndpointDetailPage from './pages/endpoint-detail';
 import DatatypeDetailPage from './pages/datatype-detail';
@@ -21,10 +20,6 @@ const router = createBrowserRouter(
         {
           path: 'about',
           element: <AboutPage />,
-        },
-        {
-          path: 'dashboard',
-          element: <DashboardPage />,
         },
         {
           path: 'sources',

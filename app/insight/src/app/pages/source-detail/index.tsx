@@ -156,7 +156,7 @@ export function SourceDetailPage() {
           </div>
           
           {/* Search Box in the middle */}
-          <div className="max-w-xl mx-auto w-full mb-8">
+          <div className="mx-auto w-full mb-8">
             <div className="p-4 border rounded-lg shadow-sm bg-card">
               <h3 className="text-lg font-semibold mb-3">Search API Resources</h3>
               <p className="text-sm text-muted-foreground mb-3">
