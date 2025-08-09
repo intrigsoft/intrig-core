@@ -485,7 +485,7 @@ export function useTransientCall<T, E = unknown>({
   errorSchema?: SchemaOf<T>
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
-  const controller = useRef<AbortController>(null);
+  const controller = useRef<AbortController | undefined>(undefined);
 
   const call = useCallback(
     async (request: RequestType)=> {
