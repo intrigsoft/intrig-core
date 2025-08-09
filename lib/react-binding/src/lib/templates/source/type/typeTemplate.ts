@@ -7,6 +7,7 @@ export interface SchemaConversionResult {
   zodSchema: string;
   imports: Set<string>;
   optional?: boolean;
+  binaryish?: boolean;
 }
 
 export interface TypeTemplateParams {
@@ -16,12 +17,22 @@ export interface TypeTemplateParams {
   paths: string[]
 }
 
-export async function reactTypeTemplate({typeName, schema, sourcePath, paths}: TypeTemplateParams) {
+export async function reactTypeTemplate({
+                                          typeName,
+                                          schema,
+                                          sourcePath,
+                                          paths
+                                        }: TypeTemplateParams) {
   const {imports, zodSchema, tsType} = openApiSchemaToZod(schema);
 
   const ts = typescript(path.resolve(sourcePath, 'src', ...paths, `${typeName}.ts`));
 
   const simpleType = (await jsonLiteral('')`${JSON.stringify(schema)}`).content;
+
+  const transport =
+    schema.type === 'string' && (schema as any).format === 'binary'
+      ? 'binary'
+      : 'json';
 
   return ts`
   import { z } from 'zod'
@@ -42,6 +53,9 @@ export async function reactTypeTemplate({typeName, schema, sourcePath, paths}: T
 
   //--- Simple Type  ---//
   /*[${simpleType}]*/
+  
+  // Transport hint for clients ("binary" => use arraybuffer/blob)
+  export const ${typeName}_transport = '${transport}' as const;
   `
 }
 
@@ -92,6 +106,8 @@ function handleRefSchema(ref: string, imports: Set<string>): SchemaConversionRes
 }
 
 function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
+  const imports = new Set<string>();
+  let binaryish = false;
   if (schema.enum) {
     const enumValues = schema.enum.map(value => `'${value}'`).join(' | ');
     const zodEnum = `z.enum([${schema.enum.map(value => `'${value}'`).join(', ')}])`;
@@ -103,7 +119,7 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
 
   if (schema.format === 'date' && !schema.pattern) {
     tsType = 'Date';
-    zodSchema = 'z.date()';
+    zodSchema = 'z.coerce.date()';
     zodSchema += `.transform((val) => {
         const parsedDate = new Date(val);
         if (isNaN(parsedDate.getTime())) {
@@ -127,11 +143,15 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
         return parsedDateTime;
     })`;
   } else if (schema.format === 'binary') {
-    tsType = 'Blob';
-    zodSchema = 'z.instanceof(Blob)';
+    tsType = 'BinaryData';
+    zodSchema = 'BinaryDataSchema';
+    imports.add(`import { BinaryData, BinaryDataSchema } from '@intrig/react/type-utils'`);
+    binaryish = true;
   } else if (schema.format === 'byte') {
-    tsType = 'Buffer';
-    zodSchema = 'z.string().transform((val) => Buffer.from(val, "base64"))';
+    tsType = 'Uint8Array';
+    zodSchema = 'z.string().transform((val) => base64ToUint8Array(val))';
+    imports.add(`import { base64ToUint8Array } from '@intrig/react/type-utils'`);
+    binaryish = true;
   } else if (schema.format === 'email') {
     zodSchema = 'z.string().email()';
   } else if (schema.format === 'uuid') {
@@ -149,7 +169,7 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
     if (schema.maxLength !== undefined) zodSchema += `.max(${schema.maxLength})`;
     if (schema.pattern !== undefined) zodSchema += `.regex(new RegExp('${schema.pattern}'))`;
   }
-  return { tsType, zodSchema, imports: new Set() };
+  return { tsType, zodSchema, imports, binaryish };
 }
 
 function handleNumberSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
@@ -172,14 +192,23 @@ function handleBooleanSchema(): SchemaConversionResult {
 }
 
 function handleArraySchema(schema: OpenAPIV3_1.ArraySchemaObject, imports: Set<string>): SchemaConversionResult {
-  if (schema.items) {
-    const { tsType, zodSchema: itemZodSchema, imports: itemImports } = openApiSchemaToZod(schema.items as OpenAPIV3_1.SchemaObject, imports);
-    let zodSchema = `(z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema})) as z.ZodType<${tsType}[], z.ZodTypeDef, ${tsType}[]>)`;
-    if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
-    if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
-    return { tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports]) };
+  if (!schema.items) {
+    throw new Error('Array schema must have an items property');
   }
-  throw new Error('Array schema must have an items property');
+
+  const {
+    tsType,
+    zodSchema: itemZodSchema,
+    imports: itemImports,
+    binaryish
+  } = openApiSchemaToZod(schema.items as OpenAPIV3_1.SchemaObject, imports);
+
+  let zodSchema = binaryish ?
+    `z.array(${itemZodSchema})`:
+    `(z.preprocess((raw) => (Array.isArray(raw) ? raw : [raw]), z.array(${itemZodSchema})) as z.ZodType<${tsType}[], z.ZodTypeDef, ${tsType}[]>)`;
+  if (schema.minItems !== undefined) zodSchema += `.min(${schema.minItems})`;
+  if (schema.maxItems !== undefined) zodSchema += `.max(${schema.maxItems})`;
+  return {tsType: `(${tsType})[]`, zodSchema, imports: new Set([...imports, ...itemImports])};
 }
 
 function handleObjectSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<string>): SchemaConversionResult {

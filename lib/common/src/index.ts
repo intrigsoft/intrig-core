@@ -20,6 +20,7 @@ export * from './lib/model/schema';
 export * from './lib/model/sync-event';
 export * from './lib/model/event-context';
 export * from './lib/model/common';
+export * from './lib/model/generator-context'
 
 // Templates
 export * from './lib/template/json-literal';

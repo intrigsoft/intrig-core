@@ -1,6 +1,7 @@
 import {
   camelCase,
   generatePostfix,
+  GeneratorContext,
   pascalCase,
   ResourceDescriptor, RestData,
   typescript, Variable
@@ -88,8 +89,22 @@ function extractErrorParams(errorTypes: string[]) {
 }
 
 
-export async function reactDownloadHookTemplate({source, data: {paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method}}: ResourceDescriptor<RestData>, _path: string) {
-  const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Download.ts`))
+export async function reactDownloadHookTemplate({source,
+                                                  data: {
+                                                    paths,
+                                                    operationId,
+                                                    response,
+                                                    requestUrl,
+                                                    variables,
+                                                    requestBody,
+                                                    contentType,
+                                                    responseType,
+                                                    errorResponses,
+                                                    method
+                                                  }
+                                                }: ResourceDescriptor<RestData>, _path: string, ctx: GeneratorContext) {
+  const postfix = ctx.potentiallyConflictingDescriptors.includes(operationId) ? generatePostfix(contentType, responseType) : ''
+  const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${postfix}Download.ts`))
 
   const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`
 
@@ -147,7 +162,17 @@ export async function reactDownloadHookTemplate({source, data: {paths, operation
       useEffect(() => {
         if (isSuccess(state)) {
           let a = document.createElement('a');
-          a.href = URL.createObjectURL(new Blob([state.data], {type: 'application/octet-stream'}));
+          const ct =
+            state.headers?.['content-type'] ?? 'application/octet-stream';
+          let data: any = state.data;
+          if (ct.startsWith('application/json')) {
+          let data: any[];
+          if (ct.startsWith('application/json')) {
+            data = [JSON.stringify(state.data, null, 2)];
+          } else {
+            data = [state.data];
+          }
+          a.href = URL.createObjectURL(new Blob(Array.isArray(data) ? data : [data], {type: ct}));
           const contentDisposition = state.headers?.['content-disposition'];
           let filename = '${pascalCase(operationId)}.${mimeType.extension(contentType)}';
           if (contentDisposition) {

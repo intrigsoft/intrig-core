@@ -1,6 +1,7 @@
 import {
   camelCase,
   decodeVariables,
+  GeneratorContext,
   pascalCase,
   ResourceDescriptor,
   RestData,
@@ -8,7 +9,10 @@ import {
 } from "common";
 import * as path from "path";
 
-export async function reactParamsTemplate({source, data: {paths, operationId, variables}}: ResourceDescriptor<RestData>, _path: string) {
+export async function reactParamsTemplate({
+                                            source,
+                                            data: {paths, operationId, variables}
+                                          }: ResourceDescriptor<RestData>, _path: string, ctx: GeneratorContext) {
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `${pascalCase(operationId)}.params.ts`))
 
   const {variableImports, variableTypes} = decodeVariables(variables ?? [], source, "@intrig/react");
