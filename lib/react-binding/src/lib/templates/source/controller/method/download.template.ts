@@ -166,7 +166,11 @@ export async function reactDownloadHookTemplate({source,
             state.headers?.['content-type'] ?? 'application/octet-stream';
           let data: any = state.data;
           if (ct.startsWith('application/json')) {
+          let data: any[];
+          if (ct.startsWith('application/json')) {
             data = [JSON.stringify(state.data, null, 2)];
+          } else {
+            data = [state.data];
           }
           a.href = URL.createObjectURL(new Blob(data, {type: ct}));
           const contentDisposition = state.headers?.['content-disposition'];
