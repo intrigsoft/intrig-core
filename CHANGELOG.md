@@ -1,3 +1,13 @@
+## 0.0.15-4 (2025-08-09)
+
+### 🩹 Fixes
+
+- correct type of `errorSchema` in `provider.template.ts` ([2ebbef1](https://github.com/intrigsoft/intrig-core/commit/2ebbef1))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-3 (2025-08-09)
 
 ### 🚀 Features
