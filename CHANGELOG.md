@@ -1,3 +1,13 @@
+## 0.0.15-3 (2025-08-09)
+
+### 🚀 Features
+
+- make CLI logger configurable based on verbose mode ([0e1c1b3](https://github.com/intrigsoft/intrig-core/commit/0e1c1b3))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-2 (2025-08-09)
 
 ### 🚀 Features
