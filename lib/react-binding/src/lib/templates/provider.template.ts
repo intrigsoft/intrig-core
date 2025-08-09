@@ -47,7 +47,7 @@ import axios, {
   InternalAxiosRequestConfig,
   isAxiosError,
 } from 'axios';
-import { ZodSchema } from 'zod';
+import { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import logger from './logger';
 import {flushSync} from "react-dom";
 import {createParser} from "eventsource-parser";
@@ -355,8 +355,8 @@ export interface NetworkStateProps<T, E = unknown> {
   key: string;
   operation: string;
   source: string;
-  schema?: ZodSchema<T>;
-  errorSchema?: ZodSchema<E>;
+  schema?: ZodOut<T>;
+  errorSchema?: ZodOut<E>;
   debounceDelay?: number;
 }
 
@@ -469,6 +469,8 @@ export function useNetworkState<T, E = unknown>({
   return [networkState, deboundedExecute, clear, dispatch];
 }
 
+type ZodOut<T> = ZodType<T, ZodTypeDef, unknown>;
+
 /**
  * A hook for making transient calls that can be aborted and validated against schemas.
  *
@@ -481,8 +483,8 @@ export function useTransientCall<T, E = unknown>({
                                                    schema,
                                                    errorSchema
                                                  }: {
-  schema?: ZodSchema<T>;
-  errorSchema?: ZodSchema<T>
+  schema?: ZodOut<T>;
+  errorSchema?: ZodOut<T>
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController>(null);

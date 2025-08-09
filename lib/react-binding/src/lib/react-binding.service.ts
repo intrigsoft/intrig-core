@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding,
+  GeneratorBinding, GeneratorContext,
   IIntrigSourceConfig, IntrigSourceConfig,
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
@@ -31,11 +31,13 @@ import {reactHookDocs} from "./templates/docs/react-hook";
 import {reactSseHookDocs} from "./templates/docs/sse-hook";
 import {reactAsyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
 import {reactAsyncFunctionHookDocs} from "./templates/docs/async-hook";
+import {typeUtilsTemplate} from "./templates/type-utils.template";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
   "application/xml",
   "application/x-www-form-urlencoded",
+  "application/event-stream",
   "text/*"
 ])
 
@@ -66,13 +68,24 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactPackageJsonTemplate(this._path))
     await this.dump(reactProviderTemplate(this._path, apisToSync))
     await this.dump(reactTsConfigTemplate(this._path))
+    await this.dump(typeUtilsTemplate(this._path))
   }
 
   async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
+    //TODO improve this logic to catch potential conflicts.
+    const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
+      .sort((a, b) => a.data.contentType === "application/json" ? -1 : 1)
+      .filter((descriptor, index, array) => array.findIndex(other => other.data.operationId === descriptor.data.operationId) !== index)
+      .map(descriptor => descriptor.id);
+
+    const ctx = {
+      potentiallyConflictingDescriptors
+    };
+
     for (const descriptor of descriptors) {
-      this.logger.log(`Generating source: ${JSON.stringify(descriptor)}`)
+      this.logger.log(`Generating source: ${descriptor.name}`)
       if (isRestDescriptor(descriptor)) {
-        await this.generateRestSource(source, descriptor)
+        await this.generateRestSource(source, descriptor, ctx)
       } else if (isSchemaDescriptor(descriptor)) {
         await this.generateSchemaSource(source, descriptor)
       }
@@ -87,25 +100,29 @@ export class ReactBindingService extends GeneratorBinding {
     return Promise.resolve(undefined);
   }
 
-  private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>) {
-    await this.dump(reactClientIndexTemplate([descriptor], this._path))
-    await this.dump(reactParamsTemplate(descriptor, this._path))
-    await this.dump(reactRequestHookTemplate(descriptor, this._path))
-    await this.dump(reactAsyncFunctionHookTemplate(descriptor, this._path))
-    if ((descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) ||
-      descriptor.data.responseHeaders?.['Content-Disposition']
+  private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>, ctx: GeneratorContext) {
+    await this.dump(reactClientIndexTemplate([descriptor], this._path, ctx))
+    await this.dump(reactParamsTemplate(descriptor, this._path, ctx))
+    await this.dump(reactRequestHookTemplate(descriptor, this._path, ctx))
+    await this.dump(reactAsyncFunctionHookTemplate(descriptor, this._path, ctx))
+
+    if ((descriptor.data.method.toUpperCase() === 'GET' &&
+        (!nonDownloadMimePatterns(descriptor.data.responseType!) || descriptor.data.responseType !== '*/*')
+      ) ||
+      descriptor.data.responseHeaders?.['content-disposition']
     ) {
-      await this.dump(reactDownloadHookTemplate(descriptor, this._path))
+      await this.dump(reactDownloadHookTemplate(descriptor, this._path, ctx))
     }
   }
 
   private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
-    await this.dump(reactTypeTemplate({
+    const content = reactTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
-    }))
+    });
+    await this.dump(content)
   }
 
   async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
