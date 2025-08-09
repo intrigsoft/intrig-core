@@ -172,7 +172,7 @@ export async function reactDownloadHookTemplate({source,
           } else {
             data = [state.data];
           }
-          a.href = URL.createObjectURL(new Blob(data, {type: ct}));
+          a.href = URL.createObjectURL(new Blob(Array.isArray(data) ? data : [data], {type: ct}));
           const contentDisposition = state.headers?.['content-disposition'];
           let filename = '${pascalCase(operationId)}.${mimeType.extension(contentType)}';
           if (contentDisposition) {
