@@ -11,13 +11,12 @@ import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
 import {IntrigConfigService} from "./app/deamon/services/intrig-config.service";
 
-const isVerbose = process.argv.includes('--verbose');
 const logger = new Logger('Main');
 
 
 async function bootstrapDeamon() {
   const app = await NestFactory.create(AppModule, {
-    // logger: false
+    logger: ['error'],
   });
   app.enableShutdownHooks();
   app.enableCors();
