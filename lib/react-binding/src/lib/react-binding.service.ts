@@ -74,7 +74,7 @@ export class ReactBindingService extends GeneratorBinding {
   async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
     //TODO improve this logic to catch potential conflicts.
     const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
-      .sort((a, b) => a.data.contentType === "application/json" ? -1 : 1)
+      .sort((a, b) => (a.data.contentType === "application/json" ? -1 : 0) - (b.data.contentType === "application/json" ? -1 : 0))
       .filter((descriptor, index, array) => array.findIndex(other => other.data.operationId === descriptor.data.operationId) !== index)
       .map(descriptor => descriptor.id);
 
