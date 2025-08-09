@@ -1,13 +1,14 @@
 import {Command, CommandRunner, Option} from "nest-commander";
 import {Logger} from "@nestjs/common";
-import {ConfigService} from "@nestjs/config";
 import * as express from 'express';
 import {loadInsightAssets} from "../../insight-assets";
-import open from 'open'
+// import open from 'open'
 import * as net from 'net';
 import chalk from 'chalk';
 import {ProcessManagerService} from "../process-manager.service";
 import {HttpService} from "@nestjs/axios";
+
+const INTRIG_INSIGHT = `  ${chalk.bold.yellow('INTRIG INSIGHT')} `
 
 const SOCIAL_NUMBERS = [12496, 14288, 15472, 14536, 14264, 12496]
 
@@ -58,21 +59,22 @@ export class InsightCommand extends CommandRunner {
       insightAssets = loadInsightAssets();
       this.logger.log('Successfully loaded insight assets');
     } catch (error) {
+      console.error(error)
       this.logger.error(`Failed to load insight assets: ${error.message}`);
       throw error;
     }
 
     // Set up middleware to serve bundled assets
-    app.use(express.static('public'));
+    // app.use(express.static('public'));
     
     // Serve CSS file
-    app.get('/assets/index-*.css', (req, res) => {
+    app.get('/assets/index.css', (req, res) => {
       res.type('text/css');
       res.send(insightAssets.css);
     });
     
     // Serve JS file
-    app.get('/assets/index-*.js', (req, res) => {
+    app.get('/assets/index.js', (req, res) => {
       res.type('application/javascript');
       res.send(insightAssets.js);
     });
@@ -99,8 +101,9 @@ export class InsightCommand extends CommandRunner {
       console.clear();
       
       // Print a decorative header
-      console.log('\n' + chalk.bold.cyan('╔════════════════════════════════════════════════════════════╗'));
-      console.log(chalk.bold.cyan('║                  ') + chalk.bold.yellow('INTRIG INSIGHT SERVER') + chalk.bold.cyan('                  ║'));
+      console.log('\n')
+      console.log(chalk.bold.cyan('╔════════════════════════════════════════════════════════════╗'));
+      console.log(chalk.bold.cyan(`║                     ${INTRIG_INSIGHT}                      ║`));
       console.log(chalk.bold.cyan('╚════════════════════════════════════════════════════════════╝\n'));
       
       // Server URL with prominent styling
@@ -111,9 +114,9 @@ export class InsightCommand extends CommandRunner {
       console.log(chalk.bold.magenta('ℹ ') + chalk.bold('Port:          ') + chalk.magenta(`${port}`));
       
       // Routes information
-      console.log(chalk.bold.magenta('ℹ ') + chalk.bold('Routes:        '));
-      console.log(chalk.bold.gray('  ├─ ') + chalk.gray('API    ') + chalk.blue.underline(`http://localhost:${port}/api`));
-      console.log(chalk.bold.gray('  └─ ') + chalk.gray('ASSETS ') + chalk.blue.underline(`http://localhost:${port}/assets`));
+      // console.log(chalk.bold.magenta('ℹ ') + chalk.bold('Routes:        '));
+      // console.log(chalk.bold.gray('  ├─ ') + chalk.gray('API    ') + chalk.blue.underline(`http://localhost:${port}/api`));
+      // console.log(chalk.bold.gray('  └─ ') + chalk.gray('ASSETS ') + chalk.blue.underline(`http://localhost:${port}/assets`));
       
       // Footer with helpful information
       console.log('\n' + chalk.cyan('Press Ctrl+C to stop the server') + '\n');
@@ -125,6 +128,7 @@ export class InsightCommand extends CommandRunner {
 
     // Only open the browser if the silent flag is not set
     if (!options?.silent) {
+      const open = (await import(/* webpackIgnore: true */ 'open')).default;
       await open(`http://localhost:${port}`);
     }
 

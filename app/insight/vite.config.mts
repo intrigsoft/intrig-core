@@ -27,13 +27,29 @@ export default defineConfig(() => ({
   //  plugins: [ nxViteTsPaths() ],
   // },
   build: {
-    outDir: './dist',
+    outDir: '../../dist/app/insight',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
-      transformMixedEsModules: true,
+      transformMixedEsModules: true
     },
     // Use relative paths for assets when served from any base URL
     base: './',
+    rollupOptions: {
+      output: {
+        // single entrypoint bundle
+        entryFileNames:  'assets/index.js',
+        // any lazy chunks (vendor split, etc)
+        chunkFileNames:  'assets/[name].js',
+        // CSS / other assets
+        assetFileNames: assetInfo => {
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'assets/index.css';
+          }
+          // images, fonts, icons, etc:
+          return 'assets/[name][extname]';
+        }
+      }
+    }
   },
 }));

@@ -40,7 +40,6 @@ export class SyncCommand extends CommandRunner {
 
     // 2) fetch current sources
     const listUrl = `${metadata.url}/api/config/sources/list`;
-    console.log(chalk.gray(`\n→ Fetching sources from ${listUrl}`));
     const { data: sources } = await lastValueFrom(
       this.httpService.get(listUrl, { headers: { Accept: 'application/json' } }),
     );
@@ -80,11 +79,7 @@ export class SyncCommand extends CommandRunner {
     let syncUrl = `${metadata.url}/api/operations/sync`;
     if (id) {
       syncUrl += `?id=${encodeURIComponent(id)}`;
-      console.log(chalk.gray(`\n→ Syncing source: ${id}`));
-    } else {
-      console.log(chalk.gray('\n→ Syncing all sources'));
     }
-    console.log(chalk.gray(`→ Connecting to ${syncUrl}\n`));
 
     // 5) open SSE stream
     const response = await lastValueFrom(

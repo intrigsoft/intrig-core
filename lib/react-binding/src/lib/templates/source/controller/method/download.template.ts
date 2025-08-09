@@ -6,6 +6,7 @@ import {
   typescript, Variable
 } from 'common';
 import * as path from 'path';
+import * as mimeType from 'mime-types'
 
 function extractHookShapeAndOptionsShape(response: string | undefined, requestBody: string | undefined, imports: Set<string>) {
   if (response) {
@@ -90,12 +91,12 @@ function extractErrorParams(errorTypes: string[]) {
 export async function reactDownloadHookTemplate({source, data: {paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method}}: ResourceDescriptor<RestData>, _path: string) {
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Download.ts`))
 
-  const modifiedRequestUrl = `/api/${source}${requestUrl?.replace(/\{/g, "${")}`
+  const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`
 
   const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback } from 'react'`)
-  imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, successfulDispatch, validationError, encode} from "@intrig/react"`)
+  imports.add(`import { useCallback, useEffect } from 'react'`)
+  imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, init, successfulDispatch, validationError, encode, isSuccess} from "@intrig/react"`)
 
   const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
@@ -119,33 +120,7 @@ export async function reactDownloadHookTemplate({source, data: {paths, operation
     "...params"
   ].join(",")
 
-  const executeBlock = requestBody ? `
-  let form = document.createElement('form');
-  form.method = '${method}';
-  form.action = \`${modifiedRequestUrl}\`;
-
-  Object.entries(data).forEach(([key, value]) => {
-  let input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = key;
-  input.value = value;
-  form.appendChild(input);
-  })
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-  ` : `
-  let a = document.createElement('a');
-  a.href = \`${modifiedRequestUrl}\`;
-  a.download = 'download';
-  dispatch(pending())
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  dispatch(success(undefined))
-  `
-
+  const finalRequestBodyBlock = requestBody ? `,data: encode(data, "${contentType}", requestBodySchema)` : ''
 
   return ts`
     ${[...imports].join('\n')}
@@ -161,13 +136,36 @@ export async function reactDownloadHookTemplate({source, data: {paths, operation
     const source = "${source}"
 
     function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
-      let [state,, clear, dispatch] = useNetworkState<Response, _ErrorType>({
+      let [state, dispatch, clear, dispatchState] = useNetworkState<Response, _ErrorType>({
         key: options?.key ?? 'default',
         operation,
         source,
         schema,
         errorSchema
       });
+      
+      useEffect(() => {
+        if (isSuccess(state)) {
+          let a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([state.data], {type: 'application/octet-stream'}));
+          const contentDisposition = state.headers?.['content-disposition'];
+          let filename = '${pascalCase(operationId)}.${mimeType.extension(contentType)}';
+          if (contentDisposition) {
+            const rx = /filename\\*=(?:UTF-8'')?([^;\\r\\n]+)|filename="?([^";\\r\\n]+)"?/i;
+            const m = contentDisposition.match(rx);
+            if (m && m[1]) {
+              filename = decodeURIComponent(m[1].replace(/\\+/g, ' '));
+            } else if (m && m[2]) {
+              filename = decodeURIComponent(m[2].replace(/\\+/g, ' '));
+            }
+          } 
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          dispatchState(init())
+        }
+      }, [state])
 
       let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
         let { ${paramExplode}} = p
@@ -179,10 +177,32 @@ export async function reactDownloadHookTemplate({source, data: {paths, operation
           }
           ` : ``}
 
-          ${executeBlock}
-
+          dispatch({
+            method: '${method}',
+            url: \`${modifiedRequestUrl}\`,
+            headers: {
+              ${contentType ? `"Content-Type": "${contentType}",` : ''}
+            },
+            params,
+            key: \`${"${source}: ${operation}"}\`,
+            source: '${source}'
+            ${requestBody ? finalRequestBodyBlock : ''},
+            ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
+          })
           return successfulDispatch();
       }, [dispatch])
+      
+      useEffect(() => {
+        if (options.fetchOnMount) {
+          doExecute(${[requestBody ? `options.body!` : undefined, "options.params!"].filter(a => a).join(",")});
+        }
+
+        return () => {
+          if (options.clearOnUnmount) {
+            clear();
+          }
+        }
+      }, [])
 
       return [
         state,

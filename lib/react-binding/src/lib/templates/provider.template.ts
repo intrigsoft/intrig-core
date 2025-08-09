@@ -169,7 +169,7 @@ export function IntrigProvider({
             while (true) {
               let { done, value } = await reader.read();
               if (done) {
-                flushSync(() => dispatch(success(lastMessage)));
+                flushSync(() => dispatch(success(lastMessage, response.headers)));
                 break;
               }
 
@@ -183,9 +183,9 @@ export function IntrigProvider({
               );
               return;
             }
-            dispatch(success(data.data));
+            dispatch(success(data.data, response.headers));
           } else {
-            dispatch(success(response.data));
+            dispatch(success(response.data, response.headers));
           }
         } else {
           let { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};

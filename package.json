@@ -4,8 +4,6 @@
   "license": "MIT",
   "scripts": {
     "predev": "intrig prebuild",
-    "prebuild": "intrig prebuild && intrig prebuild && intrig prebuild",
-    "predev": "intrig prebuild",
     "prebuild": "intrig prebuild",
     "postbuild": "intrig postbuild"
   },

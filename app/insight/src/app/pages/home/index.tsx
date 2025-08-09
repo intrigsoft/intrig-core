@@ -92,7 +92,7 @@ export function HomePage() {
       )}
       
       {/* Search Box */}
-      <div className="max-w-xl mx-auto w-full mb-8">
+      <div className="mx-auto w-full mb-8">
         <div className="p-4 border rounded-lg shadow-sm bg-card">
           <h2 className="text-lg font-semibold mb-3">Search API Resources</h2>
           <p className="text-sm text-muted-foreground mb-3">

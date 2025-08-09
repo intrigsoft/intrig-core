@@ -12,7 +12,8 @@ import { ResourceDescriptor } from 'common';
 @Injectable()
 export class CodeAnalyzer {
   private readonly logger = new Logger(CodeAnalyzer.name);
-  private project: Project;
+  private project: Project | null = null;
+  private isProjectInitialized = false;
 
   private sourceUsageMap: Map<string, Set<string>> = new Map();
   private dataTypeUsageMap: Map<string, Map<string, Set<string>>> = new Map<string, Map<string, Set<string>>>();
@@ -32,10 +33,24 @@ export class CodeAnalyzer {
     const projectRootPath = process.cwd();
     const config = this.intrigConfigService.get();
     const tsConfigPath = config.codeAnalyzer?.tsConfigPath || 'tsconfig.json';
+    const fullTsConfigPath = path.join(projectRootPath, tsConfigPath);
 
-    this.project = new Project({
-      tsConfigFilePath: path.join(projectRootPath, tsConfigPath),
-    });
+    // Check if tsconfig file exists before initializing project
+    if (fs.existsSync(fullTsConfigPath)) {
+      try {
+        this.project = new Project({
+          tsConfigFilePath: fullTsConfigPath,
+        });
+        this.isProjectInitialized = true;
+        this.logger.debug(`CodeAnalyzer initialized with tsconfig at: ${fullTsConfigPath}`);
+      } catch (error) {
+        this.logger.warn(`Failed to initialize CodeAnalyzer with tsconfig at ${fullTsConfigPath}: ${error.message}`);
+        this.isProjectInitialized = false;
+      }
+    } else {
+      this.logger.warn(`tsconfig file not found at: ${fullTsConfigPath}. CodeAnalyzer will not be initialized.`);
+      this.isProjectInitialized = false;
+    }
   }
 
   /**
@@ -60,6 +75,9 @@ export class CodeAnalyzer {
    * @param includeAsync Whether to check async variants as well
    */
   public isEndpointUsed(endpointName: string, includeAsync = true): boolean {
+    if (!this.isProjectInitialized) {
+      return false;
+    }
     return this.endpointUsageMap.has(endpointName);
   }
 
@@ -68,6 +86,9 @@ export class CodeAnalyzer {
    * @param typeName The name of the data type to check
    */
   public isDataTypeUsed(typeName: string): boolean {
+    if (!this.isProjectInitialized) {
+      return false;
+    }
     return this.dataTypeUsageMap.has(typeName);
   }
 
@@ -80,6 +101,15 @@ export class CodeAnalyzer {
     usedDataTypes: string[],
     unusedDataTypes: string[]
   } {
+    if (!this.isProjectInitialized) {
+      return {
+        usedEndpoints: [],
+        unusedEndpoints: [],
+        usedDataTypes: [],
+        unusedDataTypes: []
+      };
+    }
+
     const usedEndpoints: string[] = [];
     const unusedEndpoints: string[] = [];
     const usedDataTypes: string[] = [];
@@ -120,6 +150,11 @@ export class CodeAnalyzer {
    * @param sourceGlobs Optional glob patterns to limit the analysis to specific files
    */
   public reindex(sourceGlobs: string[] = ['**/*.ts', '**/*.tsx']): void {
+    if (!this.isProjectInitialized) {
+      this.logger.warn('Cannot reindex: project not initialized due to missing tsconfig file');
+      return;
+    }
+
     this.logger.debug(`Reindexing codebase with patterns: ${sourceGlobs.join(', ')}`);
 
     // Clear previous analysis results
@@ -144,9 +179,14 @@ export class CodeAnalyzer {
    * @param sourceGlobs Optional glob patterns to limit the analysis to specific files
    */
   private analyze(sourceGlobs: string[] = ['**/*.ts', '**/*.tsx']): void {
+    if (!this.isProjectInitialized || !this.project) {
+      this.logger.warn('Cannot analyze: project not initialized due to missing tsconfig file');
+      return;
+    }
+
     // Add source files to the project
     sourceGlobs.forEach(glob => {
-      this.project.addSourceFilesAtPaths(glob);
+      this.project!.addSourceFilesAtPaths(glob);
     });
 
     // Process each source file
@@ -203,6 +243,10 @@ export class CodeAnalyzer {
    * @returns The count of resources that match the filters
    */
   public getUsageCounts(source?: string, type?: string): number {
+    if (!this.isProjectInitialized) {
+      return 0;
+    }
+
     this.logger.debug(`Getting usage counts with filters - source: ${source || 'all'}, type: ${type || 'all'}`);
 
     switch (type) {
@@ -239,6 +283,10 @@ export class CodeAnalyzer {
    * @returns Array of file paths where the endpoint or datatype is used
    */
   public getFileList(sourceId: string, type: 'endpoint' | 'datatype', id: string): string[] {
+    if (!this.isProjectInitialized) {
+      return [];
+    }
+
     this.logger.debug(`Getting file list for ${type} '${id}' in source '${sourceId}'`);
 
     const name = this.getResourceDescriptors().find(d => d.id === id)?.name ?? '';

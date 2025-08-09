@@ -1,5 +1,5 @@
 import * as React from "react";
-import intrigLogo from "../assets/intrig-logo.svg";
+import intrigLogo from "../assets/intrig-logo.svg?inline";
 
 export function Logo() {
   return (

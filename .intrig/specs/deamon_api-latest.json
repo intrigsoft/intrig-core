@@ -154,6 +154,47 @@
         ]
       }
     },
+    "/api/config/sources/{id}/download": {
+      "get": {
+        "operationId": "SourcesController_downloadOpenApiFile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/Sources$SourcesControllerDownloadOpenApiFile$Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Downloads the OpenAPI3 file for the given source",
+            "headers": {
+              "Content-Type": {
+                "description": "application/json"
+              },
+              "Content-Disposition": {
+                "description": "attachment; filename=\"openapi.json\""
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sources$SourcesControllerDownloadOpenApiFile$ResponseBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Source or OpenAPI file not found"
+          }
+        },
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
     "/api/operations/sync": {
       "get": {
         "operationId": "OperationsController_sync",
@@ -1350,6 +1391,12 @@
       },
       "Sources$SourcesControllerGetById$Id": {
         "type": "string"
+      },
+      "Sources$SourcesControllerDownloadOpenApiFile$Id": {
+        "type": "string"
+      },
+      "Sources$SourcesControllerDownloadOpenApiFile$ResponseBody": {
+        "type": "object"
       },
       "Operations$OperationsControllerSync$Id": {
         "type": "string"

@@ -1,8 +1,9 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { ComponentIcon, ServerIcon, BracesIcon, Link2Icon, HomeIcon, ChevronRightIcon } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
+import { SourceDownloadButton } from '@/components/source-download-button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { EndpointsTab } from './endpoints-tab';
@@ -53,14 +54,6 @@ export function SourceDetailPage() {
     return null
   }, [sourceStatsResp]);
 
-  // Initialize endpoints and datatypes as empty arrays
-  const [endpoints, setEndpoints] = useState<any[]>([]);
-  const [datatypes, setDatatypes] = useState<any[]>([]);
-
-  // In a real application, you would fetch endpoints and datatypes from an API
-  // This is left empty intentionally as we're using sample data in the tab components
-
-  // If source not found, we could redirect to a 404 page
   if (!source && sourceId) {
     return <div>Source not found</div>;
   }
@@ -124,6 +117,11 @@ export function SourceDetailPage() {
                   {new Date().toLocaleDateString()}
                 </span>
               </div>
+              
+              {/* Download button */}
+              <div className="mt-4 pt-3 border-t">
+                <SourceDownloadButton sourceId={sourceId!} />
+              </div>
             </div>
             
             {/* Stats in top right */}
@@ -158,7 +156,7 @@ export function SourceDetailPage() {
           </div>
           
           {/* Search Box in the middle */}
-          <div className="max-w-xl mx-auto w-full mb-8">
+          <div className="mx-auto w-full mb-8">
             <div className="p-4 border rounded-lg shadow-sm bg-card">
               <h3 className="text-lg font-semibold mb-3">Search API Resources</h3>
               <p className="text-sm text-muted-foreground mb-3">
@@ -189,7 +187,7 @@ export function SourceDetailPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                       Browse all available API endpoints in this source
                     </p>
-                    <EndpointsTab endpoints={endpoints || []} sourceId={sourceId} />
+                    <EndpointsTab sourceId={sourceId} />
                   </div>
                 </TabsContent>
                 
@@ -198,7 +196,7 @@ export function SourceDetailPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                       Browse all available data models in this source
                     </p>
-                    <DataTypesTab datatypes={datatypes || []} sourceId={sourceId} />
+                    <DataTypesTab sourceId={sourceId} />
                   </div>
                 </TabsContent>
               </Tabs>

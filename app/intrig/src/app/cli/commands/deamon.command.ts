@@ -8,7 +8,15 @@ export class UpSubCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
+    const isRunning = await this.pm.isRunning();
+    if (isRunning) {
+      console.log('✓ Daemon is already running');
+      return;
+    }
+    
+    console.log('Starting daemon...');
     await this.pm.start();
+    console.log('✓ Daemon started successfully');
   }
 }
 
@@ -19,7 +27,15 @@ export class DownSubCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
+    const isRunning = await this.pm.isRunning();
+    if (!isRunning) {
+      console.log('✓ Daemon is not running');
+      return;
+    }
+    
+    console.log('Stopping daemon...');
     await this.pm.stop();
+    console.log('✓ Daemon stopped successfully');
   }
 }
 
@@ -30,7 +46,9 @@ export class RestartSubCommand extends CommandRunner {
   }
 
   async run(): Promise<void> {
+    console.log('Restarting daemon...');
     await this.pm.restart();
+    console.log('✓ Daemon restarted successfully');
   }
 }
 
@@ -42,7 +60,8 @@ export class StatusSubCommand extends CommandRunner {
 
   async run(): Promise<void> {
     const isRunning = await this.pm.isRunning();
-    console.log(`Daemon is ${isRunning ? 'running' : 'not running'}`);
+    const status = isRunning ? '✓ Daemon is running' : '✗ Daemon is not running';
+    console.log(status);
   }
 }
 

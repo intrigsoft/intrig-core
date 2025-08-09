@@ -38,6 +38,7 @@ export interface RestData {
   requestBody?: string;
   contentType?: string;
   response?: string;
+  responseHeaders?: Record<string, string>;
   responseType?: string;
   requestUrl?: string;
   variables?: Variable[];

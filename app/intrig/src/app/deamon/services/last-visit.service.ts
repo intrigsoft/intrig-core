@@ -2,14 +2,27 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { ensureDirSync } from 'fs-extra';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
+// import { Low } from 'lowdb';
+// import { JSONFile } from 'lowdb/node';
 import { EntityView } from '../models/entity-view.model';
 
 // Define the database structure
 interface LastVisitDB {
   items: EntityView[];
   pinnedItems: EntityView[];
+}
+
+export interface Adapter<T> {
+  read: () => Promise<T | null>;
+  write: (data: T) => Promise<void>;
+}
+
+export interface Low<T = unknown> {
+  adapter: Adapter<T>;
+  data: T;
+  read(): Promise<void>;
+  write(): Promise<void>;
+  update(fn: (data: T) => unknown): Promise<void>;
 }
 
 @Injectable()
@@ -28,16 +41,17 @@ export class LastVisitService {
     // Ensure the config directory exists
     ensureDirSync(this.configDir);
     
-    // Initialize the database
-    const adapter = new JSONFile<LastVisitDB>(this.dbFile);
-    this.db = new Low<LastVisitDB>(adapter, { items: [], pinnedItems: [] });
-    
     // Load the database
-    this.loadDb();
+    this.loadDb().catch(e => console.error('Failed to load last visit database', e));
   }
 
   private async loadDb(): Promise<void> {
+    const { JSONFile } = await import(/* webpackIgnore: true */ 'lowdb/node');
+    const adapter = new JSONFile<LastVisitDB>(this.dbFile);
+    const { Low } = await import(/* webpackIgnore: true */ 'lowdb');
+    this.db = new Low<LastVisitDB>(adapter, { items: [], pinnedItems: [] });
     try {
+
       await this.db.read();
       // Initialize if data is null
       this.db.data = this.db.data || { items: [], pinnedItems: [] };
