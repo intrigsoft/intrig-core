@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { Play, FileJson, ArrowLeftIcon, ExternalLink } from 'lucide-react';
 import {useDataSearchControllerGetEndpointById} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetEndpointById/useDataSearchControllerGetEndpointById';
 import {useDataSearchControllerGetFileList} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList';

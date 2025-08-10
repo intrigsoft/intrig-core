@@ -1,10 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './app';
-import HomePage from './pages/home';
-import AboutPage from './pages/about';
-import SourceDetailPage from './pages/source-detail';
-import EndpointDetailPage from './pages/endpoint-detail';
-import DatatypeDetailPage from './pages/datatype-detail';
+import HomePage from './page';
+import AboutPage from './about/page';
+import SourceDetailPage from './sources/[sourceId]/page';
+import EndpointDetailPage from './sources/[sourceId]/endpoint/[endpointId]/page';
+import DatatypeDetailPage from './sources/[sourceId]/datatype/[datatypeId]/page';
 
 // Create router objects for each route
 const router = createBrowserRouter(

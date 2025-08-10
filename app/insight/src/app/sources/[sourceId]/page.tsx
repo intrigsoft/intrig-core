@@ -1,13 +1,13 @@
 import {useEffect, useMemo} from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, Navigate, Link, useSearchParams } from 'react-router-dom';
 import { ComponentIcon, ServerIcon, BracesIcon, Link2Icon, HomeIcon, ChevronRightIcon } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
 import { SourceDownloadButton } from '@/components/source-download-button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { EndpointsTab } from './endpoints-tab';
-import { DataTypesTab } from './datatypes-tab';
+import { EndpointsTab } from './endpoint/components/endpoints-tab';
+import { DataTypesTab } from './endpoint/components/datatypes-tab';
 import {useSourcesControllerGetById} from '@intrig/react/deamon_api/Sources/sourcesControllerGetById/useSourcesControllerGetById'
 import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats'
 import {isSuccess} from "@intrig/react";
@@ -15,6 +15,16 @@ import {isSuccess} from "@intrig/react";
 
 export function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get current tab from URL or default to "endpoints"
+  const currentTab = searchParams.get('tab') || 'endpoints';
+  
+  const handleTabChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('tab', value);
+    setSearchParams(newParams);
+  };
 
   const [sourceResp, fetchSource] = useSourcesControllerGetById({
     clearOnUnmount: true,
@@ -170,7 +180,7 @@ export function SourceDetailPage() {
           <div className="mb-8">
             <div className="p-4 border rounded-lg shadow-sm bg-card">
               <h3 className="text-lg font-semibold mb-3">API Resources</h3>
-              <Tabs defaultValue="endpoints" className="w-full">
+              <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="endpoints">
                     <Link2Icon className="h-4 w-4 mr-2" />
