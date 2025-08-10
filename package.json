@@ -5,7 +5,8 @@
   "scripts": {
     "predev": "intrig prebuild",
     "prebuild": "intrig prebuild",
-    "postbuild": "intrig postbuild"
+    "postbuild": "intrig postbuild",
+    "test:react-binding": "nx test react-binding"
   },
   "private": true,
   "type": "module",

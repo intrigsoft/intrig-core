@@ -1,77 +1,238 @@
-import {camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData} from 'common'
+import { camelCase, mdLiteral, pascalCase, ResourceDescriptor, RestData } from 'common'
 
 export function reactAsyncFunctionHookDocs(descriptor: ResourceDescriptor<RestData>) {
   const md = mdLiteral('async-hook.md')
 
-  const requestBody = descriptor.data.requestBody ? camelCase(descriptor.data.requestBody) : undefined
-  const params = descriptor.data.variables?.filter(a => a.in.toUpperCase() ===  'PATH')?.length ? 'params' : undefined
+  // ===== Derived names (preserve these) =====
+  const hasPathParams = (descriptor.data.variables ?? []).some(
+    (v: any) => v.in?.toUpperCase() === 'PATH',
+  )
+
+  const actionName = camelCase(descriptor.name)                  // e.g. getUser
+  const abortName = `abort${pascalCase(descriptor.name)}`       // e.g. abortGetUser
+
+  const requestBodyVar = descriptor.data.requestBody
+    ? camelCase(descriptor.data.requestBody)                    // e.g. createUser
+    : undefined
+  const requestBodyType = descriptor.data.requestBody
+    ? pascalCase(descriptor.data.requestBody)                   // e.g. CreateUser
+    : undefined
+
+  const paramsVar = hasPathParams ? `${actionName}Params` : undefined          // e.g. getUserParams
+  const paramsType = hasPathParams ? `${pascalCase(descriptor.name)}Params` : undefined // e.g. GetUserParams
+  const responseTypeName = `${pascalCase(descriptor.name)}ResponseBody`        // e.g. GetUserResponseBody
+
+  const callArgs = [requestBodyVar, paramsVar].filter(Boolean).join(', ')
 
   return md`
-  
-> Intrig generated async hooks are intended to use for the rapid usecases like validations. This effectively bypasses the network-state management.
-> The async hooks follow the tuple-based API pattern as React's built-in state hooks (e.g. useState).
+# Intrig Async Hooks — Quick Guide
 
-## Imports
+## Which hook should I use?
+- **Need shared, persistent data to read later or in other components?** → Use the **Stateful hook** (\`use${pascalCase(descriptor.name)}\`).
+- **One-off action (validate / submit / update) with no shared state?** → Use the **Async hook** (this page).
+- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
 
-#### Import the hook to the component.
+| Need | Use | Examples |
+|---|---|---|
+| Single, stateless call | Async | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
+| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\` |
+
+---
+
+## Copy-paste starter (fast lane)
+
+### 1) Hook import
 ${"```ts"}
 import { use${pascalCase(descriptor.name)}Async } from '@intrig/react/${descriptor.path}/client';
 ${"```"}
 
-#### Use hook inside the component.
-
-${"```tsx"}
-const [${camelCase(descriptor.name)}, abort${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}Async();
+### 2) Create an instance
+${"```ts"}
+const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
 ${"```"}
 
-#### Execute data fetching / calling.
-
-${"```tsx"}
-const fn = useCallback(async () => {
-  let ${camelCase(descriptor.name)}Data = await ${camelCase(descriptor.name)}(${[requestBody, params ?? '{}'].filter(Boolean).join(', ')});
-  //TODO do something with the ${camelCase(descriptor.name)}Data.
-  return ${camelCase(descriptor.name)}Data; 
-}, [${[requestBody, params].filter(Boolean).join(', ')}/* Dependencies */])
-
+### 3) Call it (awaitable)
+${"```ts"}
+// body?, params? — pass what your endpoint needs (order: body, params)
+await ${actionName}(${callArgs});
 ${"```"}
 
-## Full example
+Async hooks are for one-off, low-friction calls (e.g., validations, submissions). They return an **awaitable function** plus an **abort** function. No NetworkState.
 
-<details>
-<summary>Implementation</summary>
+---
 
+## TL;DR (copy–paste)
 ${"```tsx"}
 import { use${pascalCase(descriptor.name)}Async } from '@intrig/react/${descriptor.path}/client';
-${requestBody ? `import { ${pascalCase(requestBody)} } from '@intrig/react/${descriptor.source}/components/schemas/${pascalCase(requestBody)}';` : ''}
-${params ? `import { ${pascalCase(params)}Params } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.params';` : ''}
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
-${requestBody || params ? `
-interface MyComponentProps {
-  ${requestBody ? `${camelCase(requestBody)}: ${pascalCase(requestBody)};` : ''}
-  ${params ? `${camelCase(params)}Params: ${pascalCase(params)}Params;` : ''}
+export default function Example() {
+  const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
+
+  const run = useCallback(async () => {
+    try {
+      const result = await ${actionName}(${callArgs});
+      // do something with result
+      console.log(result);
+    } catch (e) {
+      // request failed or was aborted
+      console.error(e);
+    }
+  }, [${actionName}]);
+
+  // Optional: abort on unmount
+  useEffect(() => ${abortName}, [${abortName}]);
+
+  return <button onClick={run}>Call</button>;
 }
+${"```"}
+
+${requestBodyType || paramsType ? `### Optional types (if generated by your build)
+${"```ts"}
+${requestBodyType ? `import type { ${requestBodyType} } from '@intrig/react/${descriptor.source}/components/schemas/${requestBodyType}';
+` : ''}${paramsType ? `import type { ${paramsType} } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.params';
+` : ''}import type { ${responseTypeName} } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.response';
+${"```"}
 ` : ''}
 
-function MyComponent(${requestBody || params ? 'props: MyComponentProps' : ''}) {
-const [${camelCase(descriptor.name)}, abort${pascalCase(descriptor.name)}] = use${pascalCase(descriptor.name)}Async();
+---
 
-const fn = useCallback(async (${[requestBody, params].filter(Boolean).join(', ')}) => {
-  return await ${camelCase(descriptor.name)}(${[requestBody, params].filter(Boolean).join(', ')});
-}, [/* Dependencies */])
+## Hook API
+${"```ts"}
+// Prefer concrete types if your build emits them:
+// import type { ${responseTypeName} } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.response';
+// ${paramsType ? `import type { ${paramsType} } from '@intrig/react/${descriptor.path}/${pascalCase(descriptor.name)}.params';` : ''}
 
-//use fn where remote callback is needed.
-return <>
-  <button onClick={() => fn(${[requestBody, params].filter(Boolean).map(a => `props.${a}`).join(', ')})}>Call remote</button>  
-</>
-}
- 
+type ${pascalCase(descriptor.name)}Data = ${'unknown'}; // replace with ${responseTypeName} if generated
+type ${pascalCase(descriptor.name)}Request = {
+  body?: ${requestBodyType ?? 'unknown'};
+  params?: ${paramsType ?? 'unknown'};
+};
+
+// Signature (shape shown; return type depends on your endpoint)
+declare function use${pascalCase(descriptor.name)}Async(): [
+  (body?: ${pascalCase(descriptor.name)}Request['body'], params?: ${pascalCase(descriptor.name)}Request['params']) => Promise<${pascalCase(descriptor.name)}Data>,
+  () => void // abort
+];
 ${"```"}
+
+### Why async hooks?
+- **No state machine:** just \`await\` the result.
+- **Great for validations & submits:** uniqueness checks, field-level checks, updates.
+- **Abortable:** cancel in-flight work on demand.
+
+---
+
+## Usage Patterns
+
+### 1) Simple try/catch (recommended)
+${"```tsx"}
+const [${actionName}] = use${pascalCase(descriptor.name)}Async();
+
+try {
+  const res = await ${actionName}(${callArgs});
+  // use res
+} catch (e) {
+  // network error or abort
+}
+${"```"}
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you just need the value or an error. Ideal for validators, uniqueness checks, or quick lookups.</p>
 </details>
 
-<hint>
-//TODO improve with usecases
-</hint>
-  
-  `
+### 2) Abort on unmount (safe cleanup)
+${"```tsx"}
+const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
+
+useEffect(() => ${abortName}, [${abortName}]);
+${"```"}
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> the component may unmount while a request is in-flight (route changes, conditional UI).</p>
+</details>
+
+### 3) Debounced validation (e.g., on input change)
+${"```tsx"}
+const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
+
+const onChange = useMemo(() => {
+  let t: any;
+  return (${requestBodyVar ? `${requestBodyVar}: ${requestBodyType ?? 'any'}` : 'value: string'}) => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      try {
+        // Optionally abort before firing a new request
+        ${abortName}();
+        await ${actionName}(${[requestBodyVar ?? '/* body from value */', paramsVar ?? '/* params? */'].join(', ')});
+      } catch {}
+    }, 250);
+  };
+}, [${actionName}, ${abortName}]);
+${"```"}
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> validating as the user types. Debounce to reduce chatter; consider <code>${abortName}()</code> before firing a new call.</p>
+</details>
+
+### 4) Guard against races (latest-only)
+${"```tsx"}
+const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
+
+const latestOnly = async () => {
+  ${abortName}();
+  return ${actionName}(${callArgs});
+};
+${"```"}
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> only the most recent call should win (search suggestions, live filters).</p>
+</details>
+
+---
+
+## Full example
+${"```tsx"}
+import { use${pascalCase(descriptor.name)}Async } from '@intrig/react/${descriptor.path}/client';
+import { useCallback } from 'react';
+
+function MyComponent() {
+  const [${actionName}, ${abortName}] = use${pascalCase(descriptor.name)}Async();
+
+  const run = useCallback(async () => {
+    try {
+      const data = await ${actionName}(${callArgs});
+      alert(JSON.stringify(data));
+    } catch (e) {
+      console.error('Call failed/aborted', e);
+    }
+  }, [${actionName}]);
+
+  return (
+    <>
+      <button onClick={run}>Call remote</button>
+      <button onClick={${abortName}}>Abort</button>
+    </>
+  );
+}
+${"```"}
+
+---
+
+## Gotchas & Tips
+- **No \`NetworkState\`:** async hooks return a Promise, not a state machine.
+- **Abort:** always available; call it to cancel the latest in-flight request.
+- **Errors:** wrap calls with \`try/catch\` to handle network failures or abort errors.
+- **Debounce & throttle:** combine with timers to cut down chatter for typeahead/validators.
+- **Types:** prefer generated \`${responseTypeName}\` and \`${paramsType ?? '...Params'}\` if your build emits them.
+
+---
+
+## Reference: Minimal cheat sheet
+${"```ts"}
+const [fn, abort] = use${pascalCase(descriptor.name)}Async();
+await fn(${callArgs});
+abort(); // optional
+${"```"}
+`
 }

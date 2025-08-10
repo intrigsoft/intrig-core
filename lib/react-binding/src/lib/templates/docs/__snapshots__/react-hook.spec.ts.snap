@@ -1,0 +1,1423 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`reactHookDocs > generates markdown that matches snapshot for a simple REST descriptor (no body, no path params) 1`] = `
+"# Intrig React Hooks — Quick Guide
+
+## Which hook should I use?
+
+- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
+- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useGetUserAsync\`).
+- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
+
+| Need                            | Use      | Examples                                        |
+| ------------------------------- | -------- | ----------------------------------------------- |
+| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
+| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
+
+---
+
+## Copy-paste starter (fast lane)
+
+### 1) Hook import
+
+\`\`\`ts
+import { useGetUser } from "@intrig/react/users/client";
+\`\`\`
+
+### 2) Utility guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+### 3) Hook instance (auto-clear on unmount)
+
+\`\`\`ts
+const [getUserResp, getUser] = useGetUser({ clearOnUnmount: true });
+\`\`\`
+
+Intrig stateful hooks expose a **NetworkState** plus **actions** to fetch / clear.
+Use this when you want a cached, reusable result tied to a global store.
+
+---
+
+## TL;DR (copy–paste)
+
+\`\`\`tsx
+import { useGetUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+export default function Example() {
+  const [getUserResp, getUser] = useGetUser({ clearOnUnmount: true });
+
+  useEffect(() => {
+    getUser({});
+  }, [getUser]);
+
+  const getUserData = useMemo(
+    () => (isSuccess(getUserResp) ? getUserResp.data : undefined),
+    [getUserResp],
+  );
+
+  if (isPending(getUserResp)) return <>Loading…</>;
+  if (isError(getUserResp)) return <>Error: {String(getUserResp.error)}</>;
+  return <pre>{JSON.stringify(getUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+---
+
+## Hook API
+
+\`\`\`ts
+// Options are consistent across hooks.
+type UseHookOptions = {
+  /** Execute once after mount with provided params/body (if required). */
+  fetchOnMount?: boolean;
+  /** Reset the state on unmount (recommended). */
+  clearOnUnmount?: boolean;
+  /** Distinguish multiple instances of the same hook. */
+  key?: string;
+  /** Initial path params for endpoints that require them. */
+  params?: unknown;
+  /** Initial request body (for POST/PUT/etc.). */
+  body?: unknown;
+};
+
+// Prefer concrete types if your build emits them:
+// import type { GetUserResponseBody } from '@intrig/react/users/GetUser.response';
+
+type GetUserData = GetUserResponseBody; // replace with GetUserResponseBody if generated
+type GetUserRequest = { params?: unknown; body?: unknown };
+
+// Signature (shape shown; concrete generics vary per generated hook)
+declare function useGetUser(
+  options?: UseHookOptions,
+): [NetworkState<GetUserData>, (req: GetUserRequest) => void, () => void];
+\`\`\`
+
+### NetworkState & guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+---
+
+## Conceptual model (Stateful = single source of truth)
+
+- Lives in a shared store keyed by \`key\` + request signature.
+- Best for **read** endpoints you want to **reuse** or keep **warm** (lists, details, search).
+- Lifecycle helpers:
+  - \`fetchOnMount\` to kick off automatically.
+  - \`clearOnUnmount\` to clean up (recommended default).
+  - \`key\` to isolate multiple independent instances.
+
+---
+
+## Usage patterns
+
+### 1) Controlled (most explicit)
+
+\`\`\`tsx
+const [getUserResp, getUser, clearGetUser] = useGetUser();
+
+useEffect(() => {
+  getUser({});
+  return clearGetUser; // optional cleanup
+}, [getUser, clearGetUser]);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you need explicit control over when a request fires, what params/body it uses, and when to clean up. Ideal for search forms, pagination, conditional fetches.</p>
+</details>
+
+### 2) Lifecycle-bound (shorthand)
+
+\`\`\`tsx
+const [getUserResp] = useGetUser({
+  fetchOnMount: true,
+  clearOnUnmount: true,
+  params: {},
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> the data should follow the component lifecycle: fetch once on mount, reset on unmount.</p>
+</details>
+
+### 3) Passive observer (render when data arrives)
+
+\`\`\`tsx
+const [getUserResp] = useGetUser();
+return isSuccess(getUserResp) ? <>{String(getUserResp.data)}</> : null;
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> another part of the app triggers the fetch and this component only reads the state.</p>
+</details>
+
+### 4) Keep previous success while refetching (sticky)
+
+\`\`\`tsx
+const [getUserData, setGetUserData] = useState<any>();
+const [getUserResp, getUser] = useGetUser();
+
+useEffect(() => {
+  if (isSuccess(getUserResp)) setGetUserData(getUserResp.data);
+}, [getUserResp]);
+
+return (
+  <>
+    {isPending(getUserResp) && getUserData ? <div>Refreshing…</div> : null}
+    <pre>
+      {JSON.stringify(
+        isSuccess(getUserResp) ? getUserResp.data : getUserData,
+        null,
+        2,
+      )}
+    </pre>
+  </>
+);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you want SWR-like UX without flicker.</p>
+</details>
+
+### 5) Multiple instances of the same hook (isolate with \`key\`)
+
+\`\`\`tsx
+const a = useGetUser({ key: "A", fetchOnMount: true, params: {} });
+const b = useGetUser({ key: "B", fetchOnMount: true, params: {} });
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Use unique keys to prevent state collisions.</p>
+</details>
+
+---
+
+## Before / After mini-migrations
+
+### If you mistakenly used Stateful for a simple submit → switch to Async
+
+\`\`\`diff
+- const [getUserResp, getUser] = useGetUser();
+- getUser({});
++ const [fn] = useGetUserAsync();
++ await fn();
+\`\`\`
+
+### If you started with Async but need to read later in another component → Stateful
+
+\`\`\`diff
+- const [fn] = useGetUserAsync();
+- const data = await fn();
++ const [getUserResp, getUser] = useGetUser({ fetchOnMount: true, clearOnUnmount: true, params: {},  });
++ // read from getUserResp anywhere with useGetUser()
+\`\`\`
+
+---
+
+## Anti-patterns
+
+<details><summary>Don’t use Stateful for field validations or a one-off submit</summary>
+Use the Async variant instead: \`const [fn] = useGetUserAsync()\`.
+</details>
+<details><summary>Don’t use Async for long-lived lists or detail views</summary>
+Use Stateful so other components can read the same data and you can avoid refetch churn.
+</details>
+<details><summary>Don’t forget required \`params\` when using \`fetchOnMount\`</summary>
+Provide \`params\` (and \`body\` if applicable) or switch to the controlled pattern.
+</details>
+<details><summary>Rendering the same hook twice without a \`key\`</summary>
+If they should be independent, add a unique \`key\`.
+</details>
+
+---
+
+## Error & UX guidance
+
+- **Loading:** early return or inline spinner. Prefer **sticky data** to avoid blanking content.
+- **Errors:** show a banner or inline errors depending on UX; keep previous good state if possible.
+- **Cleanup:** prefer \`clearOnUnmount: true\` as the default.
+
+---
+
+## Concurrency patterns
+
+- **Refresh:** call the action again; combine with sticky data for smooth UX.
+- **Dedupe:** isolate instances with \`key\`.
+- **Parallel:** render two keyed instances; don’t share the same key.
+
+---
+
+## Full examples
+
+### Short format (lifecycle-bound)
+
+\`\`\`tsx
+import { useGetUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useMemo } from "react";
+
+function ShortExample() {
+  const [getUserResp] = useGetUser({
+    fetchOnMount: true,
+    clearOnUnmount: true,
+    params: {},
+  });
+
+  const getUserData = useMemo(
+    () => (isSuccess(getUserResp) ? getUserResp.data : undefined),
+    [getUserResp],
+  );
+
+  if (isPending(getUserResp)) return <>Loading…</>;
+  if (isError(getUserResp)) return <>Error: {String(getUserResp.error)}</>;
+  return <pre>{JSON.stringify(getUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Compact lifecycle-bound approach. Great for read-only pages that load once and clean up on unmount.</p>
+</details>
+
+### Controlled format (explicit actions)
+
+\`\`\`tsx
+import { useGetUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+function ControlledExample() {
+  const [getUserResp, getUser, clearGetUser] = useGetUser();
+
+  useEffect(() => {
+    getUser({});
+    return clearGetUser;
+  }, [getUser, clearGetUser]);
+
+  const getUserData = useMemo(
+    () => (isSuccess(getUserResp) ? getUserResp.data : undefined),
+    [getUserResp],
+  );
+
+  if (isPending(getUserResp)) return <>Loading…</>;
+  if (isError(getUserResp))
+    return <>An error occurred: {String(getUserResp.error)}</>;
+  return <pre>{JSON.stringify(getUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+---
+
+## Gotchas & Tips
+
+- Prefer **\`clearOnUnmount: true\`** in most components.
+- Use **\`key\`** for multiple independent instances.
+- Memoize derived values with **\`useMemo\`** to avoid churn.
+- Inline indicators keep the rest of the page interactive.
+
+---
+
+## Reference: State helpers
+
+\`\`\`ts
+if (isPending(getUserResp)) {
+  /* show spinner */
+}
+if (isError(getUserResp)) {
+  /* show error */
+}
+if (isSuccess(getUserResp)) {
+  /* read getUserResp.data */
+}
+\`\`\`
+"
+`;
+
+exports[`reactHookDocs > snapshot — path params only (no request body) 1`] = `
+"# Intrig React Hooks — Quick Guide
+
+## Which hook should I use?
+
+- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
+- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useGetUserByIdAsync\`).
+- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
+
+| Need                            | Use      | Examples                                        |
+| ------------------------------- | -------- | ----------------------------------------------- |
+| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
+| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
+
+---
+
+## Copy-paste starter (fast lane)
+
+### 1) Hook import
+
+\`\`\`ts
+import { useGetUserById } from "@intrig/react/users/{id}/client";
+\`\`\`
+
+### 2) Utility guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+### 3) Hook instance (auto-clear on unmount)
+
+\`\`\`ts
+const [getUserByIdResp, getUserById] = useGetUserById({ clearOnUnmount: true });
+\`\`\`
+
+Intrig stateful hooks expose a **NetworkState** plus **actions** to fetch / clear.
+Use this when you want a cached, reusable result tied to a global store.
+
+---
+
+## TL;DR (copy–paste)
+
+\`\`\`tsx
+import { useGetUserById } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+export default function Example() {
+  const [getUserByIdResp, getUserById] = useGetUserById({
+    clearOnUnmount: true,
+  });
+
+  useEffect(() => {
+    getUserById(getUserByIdParams);
+  }, [getUserById, getUserByIdParams]);
+
+  const getUserByIdData = useMemo(
+    () => (isSuccess(getUserByIdResp) ? getUserByIdResp.data : undefined),
+    [getUserByIdResp],
+  );
+
+  if (isPending(getUserByIdResp)) return <>Loading…</>;
+  if (isError(getUserByIdResp))
+    return <>Error: {String(getUserByIdResp.error)}</>;
+  return <pre>{JSON.stringify(getUserByIdData, null, 2)}</pre>;
+}
+\`\`\`
+
+### Optional types (if generated by your build)
+
+\`\`\`ts
+import type { GetUserByIdParams } from "@intrig/react/users/{id}/GetUserById.params";
+// Prefer the concrete response type:
+import type { GetUserByIdResponseBody } from "@intrig/react/users/{id}/GetUserById.response";
+\`\`\`
+
+---
+
+## Hook API
+
+\`\`\`ts
+// Options are consistent across hooks.
+type UseHookOptions = {
+  /** Execute once after mount with provided params/body (if required). */
+  fetchOnMount?: boolean;
+  /** Reset the state on unmount (recommended). */
+  clearOnUnmount?: boolean;
+  /** Distinguish multiple instances of the same hook. */
+  key?: string;
+  /** Initial path params for endpoints that require them. */
+  params?: GetUserByIdParams;
+  /** Initial request body (for POST/PUT/etc.). */
+  body?: unknown;
+};
+
+// Prefer concrete types if your build emits them:
+// import type { GetUserByIdResponseBody } from '@intrig/react/users/{id}/GetUserById.response';
+
+type GetUserByIdData = GetUserByIdResponseBody; // replace with GetUserByIdResponseBody if generated
+type GetUserByIdRequest = { params?: GetUserByIdParams; body?: unknown };
+
+// Signature (shape shown; concrete generics vary per generated hook)
+declare function useGetUserById(
+  options?: UseHookOptions,
+): [
+  NetworkState<GetUserByIdData>,
+  (req: GetUserByIdRequest) => void,
+  () => void,
+];
+\`\`\`
+
+### NetworkState & guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+---
+
+## Conceptual model (Stateful = single source of truth)
+
+- Lives in a shared store keyed by \`key\` + request signature.
+- Best for **read** endpoints you want to **reuse** or keep **warm** (lists, details, search).
+- Lifecycle helpers:
+  - \`fetchOnMount\` to kick off automatically.
+  - \`clearOnUnmount\` to clean up (recommended default).
+  - \`key\` to isolate multiple independent instances.
+
+---
+
+## Usage patterns
+
+### 1) Controlled (most explicit)
+
+\`\`\`tsx
+const [getUserByIdResp, getUserById, clearGetUserById] = useGetUserById();
+
+useEffect(() => {
+  getUserById(getUserByIdParams);
+  return clearGetUserById; // optional cleanup
+}, [getUserById, clearGetUserById]);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you need explicit control over when a request fires, what params/body it uses, and when to clean up. Ideal for search forms, pagination, conditional fetches.</p>
+</details>
+
+### 2) Lifecycle-bound (shorthand)
+
+\`\`\`tsx
+const [getUserByIdResp] = useGetUserById({
+  fetchOnMount: true,
+  clearOnUnmount: true,
+  params: getUserByIdParams,
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> the data should follow the component lifecycle: fetch once on mount, reset on unmount.</p>
+</details>
+
+### 3) Passive observer (render when data arrives)
+
+\`\`\`tsx
+const [getUserByIdResp] = useGetUserById();
+return isSuccess(getUserByIdResp) ? <>{String(getUserByIdResp.data)}</> : null;
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> another part of the app triggers the fetch and this component only reads the state.</p>
+</details>
+
+### 4) Keep previous success while refetching (sticky)
+
+\`\`\`tsx
+const [getUserByIdData, setGetUserByIdData] = useState<any>();
+const [getUserByIdResp, getUserById] = useGetUserById();
+
+useEffect(() => {
+  if (isSuccess(getUserByIdResp)) setGetUserByIdData(getUserByIdResp.data);
+}, [getUserByIdResp]);
+
+return (
+  <>
+    {isPending(getUserByIdResp) && getUserByIdData ? (
+      <div>Refreshing…</div>
+    ) : null}
+    <pre>
+      {JSON.stringify(
+        isSuccess(getUserByIdResp) ? getUserByIdResp.data : getUserByIdData,
+        null,
+        2,
+      )}
+    </pre>
+  </>
+);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you want SWR-like UX without flicker.</p>
+</details>
+
+### 5) Multiple instances of the same hook (isolate with \`key\`)
+
+\`\`\`tsx
+const a = useGetUserById({
+  key: "A",
+  fetchOnMount: true,
+  params: getUserByIdParams,
+});
+const b = useGetUserById({
+  key: "B",
+  fetchOnMount: true,
+  params: getUserByIdParams,
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Use unique keys to prevent state collisions.</p>
+</details>
+
+---
+
+## Before / After mini-migrations
+
+### If you mistakenly used Stateful for a simple submit → switch to Async
+
+\`\`\`diff
+- const [getUserByIdResp, getUserById] = useGetUserById();
+- getUserById(getUserByIdParams);
++ const [fn] = useGetUserByIdAsync();
++ await fn(getUserByIdParams);
+\`\`\`
+
+### If you started with Async but need to read later in another component → Stateful
+
+\`\`\`diff
+- const [fn] = useGetUserByIdAsync();
+- const data = await fn(getUserByIdParams);
++ const [getUserByIdResp, getUserById] = useGetUserById({ fetchOnMount: true, clearOnUnmount: true, params: getUserByIdParams,  });
++ // read from getUserByIdResp anywhere with useGetUserById()
+\`\`\`
+
+---
+
+## Anti-patterns
+
+<details><summary>Don’t use Stateful for field validations or a one-off submit</summary>
+Use the Async variant instead: \`const [fn] = useGetUserByIdAsync()\`.
+</details>
+<details><summary>Don’t use Async for long-lived lists or detail views</summary>
+Use Stateful so other components can read the same data and you can avoid refetch churn.
+</details>
+<details><summary>Don’t forget required \`params\` when using \`fetchOnMount\`</summary>
+Provide \`params\` (and \`body\` if applicable) or switch to the controlled pattern.
+</details>
+<details><summary>Rendering the same hook twice without a \`key\`</summary>
+If they should be independent, add a unique \`key\`.
+</details>
+
+---
+
+## Error & UX guidance
+
+- **Loading:** early return or inline spinner. Prefer **sticky data** to avoid blanking content.
+- **Errors:** show a banner or inline errors depending on UX; keep previous good state if possible.
+- **Cleanup:** prefer \`clearOnUnmount: true\` as the default.
+
+---
+
+## Concurrency patterns
+
+- **Refresh:** call the action again; combine with sticky data for smooth UX.
+- **Dedupe:** isolate instances with \`key\`.
+- **Parallel:** render two keyed instances; don’t share the same key.
+
+---
+
+## Full examples
+
+### Short format (lifecycle-bound)
+
+\`\`\`tsx
+import { useGetUserById } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useMemo } from "react";
+
+function ShortExample() {
+  const [getUserByIdResp] = useGetUserById({
+    fetchOnMount: true,
+    clearOnUnmount: true,
+    params: getUserByIdParams,
+  });
+
+  const getUserByIdData = useMemo(
+    () => (isSuccess(getUserByIdResp) ? getUserByIdResp.data : undefined),
+    [getUserByIdResp],
+  );
+
+  if (isPending(getUserByIdResp)) return <>Loading…</>;
+  if (isError(getUserByIdResp))
+    return <>Error: {String(getUserByIdResp.error)}</>;
+  return <pre>{JSON.stringify(getUserByIdData, null, 2)}</pre>;
+}
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Compact lifecycle-bound approach. Great for read-only pages that load once and clean up on unmount.</p>
+</details>
+
+### Controlled format (explicit actions)
+
+\`\`\`tsx
+import { useGetUserById } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+function ControlledExample() {
+  const [getUserByIdResp, getUserById, clearGetUserById] = useGetUserById();
+
+  useEffect(() => {
+    getUserById(getUserByIdParams);
+    return clearGetUserById;
+  }, [getUserById, clearGetUserById]);
+
+  const getUserByIdData = useMemo(
+    () => (isSuccess(getUserByIdResp) ? getUserByIdResp.data : undefined),
+    [getUserByIdResp],
+  );
+
+  if (isPending(getUserByIdResp)) return <>Loading…</>;
+  if (isError(getUserByIdResp))
+    return <>An error occurred: {String(getUserByIdResp.error)}</>;
+  return <pre>{JSON.stringify(getUserByIdData, null, 2)}</pre>;
+}
+\`\`\`
+
+---
+
+## Gotchas & Tips
+
+- Prefer **\`clearOnUnmount: true\`** in most components.
+- Use **\`key\`** for multiple independent instances.
+- Memoize derived values with **\`useMemo\`** to avoid churn.
+- Inline indicators keep the rest of the page interactive.
+
+---
+
+## Reference: State helpers
+
+\`\`\`ts
+if (isPending(getUserByIdResp)) {
+  /* show spinner */
+}
+if (isError(getUserByIdResp)) {
+  /* show error */
+}
+if (isSuccess(getUserByIdResp)) {
+  /* read getUserByIdResp.data */
+}
+\`\`\`
+"
+`;
+
+exports[`reactHookDocs > snapshot — request body and path params 1`] = `
+"# Intrig React Hooks — Quick Guide
+
+## Which hook should I use?
+
+- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
+- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useUpdateUserAsync\`).
+- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
+
+| Need                            | Use      | Examples                                        |
+| ------------------------------- | -------- | ----------------------------------------------- |
+| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
+| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
+
+---
+
+## Copy-paste starter (fast lane)
+
+### 1) Hook import
+
+\`\`\`ts
+import { useUpdateUser } from "@intrig/react/users/{id}/client";
+\`\`\`
+
+### 2) Utility guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+### 3) Hook instance (auto-clear on unmount)
+
+\`\`\`ts
+const [updateUserResp, updateUser] = useUpdateUser({ clearOnUnmount: true });
+\`\`\`
+
+Intrig stateful hooks expose a **NetworkState** plus **actions** to fetch / clear.
+Use this when you want a cached, reusable result tied to a global store.
+
+---
+
+## TL;DR (copy–paste)
+
+\`\`\`tsx
+import { useUpdateUser } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+export default function Example() {
+  const [updateUserResp, updateUser] = useUpdateUser({ clearOnUnmount: true });
+
+  useEffect(() => {
+    updateUser(updateUserRequest, updateUserParams);
+  }, [updateUser, updateUserRequest, updateUserParams]);
+
+  const updateUserData = useMemo(
+    () => (isSuccess(updateUserResp) ? updateUserResp.data : undefined),
+    [updateUserResp],
+  );
+
+  if (isPending(updateUserResp)) return <>Loading…</>;
+  if (isError(updateUserResp))
+    return <>Error: {String(updateUserResp.error)}</>;
+  return <pre>{JSON.stringify(updateUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+### Optional types (if generated by your build)
+
+\`\`\`ts
+import type { UpdateUserRequest } from "@intrig/react/demo_api/components/schemas/UpdateUserRequest";
+import type { UpdateUserParams } from "@intrig/react/users/{id}/UpdateUser.params";
+// Prefer the concrete response type:
+import type { UpdateUserResponseBody } from "@intrig/react/users/{id}/UpdateUser.response";
+\`\`\`
+
+---
+
+## Hook API
+
+\`\`\`ts
+// Options are consistent across hooks.
+type UseHookOptions = {
+  /** Execute once after mount with provided params/body (if required). */
+  fetchOnMount?: boolean;
+  /** Reset the state on unmount (recommended). */
+  clearOnUnmount?: boolean;
+  /** Distinguish multiple instances of the same hook. */
+  key?: string;
+  /** Initial path params for endpoints that require them. */
+  params?: UpdateUserParams;
+  /** Initial request body (for POST/PUT/etc.). */
+  body?: UpdateUserRequest;
+};
+
+// Prefer concrete types if your build emits them:
+// import type { UpdateUserResponseBody } from '@intrig/react/users/{id}/UpdateUser.response';
+
+type UpdateUserData = UpdateUserResponseBody; // replace with UpdateUserResponseBody if generated
+type UpdateUserRequest = {
+  params?: UpdateUserParams;
+  body?: UpdateUserRequest;
+};
+
+// Signature (shape shown; concrete generics vary per generated hook)
+declare function useUpdateUser(
+  options?: UseHookOptions,
+): [NetworkState<UpdateUserData>, (req: UpdateUserRequest) => void, () => void];
+\`\`\`
+
+### NetworkState & guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+---
+
+## Conceptual model (Stateful = single source of truth)
+
+- Lives in a shared store keyed by \`key\` + request signature.
+- Best for **read** endpoints you want to **reuse** or keep **warm** (lists, details, search).
+- Lifecycle helpers:
+  - \`fetchOnMount\` to kick off automatically.
+  - \`clearOnUnmount\` to clean up (recommended default).
+  - \`key\` to isolate multiple independent instances.
+
+---
+
+## Usage patterns
+
+### 1) Controlled (most explicit)
+
+\`\`\`tsx
+const [updateUserResp, updateUser, clearUpdateUser] = useUpdateUser();
+
+useEffect(() => {
+  updateUser(updateUserRequest, updateUserParams);
+  return clearUpdateUser; // optional cleanup
+}, [updateUser, clearUpdateUser]);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you need explicit control over when a request fires, what params/body it uses, and when to clean up. Ideal for search forms, pagination, conditional fetches.</p>
+</details>
+
+### 2) Lifecycle-bound (shorthand)
+
+\`\`\`tsx
+const [updateUserResp] = useUpdateUser({
+  fetchOnMount: true,
+  clearOnUnmount: true,
+  body: updateUserRequest,
+  params: updateUserParams,
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> the data should follow the component lifecycle: fetch once on mount, reset on unmount.</p>
+</details>
+
+### 3) Passive observer (render when data arrives)
+
+\`\`\`tsx
+const [updateUserResp] = useUpdateUser();
+return isSuccess(updateUserResp) ? <>{String(updateUserResp.data)}</> : null;
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> another part of the app triggers the fetch and this component only reads the state.</p>
+</details>
+
+### 4) Keep previous success while refetching (sticky)
+
+\`\`\`tsx
+const [updateUserData, setUpdateUserData] = useState<any>();
+const [updateUserResp, updateUser] = useUpdateUser();
+
+useEffect(() => {
+  if (isSuccess(updateUserResp)) setUpdateUserData(updateUserResp.data);
+}, [updateUserResp]);
+
+return (
+  <>
+    {isPending(updateUserResp) && updateUserData ? (
+      <div>Refreshing…</div>
+    ) : null}
+    <pre>
+      {JSON.stringify(
+        isSuccess(updateUserResp) ? updateUserResp.data : updateUserData,
+        null,
+        2,
+      )}
+    </pre>
+  </>
+);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you want SWR-like UX without flicker.</p>
+</details>
+
+### 5) Multiple instances of the same hook (isolate with \`key\`)
+
+\`\`\`tsx
+const a = useUpdateUser({
+  key: "A",
+  fetchOnMount: true,
+  params: updateUserParams,
+});
+const b = useUpdateUser({
+  key: "B",
+  fetchOnMount: true,
+  params: updateUserParams,
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Use unique keys to prevent state collisions.</p>
+</details>
+
+---
+
+## Before / After mini-migrations
+
+### If you mistakenly used Stateful for a simple submit → switch to Async
+
+\`\`\`diff
+- const [updateUserResp, updateUser] = useUpdateUser();
+- updateUser(updateUserRequest, updateUserParams);
++ const [fn] = useUpdateUserAsync();
++ await fn(updateUserRequest, updateUserParams);
+\`\`\`
+
+### If you started with Async but need to read later in another component → Stateful
+
+\`\`\`diff
+- const [fn] = useUpdateUserAsync();
+- const data = await fn(updateUserRequest, updateUserParams);
++ const [updateUserResp, updateUser] = useUpdateUser({ fetchOnMount: true, clearOnUnmount: true, params: updateUserParams, body: updateUserRequest });
++ // read from updateUserResp anywhere with useUpdateUser()
+\`\`\`
+
+---
+
+## Anti-patterns
+
+<details><summary>Don’t use Stateful for field validations or a one-off submit</summary>
+Use the Async variant instead: \`const [fn] = useUpdateUserAsync()\`.
+</details>
+<details><summary>Don’t use Async for long-lived lists or detail views</summary>
+Use Stateful so other components can read the same data and you can avoid refetch churn.
+</details>
+<details><summary>Don’t forget required \`params\` when using \`fetchOnMount\`</summary>
+Provide \`params\` (and \`body\` if applicable) or switch to the controlled pattern.
+</details>
+<details><summary>Rendering the same hook twice without a \`key\`</summary>
+If they should be independent, add a unique \`key\`.
+</details>
+
+---
+
+## Error & UX guidance
+
+- **Loading:** early return or inline spinner. Prefer **sticky data** to avoid blanking content.
+- **Errors:** show a banner or inline errors depending on UX; keep previous good state if possible.
+- **Cleanup:** prefer \`clearOnUnmount: true\` as the default.
+
+---
+
+## Concurrency patterns
+
+- **Refresh:** call the action again; combine with sticky data for smooth UX.
+- **Dedupe:** isolate instances with \`key\`.
+- **Parallel:** render two keyed instances; don’t share the same key.
+
+---
+
+## Full examples
+
+### Short format (lifecycle-bound)
+
+\`\`\`tsx
+import { useUpdateUser } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useMemo } from "react";
+
+function ShortExample() {
+  const [updateUserResp] = useUpdateUser({
+    fetchOnMount: true,
+    clearOnUnmount: true,
+    body: updateUserRequest,
+    params: updateUserParams,
+  });
+
+  const updateUserData = useMemo(
+    () => (isSuccess(updateUserResp) ? updateUserResp.data : undefined),
+    [updateUserResp],
+  );
+
+  if (isPending(updateUserResp)) return <>Loading…</>;
+  if (isError(updateUserResp))
+    return <>Error: {String(updateUserResp.error)}</>;
+  return <pre>{JSON.stringify(updateUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Compact lifecycle-bound approach. Great for read-only pages that load once and clean up on unmount.</p>
+</details>
+
+### Controlled format (explicit actions)
+
+\`\`\`tsx
+import { useUpdateUser } from "@intrig/react/users/{id}/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+function ControlledExample() {
+  const [updateUserResp, updateUser, clearUpdateUser] = useUpdateUser();
+
+  useEffect(() => {
+    updateUser(updateUserRequest, updateUserParams);
+    return clearUpdateUser;
+  }, [updateUser, clearUpdateUser]);
+
+  const updateUserData = useMemo(
+    () => (isSuccess(updateUserResp) ? updateUserResp.data : undefined),
+    [updateUserResp],
+  );
+
+  if (isPending(updateUserResp)) return <>Loading…</>;
+  if (isError(updateUserResp))
+    return <>An error occurred: {String(updateUserResp.error)}</>;
+  return <pre>{JSON.stringify(updateUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+---
+
+## Gotchas & Tips
+
+- Prefer **\`clearOnUnmount: true\`** in most components.
+- Use **\`key\`** for multiple independent instances.
+- Memoize derived values with **\`useMemo\`** to avoid churn.
+- Inline indicators keep the rest of the page interactive.
+
+---
+
+## Reference: State helpers
+
+\`\`\`ts
+if (isPending(updateUserResp)) {
+  /* show spinner */
+}
+if (isError(updateUserResp)) {
+  /* show error */
+}
+if (isSuccess(updateUserResp)) {
+  /* read updateUserResp.data */
+}
+\`\`\`
+"
+`;
+
+exports[`reactHookDocs > snapshot — request body only (no path params) 1`] = `
+"# Intrig React Hooks — Quick Guide
+
+## Which hook should I use?
+
+- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
+- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useCreateUserAsync\`).
+- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
+
+| Need                            | Use      | Examples                                        |
+| ------------------------------- | -------- | ----------------------------------------------- |
+| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
+| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
+
+---
+
+## Copy-paste starter (fast lane)
+
+### 1) Hook import
+
+\`\`\`ts
+import { useCreateUser } from "@intrig/react/users/client";
+\`\`\`
+
+### 2) Utility guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+### 3) Hook instance (auto-clear on unmount)
+
+\`\`\`ts
+const [createUserResp, createUser] = useCreateUser({ clearOnUnmount: true });
+\`\`\`
+
+Intrig stateful hooks expose a **NetworkState** plus **actions** to fetch / clear.
+Use this when you want a cached, reusable result tied to a global store.
+
+---
+
+## TL;DR (copy–paste)
+
+\`\`\`tsx
+import { useCreateUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+export default function Example() {
+  const [createUserResp, createUser] = useCreateUser({ clearOnUnmount: true });
+
+  useEffect(() => {
+    createUser(createUserRequest, {});
+  }, [createUser, createUserRequest]);
+
+  const createUserData = useMemo(
+    () => (isSuccess(createUserResp) ? createUserResp.data : undefined),
+    [createUserResp],
+  );
+
+  if (isPending(createUserResp)) return <>Loading…</>;
+  if (isError(createUserResp))
+    return <>Error: {String(createUserResp.error)}</>;
+  return <pre>{JSON.stringify(createUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+### Optional types (if generated by your build)
+
+\`\`\`ts
+import type { CreateUserRequest } from "@intrig/react/demo_api/components/schemas/CreateUserRequest";
+// Prefer the concrete response type:
+import type { CreateUserResponseBody } from "@intrig/react/users/CreateUser.response";
+\`\`\`
+
+---
+
+## Hook API
+
+\`\`\`ts
+// Options are consistent across hooks.
+type UseHookOptions = {
+  /** Execute once after mount with provided params/body (if required). */
+  fetchOnMount?: boolean;
+  /** Reset the state on unmount (recommended). */
+  clearOnUnmount?: boolean;
+  /** Distinguish multiple instances of the same hook. */
+  key?: string;
+  /** Initial path params for endpoints that require them. */
+  params?: unknown;
+  /** Initial request body (for POST/PUT/etc.). */
+  body?: CreateUserRequest;
+};
+
+// Prefer concrete types if your build emits them:
+// import type { CreateUserResponseBody } from '@intrig/react/users/CreateUser.response';
+
+type CreateUserData = CreateUserResponseBody; // replace with CreateUserResponseBody if generated
+type CreateUserRequest = { params?: unknown; body?: CreateUserRequest };
+
+// Signature (shape shown; concrete generics vary per generated hook)
+declare function useCreateUser(
+  options?: UseHookOptions,
+): [NetworkState<CreateUserData>, (req: CreateUserRequest) => void, () => void];
+\`\`\`
+
+### NetworkState & guards
+
+\`\`\`ts
+import { isPending, isError, isSuccess } from "@intrig/react";
+\`\`\`
+
+---
+
+## Conceptual model (Stateful = single source of truth)
+
+- Lives in a shared store keyed by \`key\` + request signature.
+- Best for **read** endpoints you want to **reuse** or keep **warm** (lists, details, search).
+- Lifecycle helpers:
+  - \`fetchOnMount\` to kick off automatically.
+  - \`clearOnUnmount\` to clean up (recommended default).
+  - \`key\` to isolate multiple independent instances.
+
+---
+
+## Usage patterns
+
+### 1) Controlled (most explicit)
+
+\`\`\`tsx
+const [createUserResp, createUser, clearCreateUser] = useCreateUser();
+
+useEffect(() => {
+  createUser(createUserRequest, {});
+  return clearCreateUser; // optional cleanup
+}, [createUser, clearCreateUser]);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you need explicit control over when a request fires, what params/body it uses, and when to clean up. Ideal for search forms, pagination, conditional fetches.</p>
+</details>
+
+### 2) Lifecycle-bound (shorthand)
+
+\`\`\`tsx
+const [createUserResp] = useCreateUser({
+  fetchOnMount: true,
+  clearOnUnmount: true,
+  body: createUserRequest,
+  params: {},
+});
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> the data should follow the component lifecycle: fetch once on mount, reset on unmount.</p>
+</details>
+
+### 3) Passive observer (render when data arrives)
+
+\`\`\`tsx
+const [createUserResp] = useCreateUser();
+return isSuccess(createUserResp) ? <>{String(createUserResp.data)}</> : null;
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> another part of the app triggers the fetch and this component only reads the state.</p>
+</details>
+
+### 4) Keep previous success while refetching (sticky)
+
+\`\`\`tsx
+const [createUserData, setCreateUserData] = useState<any>();
+const [createUserResp, createUser] = useCreateUser();
+
+useEffect(() => {
+  if (isSuccess(createUserResp)) setCreateUserData(createUserResp.data);
+}, [createUserResp]);
+
+return (
+  <>
+    {isPending(createUserResp) && createUserData ? (
+      <div>Refreshing…</div>
+    ) : null}
+    <pre>
+      {JSON.stringify(
+        isSuccess(createUserResp) ? createUserResp.data : createUserData,
+        null,
+        2,
+      )}
+    </pre>
+  </>
+);
+\`\`\`
+
+<details><summary>Description</summary>
+<p><strong>Use when</strong> you want SWR-like UX without flicker.</p>
+</details>
+
+### 5) Multiple instances of the same hook (isolate with \`key\`)
+
+\`\`\`tsx
+const a = useCreateUser({ key: "A", fetchOnMount: true, params: {} });
+const b = useCreateUser({ key: "B", fetchOnMount: true, params: {} });
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Use unique keys to prevent state collisions.</p>
+</details>
+
+---
+
+## Before / After mini-migrations
+
+### If you mistakenly used Stateful for a simple submit → switch to Async
+
+\`\`\`diff
+- const [createUserResp, createUser] = useCreateUser();
+- createUser(createUserRequest, {});
++ const [fn] = useCreateUserAsync();
++ await fn(createUserRequest);
+\`\`\`
+
+### If you started with Async but need to read later in another component → Stateful
+
+\`\`\`diff
+- const [fn] = useCreateUserAsync();
+- const data = await fn(createUserRequest);
++ const [createUserResp, createUser] = useCreateUser({ fetchOnMount: true, clearOnUnmount: true, params: {}, body: createUserRequest });
++ // read from createUserResp anywhere with useCreateUser()
+\`\`\`
+
+---
+
+## Anti-patterns
+
+<details><summary>Don’t use Stateful for field validations or a one-off submit</summary>
+Use the Async variant instead: \`const [fn] = useCreateUserAsync()\`.
+</details>
+<details><summary>Don’t use Async for long-lived lists or detail views</summary>
+Use Stateful so other components can read the same data and you can avoid refetch churn.
+</details>
+<details><summary>Don’t forget required \`params\` when using \`fetchOnMount\`</summary>
+Provide \`params\` (and \`body\` if applicable) or switch to the controlled pattern.
+</details>
+<details><summary>Rendering the same hook twice without a \`key\`</summary>
+If they should be independent, add a unique \`key\`.
+</details>
+
+---
+
+## Error & UX guidance
+
+- **Loading:** early return or inline spinner. Prefer **sticky data** to avoid blanking content.
+- **Errors:** show a banner or inline errors depending on UX; keep previous good state if possible.
+- **Cleanup:** prefer \`clearOnUnmount: true\` as the default.
+
+---
+
+## Concurrency patterns
+
+- **Refresh:** call the action again; combine with sticky data for smooth UX.
+- **Dedupe:** isolate instances with \`key\`.
+- **Parallel:** render two keyed instances; don’t share the same key.
+
+---
+
+## Full examples
+
+### Short format (lifecycle-bound)
+
+\`\`\`tsx
+import { useCreateUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useMemo } from "react";
+
+function ShortExample() {
+  const [createUserResp] = useCreateUser({
+    fetchOnMount: true,
+    clearOnUnmount: true,
+    body: createUserRequest,
+    params: {},
+  });
+
+  const createUserData = useMemo(
+    () => (isSuccess(createUserResp) ? createUserResp.data : undefined),
+    [createUserResp],
+  );
+
+  if (isPending(createUserResp)) return <>Loading…</>;
+  if (isError(createUserResp))
+    return <>Error: {String(createUserResp.error)}</>;
+  return <pre>{JSON.stringify(createUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+<details><summary>Description</summary>
+<p>Compact lifecycle-bound approach. Great for read-only pages that load once and clean up on unmount.</p>
+</details>
+
+### Controlled format (explicit actions)
+
+\`\`\`tsx
+import { useCreateUser } from "@intrig/react/users/client";
+import { isPending, isError, isSuccess } from "@intrig/react";
+import { useEffect, useMemo } from "react";
+
+function ControlledExample() {
+  const [createUserResp, createUser, clearCreateUser] = useCreateUser();
+
+  useEffect(() => {
+    createUser(createUserRequest, {});
+    return clearCreateUser;
+  }, [createUser, clearCreateUser]);
+
+  const createUserData = useMemo(
+    () => (isSuccess(createUserResp) ? createUserResp.data : undefined),
+    [createUserResp],
+  );
+
+  if (isPending(createUserResp)) return <>Loading…</>;
+  if (isError(createUserResp))
+    return <>An error occurred: {String(createUserResp.error)}</>;
+  return <pre>{JSON.stringify(createUserData, null, 2)}</pre>;
+}
+\`\`\`
+
+---
+
+## Gotchas & Tips
+
+- Prefer **\`clearOnUnmount: true\`** in most components.
+- Use **\`key\`** for multiple independent instances.
+- Memoize derived values with **\`useMemo\`** to avoid churn.
+- Inline indicators keep the rest of the page interactive.
+
+---
+
+## Reference: State helpers
+
+\`\`\`ts
+if (isPending(createUserResp)) {
+  /* show spinner */
+}
+if (isError(createUserResp)) {
+  /* show error */
+}
+if (isSuccess(createUserResp)) {
+  /* read createUserResp.data */
+}
+\`\`\`
+"
+`;
