@@ -1,10 +1,43 @@
 import React, { useRef, useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
+// import rehypeHighlight from 'rehype-highlight';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import rehypePrism from 'rehype-prism-plus';
 import { ClipboardCopy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import hljs from 'highlight.js/lib/core';
+
+// Import common languages for syntax highlighting
+import typescript from 'highlight.js/lib/languages/typescript';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import bash from 'highlight.js/lib/languages/bash';
+import sql from 'highlight.js/lib/languages/sql';
+import python from 'highlight.js/lib/languages/python';
+import java from 'highlight.js/lib/languages/java';
+import csharp from 'highlight.js/lib/languages/csharp';
+
+// Register languages
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('xml', xml);
+hljs.registerLanguage('html', xml);
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('shell', bash);
+hljs.registerLanguage('sql', sql);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('java', java);
+hljs.registerLanguage('csharp', csharp);
+hljs.registerLanguage('cs', csharp);
+
+// Register TSX and JSX support
+hljs.registerLanguage('tsx', typescript); // TSX uses TypeScript syntax with JSX
+hljs.registerLanguage('jsx', javascript); // JSX uses JavaScript syntax with JSX
 
 interface MarkdownRendererProps {
   content: string;
@@ -12,7 +45,7 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  useEffect(() => {
+  /*useEffect(() => {
     document
       .querySelectorAll("link[data-hljs-theme]")
       .forEach(el => el.remove());
@@ -31,13 +64,13 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         .querySelectorAll("link[data-hljs-theme]")
         .forEach(el => el.remove());
     };
-  }, []);
+  }, [])*/;
 
   return (
     <div className={cn("markdown-renderer prose dark:prose-invert max-w-none", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true, ignoreMissing: true }]]}
+        rehypePlugins={[rehypeRaw, rehypePrism /*[rehypeHighlight, { detect: true, ignoreMissing: true }]*/]}
         components={{
           pre: ({ node, ...props }) => {
             const ref = useRef<HTMLPreElement>(null);
