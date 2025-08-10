@@ -1,0 +1,80 @@
+{
+  "name": "@intrig-core/docs",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "app/docs/src",
+  "projectType": "application",
+  "tags": ["docs"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/build"],
+      "options": {
+        "command": "docusaurus build",
+        "cwd": "app/docs"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus serve",
+        "cwd": "app/docs"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus start",
+        "cwd": "app/docs"
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus start",
+        "cwd": "app/docs"
+      }
+    },
+    "clear": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus clear",
+        "cwd": "app/docs"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc",
+        "cwd": "app/docs"
+      }
+    },
+    "swizzle": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus swizzle",
+        "cwd": "app/docs"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus deploy",
+        "cwd": "app/docs"
+      }
+    },
+    "write-translations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus write-translations",
+        "cwd": "app/docs"
+      }
+    },
+    "write-heading-ids": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docusaurus write-heading-ids",
+        "cwd": "app/docs"
+      }
+    }
+  }
+}
