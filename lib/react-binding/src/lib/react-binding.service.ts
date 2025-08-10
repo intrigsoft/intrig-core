@@ -32,6 +32,7 @@ import {reactSseHookDocs} from "./templates/docs/sse-hook";
 import {reactAsyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
 import {reactAsyncFunctionHookDocs} from "./templates/docs/async-hook";
 import {typeUtilsTemplate} from "./templates/type-utils.template";
+import {reactDownloadHookDocs} from "./templates/docs/download-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -106,13 +107,25 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactRequestHookTemplate(descriptor, this._path, ctx))
     await this.dump(reactAsyncFunctionHookTemplate(descriptor, this._path, ctx))
 
-    if ((descriptor.data.method.toUpperCase() === 'GET' &&
-        (!nonDownloadMimePatterns(descriptor.data.responseType!) || descriptor.data.responseType !== '*/*')
-      ) ||
-      descriptor.data.responseHeaders?.['content-disposition']
-    ) {
+    if (this.isDownloadableResource(descriptor)) {
       await this.dump(reactDownloadHookTemplate(descriptor, this._path, ctx))
     }
+  }
+
+  private isDownloadableResource(descriptor: ResourceDescriptor<RestData>) {
+    if (descriptor.data.responseHeaders?.['content-disposition']) {
+      return true
+    }
+    if (descriptor.data.method.toUpperCase() !== 'GET') {
+      return false
+    }
+    if (descriptor.data.responseType === '*/*') {
+      return false
+    }
+    if (!nonDownloadMimePatterns(descriptor.data.responseType!)) {
+      return true
+    }
+    return false
   }
 
   private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
@@ -192,6 +205,14 @@ ${"```"}
       name: 'Stateless Hook',
       content: (await reactAsyncFunctionHookDocs(result)).content
     })
+
+    if (this.isDownloadableResource(result)) {
+      console.log(result)
+      tabs.push({
+        name: 'Download Hook',
+        content: (await reactDownloadHookDocs(result)).content
+      })
+    }
 
     return RestDocumentation.from({
       id: result.id,

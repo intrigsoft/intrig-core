@@ -1,30 +1,20 @@
 import {useEffect, useMemo} from 'react';
-import { useParams, Navigate, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Navigate, Link } from 'react-router-dom';
 import { ComponentIcon, ServerIcon, BracesIcon, Link2Icon, HomeIcon, ChevronRightIcon } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
 import { SourceDownloadButton } from '@/components/source-download-button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { UrlAwareTabs } from '@/components/url-aware-tabs';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { EndpointsTab } from './endpoint/components/endpoints-tab';
-import { DataTypesTab } from './endpoint/components/datatypes-tab';
 import {useSourcesControllerGetById} from '@intrig/react/deamon_api/Sources/sourcesControllerGetById/useSourcesControllerGetById'
 import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats'
 import {isSuccess} from "@intrig/react";
+import EndpointsTab from "@/app/sources/[sourceId]/components/endpoints-tab";
+import DataTypesTab from "@/app/sources/[sourceId]/components/datatypes-tab";
 
 
 export function SourceDetailPage() {
   const { sourceId } = useParams<{ sourceId: string }>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Get current tab from URL or default to "endpoints"
-  const currentTab = searchParams.get('tab') || 'endpoints';
-  
-  const handleTabChange = (value: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('tab', value);
-    setSearchParams(newParams);
-  };
 
   const [sourceResp, fetchSource] = useSourcesControllerGetById({
     clearOnUnmount: true,
@@ -180,36 +170,37 @@ export function SourceDetailPage() {
           <div className="mb-8">
             <div className="p-4 border rounded-lg shadow-sm bg-card">
               <h3 className="text-lg font-semibold mb-3">API Resources</h3>
-              <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="endpoints">
-                    <Link2Icon className="h-4 w-4 mr-2" />
-                    Endpoints
-                  </TabsTrigger>
-                  <TabsTrigger value="datatypes">
-                    <BracesIcon className="h-4 w-4 mr-2" />
-                    Data Types
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="endpoints" className="mt-0">
-                  <div className="p-1">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Browse all available API endpoints in this source
-                    </p>
-                    <EndpointsTab sourceId={sourceId} />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="datatypes" className="mt-0">
-                  <div className="p-1">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Browse all available data models in this source
-                    </p>
-                    <DataTypesTab sourceId={sourceId} />
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <UrlAwareTabs
+                defaultTab="endpoints"
+                tabs={[
+                  {
+                    value: "endpoints",
+                    label: "Endpoints",
+                    icon: <Link2Icon className="h-4 w-4" />,
+                    content: (
+                      <div className="p-1">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Browse all available API endpoints in this source
+                        </p>
+                        <EndpointsTab sourceId={sourceId} />
+                      </div>
+                    )
+                  },
+                  {
+                    value: "datatypes",
+                    label: "Data Types",
+                    icon: <BracesIcon className="h-4 w-4" />,
+                    content: (
+                      <div className="p-1">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Browse all available data models in this source
+                        </p>
+                        <DataTypesTab sourceId={sourceId} />
+                      </div>
+                    )
+                  }
+                ]}
+              />
             </div>
           </div>
         </>

@@ -28,18 +28,6 @@ export function reactHookDocs(descriptor: ResourceDescriptor<RestData>) {
   return md`
 # Intrig React Hooks — Quick Guide
 
-## Which hook should I use?
-- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
-- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`use${pascalCase(descriptor.name)}Async\`).
-- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
-
-| Need | Use | Examples |
-|---|---|---|
-| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\` |
-| One-off action | Async | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
-
----
-
 ## Copy-paste starter (fast lane)
 
 ### 1) Hook import

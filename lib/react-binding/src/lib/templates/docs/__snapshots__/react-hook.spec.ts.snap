@@ -3,19 +3,6 @@
 exports[`reactHookDocs > generates markdown that matches snapshot for a simple REST descriptor (no body, no path params) 1`] = `
 "# Intrig React Hooks — Quick Guide
 
-## Which hook should I use?
-
-- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
-- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useGetUserAsync\`).
-- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
-
-| Need                            | Use      | Examples                                        |
-| ------------------------------- | -------- | ----------------------------------------------- |
-| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
-| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
-
----
-
 ## Copy-paste starter (fast lane)
 
 ### 1) Hook import
@@ -341,19 +328,6 @@ if (isSuccess(getUserResp)) {
 
 exports[`reactHookDocs > snapshot — path params only (no request body) 1`] = `
 "# Intrig React Hooks — Quick Guide
-
-## Which hook should I use?
-
-- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
-- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useGetUserByIdAsync\`).
-- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
-
-| Need                            | Use      | Examples                                        |
-| ------------------------------- | -------- | ----------------------------------------------- |
-| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
-| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
-
----
 
 ## Copy-paste starter (fast lane)
 
@@ -707,19 +681,6 @@ if (isSuccess(getUserByIdResp)) {
 exports[`reactHookDocs > snapshot — request body and path params 1`] = `
 "# Intrig React Hooks — Quick Guide
 
-## Which hook should I use?
-
-- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
-- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useUpdateUserAsync\`).
-- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
-
-| Need                            | Use      | Examples                                        |
-| ------------------------------- | -------- | ----------------------------------------------- |
-| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
-| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
-
----
-
 ## Copy-paste starter (fast lane)
 
 ### 1) Hook import
@@ -1071,19 +1032,6 @@ if (isSuccess(updateUserResp)) {
 
 exports[`reactHookDocs > snapshot — request body only (no path params) 1`] = `
 "# Intrig React Hooks — Quick Guide
-
-## Which hook should I use?
-
-- **Need shared, persistent data you can read in multiple places or later renders?** → **Stateful hook** (this page).
-- **One-off action (validate / submit / update) with no shared state?** → **Async hook** (\`useCreateUserAsync\`).
-- **Unsure?** If you’ll **render the result later** or **elsewhere**, choose **Stateful**; if you just need a value **now**, choose **Async**.
-
-| Need                            | Use      | Examples                                        |
-| ------------------------------- | -------- | ----------------------------------------------- |
-| Shared “single source of truth” | Stateful | \`getUser\`, \`getProduct\`, \`searchProducts\`       |
-| One-off action                  | Async    | \`validateEmail\`, \`submitForm\`, \`updateCartItem\` |
-
----
 
 ## Copy-paste starter (fast lane)
 

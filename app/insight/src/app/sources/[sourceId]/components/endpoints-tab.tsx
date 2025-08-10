@@ -16,13 +16,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {constantCase} from "change-case";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { HttpMethodBadge } from "@/components/http-method-badge";
 
 interface EndpointsTabProps {
   sourceId?: string;
@@ -84,14 +84,11 @@ export function EndpointsTab({ sourceId }: EndpointsTabProps) {
             className="block no-underline text-inherit"
           >
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow h-full flex flex-col relative">
-              <span className={`absolute top-2 right-2 px-2 py-1 text-xs rounded-md text-white font-medium ${
-                constantCase(endpoint.data.method) === 'GET' ? 'bg-blue-600' : 
-                constantCase(endpoint.data.method) === 'POST' ? 'bg-green-600' : 
-                constantCase(endpoint.data.method) === 'PUT' ? 'bg-yellow-600' : 
-                constantCase(endpoint.data.method) === 'DELETE' ? 'bg-red-600' : 'bg-gray-600'
-              }`}>
-                {constantCase(endpoint.data.method)}
-              </span>
+              <HttpMethodBadge 
+                method={endpoint.data.method} 
+                variant="solid" 
+                className="absolute top-2 right-2"
+              />
               <div className="pb-2 pr-16">
                 <h3 className="text-sm font-medium tracking-tight break-words">{endpoint.name}</h3>
               </div>
