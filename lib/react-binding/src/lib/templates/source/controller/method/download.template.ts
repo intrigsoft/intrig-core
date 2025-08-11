@@ -137,6 +137,16 @@ export async function reactDownloadHookTemplate({source,
 
   const finalRequestBodyBlock = requestBody ? `,data: encode(data, "${contentType}", requestBodySchema)` : ''
 
+  function responseTypePart() {
+    switch (responseType) {
+      case "application/octet-stream":
+        return `responseType: 'blob', adapter: 'fetch',`;
+      case "text/event-stream":
+        return `responseType: 'stream', adapter: 'fetch',`;
+    }
+    return ''
+  }
+
   return ts`
     ${[...imports].join('\n')}
 
@@ -213,7 +223,7 @@ export async function reactDownloadHookTemplate({source,
             key: \`${"${source}: ${operation}"}\`,
             source: '${source}'
             ${requestBody ? finalRequestBodyBlock : ''},
-            ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
+            ${(responseTypePart())}
           })
           return successfulDispatch();
       }, [dispatch])
