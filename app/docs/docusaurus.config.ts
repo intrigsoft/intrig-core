@@ -42,7 +42,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/intrig/intrig-core/tree/main/app/docs/',
+          editUrl: 'https://github.com/intrigsoft/intrig-core/tree/main/app/docs/',
         },
         blog: false, // Disable blog functionality
         theme: {
@@ -64,12 +64,18 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'docsSidebar',
+          sidebarId: 'whyIntrig',
+          position: 'left',
+          label: 'Why Intrig?',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'docs',
           position: 'left',
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/intrig/intrig-core',
+          href: 'https://github.com/intrigsoft/intrig-core',
           label: 'GitHub',
           position: 'right',
         },

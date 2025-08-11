@@ -43,7 +43,7 @@ export default function Footer(): JSX.Element {
             <ul className="space-y-3">
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core" 
+                  href="https://github.com/intrigsoft/intrig-core" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -53,7 +53,7 @@ export default function Footer(): JSX.Element {
               </li>
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/issues" 
+                  href="https://github.com/intrigsoft/intrig-core/issues" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -63,7 +63,7 @@ export default function Footer(): JSX.Element {
               </li>
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/discussions" 
+                  href="https://github.com/intrigsoft/intrig-core/discussions" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -80,7 +80,7 @@ export default function Footer(): JSX.Element {
             <ul className="space-y-3">
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/blob/main/CONTRIBUTING.md" 
+                  href="https://github.com/intrigsoft/intrig-core/blob/main/CONTRIBUTING.md" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -90,7 +90,7 @@ export default function Footer(): JSX.Element {
               </li>
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/blob/main/CODE_OF_CONDUCT.md" 
+                  href="https://github.com/intrigsoft/intrig-core/blob/main/CODE_OF_CONDUCT.md" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -100,7 +100,7 @@ export default function Footer(): JSX.Element {
               </li>
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/releases" 
+                  href="https://github.com/intrigsoft/intrig-core/releases" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -110,7 +110,7 @@ export default function Footer(): JSX.Element {
               </li>
               <li>
                 <a 
-                  href="https://github.com/intrig/intrig-core/blob/main/LICENSE" 
+                  href="https://github.com/intrigsoft/intrig-core/blob/main/LICENSE" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
@@ -138,7 +138,7 @@ export default function Footer(): JSX.Element {
             </div>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <a 
-                href="https://github.com/intrig/intrig-core" 
+                href="https://github.com/intrigsoft/intrig-core" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors duration-200"

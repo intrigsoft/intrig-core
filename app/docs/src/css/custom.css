@@ -1,9 +1,20 @@
-@import "tailwindcss";
+/* src/css/custom.css */
 
+@layer theme, base, components, utilities;
+
+/* import theme + utilities (skip preflight) */
+@import "tailwindcss/theme.css" layer(theme);
+
+/* Set a base path for scanning, then register sources explicitly */
+@import "tailwindcss/utilities.css" layer(utilities) source("../..");  /* project root */
+
+@source "src";   /* scans your React pages/components */
+@source "docs";  /* scans your MD/MDX docs */
+
+/* (optional) plugins */
 @plugin "@tailwindcss/typography";
 
-/**
- * Any CSS included here will be global. The classic template
+* Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
  */

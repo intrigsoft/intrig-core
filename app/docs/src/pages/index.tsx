@@ -70,7 +70,7 @@ const FeatureCard = ({ icon: Icon, title, children }: any) => (
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
 
-  const GITHUB_URL = "https://github.com/your-org/intrig"; // ← replace
+  const GITHUB_URL = "https://github.com/intrigsoft/intrig-core"; // ← replace
 
   // Brand helpers (uses Docusaurus CSS vars)
   const BRAND = "var(--ifm-color-primary)";
