@@ -1,6 +1,6 @@
 {
   "name": "@intrig/next",
-  "version": "0.0.15-4",
+  "version": "0.0.15-5",
   "type": "module",
   "main": "./index.esm.js",
   "module": "./index.esm.js",

@@ -1,3 +1,13 @@
+## 0.0.15-5 (2025-08-11)
+
+### 🚀 Features
+
+- add `FileListResponseDto` model to support file list responses in API ([98381f4](https://github.com/intrigsoft/intrig-core/commit/98381f4))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-4 (2025-08-09)
 
 ### 🩹 Fixes
