@@ -29,6 +29,7 @@ export function reactPackageJsonTemplate(_path: string) {
     "@swc/cli": "^0.7.7",
     "@swc/core": "^1.12.6",
     "@types/node": "^24.0.4",
+    "typescript": "${packageJson.devDependencies.typescript ?? packageJson.dependencies.typescript}",
     "react": "${packageJson.dependencies.react}",
     "react-dom": "${packageJson.dependencies['react-dom']}"
   },

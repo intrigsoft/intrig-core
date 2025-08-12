@@ -26,6 +26,21 @@
     },
     {
       "path": "./app/insight"
+    },
+    {
+      "path": "./plugins/core"
+    },
+    {
+      "path": "./plugins/vite"
+    },
+    {
+      "path": "./plugins/webpack"
+    },
+    {
+      "path": "./plugins/rollup"
+    },
+    {
+      "path": "./plugins/esbuild"
     }
   ]
 }
