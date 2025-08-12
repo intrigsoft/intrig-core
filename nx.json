@@ -147,7 +147,10 @@
       "app/intrig",
       "lib/next-client",
       "lib/react-client",
-      "@intrig/vite"
+      "@intrig/vite",
+      "@intrig/webpack",
+      "@intrig/rollup",
+      "@intrig/esbuild"
     ],
     "npmPackages": [
       {

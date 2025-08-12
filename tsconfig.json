@@ -32,6 +32,15 @@
     },
     {
       "path": "./plugins/vite"
+    },
+    {
+      "path": "./plugins/webpack"
+    },
+    {
+      "path": "./plugins/rollup"
+    },
+    {
+      "path": "./plugins/esbuild"
     }
   ]
 }
