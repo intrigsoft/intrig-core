@@ -26,6 +26,12 @@
     },
     {
       "path": "./app/insight"
+    },
+    {
+      "path": "./plugins/core"
+    },
+    {
+      "path": "./plugins/vite"
     }
   ]
 }

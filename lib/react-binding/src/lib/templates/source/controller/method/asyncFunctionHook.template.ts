@@ -133,6 +133,16 @@ export async function reactAsyncFunctionHookTemplate(
 
   const finalRequestBodyBlock = requestBody ? `, data: encode(data, "${contentType}", requestBodySchema)` : '';
 
+  function responseTypePart() {
+    switch (responseType) {
+      case "application/octet-stream":
+        return `responseType: 'blob', adapter: 'fetch',`;
+      case "text/event-stream":
+        return `responseType: 'stream', adapter: 'fetch',`;
+    }
+    return ''
+  }
+
   return ts`
 ${[...imports].join('\n')}
 
@@ -172,7 +182,7 @@ function use${pascalCase(operationId)}AsyncHook(): [(${paramType}) => Promise<Re
       key: \`${"${source}: ${operation}"}\`,
       source: '${source}'
       ${requestBody ? finalRequestBodyBlock : ''},
-      ${responseType === "text/event-stream" ? `responseType: 'stream', adapter: 'fetch',` : ''}
+      ${(responseTypePart())}
     });
   }, [call]);
 

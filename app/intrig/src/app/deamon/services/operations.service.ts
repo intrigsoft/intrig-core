@@ -25,6 +25,10 @@ interface TempBuildContext {
 export class OperationsService {
 
   private readonly logger = new Logger(OperationsService.name);
+  
+  // Add sync coordination
+  private syncInProgress = new Set<string>();
+  private readonly SYNC_TIMEOUT = 300000; // 5 minutes timeout
 
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
@@ -41,18 +45,49 @@ export class OperationsService {
   }
 
   async sync(ctx: SyncEventContext, id?: string | undefined) {
-    const config = await this.getConfig(ctx)
-    const prevDescriptors = await this.getPreviousState(ctx, config);
-    const restOptions = this.generatorBinding.getRestOptions();
-    await this.openApiService.sync({
-      ...config,
-      restOptions: {
-        ...config.restOptions,
-        ...restOptions
-      }
-    }, id, ctx)
-    const newDescriptors = await this.getNewState(ctx, config);
-    await this.indexDiff(ctx, prevDescriptors, newDescriptors);
+    const syncKey = id || 'all';
+    
+    // Check if sync is already in progress
+    if (this.syncInProgress.has(syncKey)) {
+      const error = `Sync already in progress for: ${syncKey}`;
+      this.logger.warn(error);
+      throw new Error(error);
+    }
+    
+    // Add timeout protection
+    const timeoutId = setTimeout(() => {
+      this.syncInProgress.delete(syncKey);
+      this.logger.error(`Sync timeout for ${syncKey} after ${this.SYNC_TIMEOUT}ms`);
+    }, this.SYNC_TIMEOUT);
+    
+    this.syncInProgress.add(syncKey);
+    this.logger.log(`Starting sync operation for: ${syncKey}`);
+    
+    try {
+      const config = await this.getConfig(ctx);
+      const prevDescriptors = await this.getPreviousState(ctx, config);
+      const restOptions = this.generatorBinding.getRestOptions();
+      
+      await this.openApiService.sync({
+        ...config,
+        restOptions: {
+          ...config.restOptions,
+          ...restOptions
+        }
+      }, id, ctx);
+      
+      const newDescriptors = await this.getNewState(ctx, config);
+      await this.indexDiff(ctx, prevDescriptors, newDescriptors);
+      
+      this.logger.log(`Sync operation completed successfully for: ${syncKey}`);
+      
+    } catch (error: any) {
+      this.logger.error(`Sync operation failed for ${syncKey}: ${error.message}`, error);
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+      this.syncInProgress.delete(syncKey);
+    }
   }
 
   @WithStatus((p1, p2) => ({sourceId: '', step: 'indexDiff'}))
@@ -64,18 +99,37 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'loadPreviousState'}))
   private async getPreviousState(ctx: SyncEventContext, config: IntrigConfig) {
-    let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
+    let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = [];
+    const errors: string[] = [];
+    
     for (const source of config.sources) {
       try {
         const descriptors = await this.openApiService.getResourceDescriptors(source.id);
-        prevDescriptors = [...prevDescriptors, ...descriptors]
-      } catch (e: any) { /* empty */ }
+        prevDescriptors = [...prevDescriptors, ...descriptors];
+        this.logger.debug(`Loaded ${descriptors.length} descriptors from source ${source.id}`);
+      } catch (e: any) {
+        const errorMsg = `Failed to load previous state for source ${source.id}: ${e.message}`;
+        this.logger.warn(errorMsg);
+        errors.push(errorMsg);
+        
+        // If it's a critical error (not just missing file), we might want to fail
+        if (e.message.includes('Invalid JSON') || e.message.includes('corrupted')) {
+          throw new Error(`Critical error in getPreviousState: ${errorMsg}`);
+        }
+      }
     }
+    
+    if (errors.length > 0) {
+      this.logger.warn(`getPreviousState completed with ${errors.length} errors: ${errors.join('; ')}`);
+    }
+    
+    this.logger.log(`Loaded total of ${prevDescriptors.length} previous descriptors`);
     return prevDescriptors;
   }
 
   @WithStatus(event => ({sourceId: '', step: 'loadNewState'}))
   private async getNewState(ctx: SyncEventContext, config: IntrigConfig) {
+    this.logger.log('Loading new state')
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
     for (const source of config.sources) {
       const descriptors = await this.openApiService.getResourceDescriptors(source.id);
@@ -114,7 +168,6 @@ export class OperationsService {
       const descriptors = await this.getDescriptors(ctx, source);
       await this.generateSourceContent(ctx, descriptors, source);
     }
-
     await this.generateGlobalContent(ctx, config.sources);
     await this.installDependencies(ctx);
     await this.buildContent(ctx);

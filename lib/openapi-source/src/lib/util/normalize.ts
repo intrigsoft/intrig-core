@@ -4,6 +4,7 @@ import {pascalCase, camelCase} from 'common'
 import ReferenceObject = OpenAPIV3.ReferenceObject;
 import ExampleObject = OpenAPIV3_1.ExampleObject;
 import {deref, isRef} from "./ref-management";
+import { createHash } from 'node:crypto'
 
 function generateTypeName(operationOb: OpenAPIV3_1.OperationObject, postFix: string) {
   return [operationOb.tags?.[0], operationOb.operationId, postFix].filter(Boolean)
@@ -15,7 +16,7 @@ export function normalize(spec: OpenAPIV3_1.Document) {
 
   const doDeref = deref(spec)
 
-  return produce(spec, draft => {
+  const normalized = produce(spec, draft => {
     const paths = draft.paths as OpenAPIV3_1.PathsObject;
     for (const [path, pathItem] of Object.entries(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
@@ -43,16 +44,16 @@ export function normalize(spec: OpenAPIV3_1.Document) {
             operationOb.parameters
               .map(a => a as OpenAPIV3_1.ParameterObject)
               .forEach((param: OpenAPIV3_1.ParameterObject) => {
-              if (!isRef(param.schema)) {
-                const paramName = generateTypeName(operationOb, param.name)
-                if (draft.components?.["schemas"]) {
-                  draft.components["schemas"][paramName] = param.schema as OpenAPIV3_1.SchemaObject;
+                if (!isRef(param.schema)) {
+                  const paramName = generateTypeName(operationOb, param.name)
+                  if (draft.components?.["schemas"]) {
+                    draft.components["schemas"][paramName] = param.schema as OpenAPIV3_1.SchemaObject;
+                  }
+                  param.schema = {
+                    $ref: `#/components/schemas/${paramName}`
+                  } satisfies OpenAPIV3_1.ReferenceObject
                 }
-                param.schema = {
-                  $ref: `#/components/schemas/${paramName}`
-                } satisfies OpenAPIV3_1.ReferenceObject
-              }
-            })
+              })
           }
           if (operationOb.requestBody) {
             const requestBody = doDeref(operationOb.requestBody) as OpenAPIV3_1.RequestBodyObject;
@@ -119,5 +120,8 @@ export function normalize(spec: OpenAPIV3_1.Document) {
       }
     }
     //TODO implement fix schema types.
+  });
+  return produce(normalized, draft => {
+    (draft.info as any)['x-intrig-hash'] = createHash('sha256').update(JSON.stringify(draft)).digest('hex')
   })
 }

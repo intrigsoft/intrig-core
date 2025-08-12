@@ -6,7 +6,6 @@ import {CommonModule} from "common";
 import {ConfigModule} from "@nestjs/config";
 import configuration from "./config/configuration";
 // import {McpModule} from "./mcp/mcp.module";
-import { DebugController } from './debug/debug.controller';
 
 @Module({
   imports: [
@@ -20,7 +19,7 @@ import { DebugController } from './debug/debug.controller';
     DeamonModule,
     // McpModule,
   ],
-  controllers: [DebugController],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}

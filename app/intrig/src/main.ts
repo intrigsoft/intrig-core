@@ -10,13 +10,14 @@ import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
 import {IntrigConfigService} from "./app/deamon/services/intrig-config.service";
+import * as fs from 'fs';
 
 const logger = new Logger('Main');
 
 
 async function bootstrapDeamon() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error'],
+    // logger: ['error'],
   });
   app.enableShutdownHooks();
   app.enableCors();
@@ -63,6 +64,15 @@ async function bootstrap() {
     await app.init()
     process.stdin.resume();
   } else {
+    if (cmd === 'init') {
+      const configPath = './intrig.config.json';
+      if (fs.existsSync(configPath)) {
+        throw new Error('Intrig is already initialized. Configuration file exists.');
+      }
+      fs.writeFileSync(configPath, JSON.stringify({}, null, 2));
+      logger?.log('Initialized new Intrig project');
+
+    }
     try {
       await CommandFactory.run(AppModule, {
         logger: false,

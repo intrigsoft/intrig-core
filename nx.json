@@ -132,13 +132,23 @@
     },
     "e2e-ci--**/**": {
       "dependsOn": ["^build"]
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "release": {
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
     },
-    "projects": ["app/intrig", "lib/next-client", "lib/react-client"],
+    "projects": [
+      "app/intrig",
+      "lib/next-client",
+      "lib/react-client",
+      "@intrig/vite"
+    ],
     "npmPackages": [
       {
         "packageRoot": "dist/app/intrig",
@@ -151,6 +161,10 @@
       {
         "packageRoot": "dist/lib/react-client",
         "packageName": "@intrig/react"
+      },
+      {
+        "packageRoot": "dist/plugins/vite",
+        "packageName": "@intrig/vite"
       }
     ]
   },
