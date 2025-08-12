@@ -122,7 +122,7 @@ export class IntrigOpenapiService {
     );
   }
 
-  async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {
+  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string}> {
     const document = await this.specManagementService.read(id);
     if (!document) {
       throw new Error(`Spec ${id} not found`)
@@ -134,7 +134,7 @@ export class IntrigOpenapiService {
 
     const hash: string = (document.info as any)['x-intrig-hash'];
 
-    return [
+    const descriptors = [
       ...restData.map(restData => ResourceDescriptor.from({
         id: sha1(`${id}_${restData.method}_${restData.paths.join('_')}_${restData.operationId}_${restData.contentType}_${restData.responseType}`),
         name: camelCase(restData.operationId),
@@ -151,7 +151,17 @@ export class IntrigOpenapiService {
         path: path.join(id, "components", "schemas"),
         data: schema
       }))
-    ]
+    ];
+
+    return { descriptors, hash };
+  }
+
+  async getHash(id: string): Promise<string> {
+    const document = await this.specManagementService.read(id);
+    if (!document) {
+      throw new Error(`Spec ${id} not found`)
+    }
+    return (document.info as any)['x-intrig-hash'];
   }
 
   private validate(normalized: OpenAPIV3_1.Document, restOptions: RestOptions | undefined) {

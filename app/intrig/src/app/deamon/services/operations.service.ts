@@ -104,7 +104,7 @@ export class OperationsService {
     
     for (const source of config.sources) {
       try {
-        const descriptors = await this.openApiService.getResourceDescriptors(source.id);
+        const {descriptors} = await this.openApiService.getResourceDescriptors(source.id);
         prevDescriptors = [...prevDescriptors, ...descriptors];
         this.logger.debug(`Loaded ${descriptors.length} descriptors from source ${source.id}`);
       } catch (e: any) {
@@ -132,7 +132,7 @@ export class OperationsService {
     this.logger.log('Loading new state')
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = []
     for (const source of config.sources) {
-      const descriptors = await this.openApiService.getResourceDescriptors(source.id);
+      const {descriptors} = await this.openApiService.getResourceDescriptors(source.id);
       prevDescriptors = [...prevDescriptors, ...descriptors]
     }
     return prevDescriptors;
@@ -164,8 +164,10 @@ export class OperationsService {
 
     const config = await this.getConfig(ctx)
     await this.clearGenerateDir(ctx);
+    const hashes: Record<string, string> = {}
     for (const source of config.sources) {
-      const descriptors = await this.getDescriptors(ctx, source);
+      const {descriptors, hash} = await this.getDescriptors(ctx, source);
+      hashes[source.id] = hash;
       await this.generateSourceContent(ctx, descriptors, source);
     }
     await this.generateGlobalContent(ctx, config.sources);
@@ -173,9 +175,9 @@ export class OperationsService {
     await this.buildContent(ctx);
     const tempBuildContext: TempBuildContext = (config as any).__dangorouslyOverrideBuild;
     if (tempBuildContext) {
-      this.copyContentToSource(ctx, tempBuildContext);
+      await this.copyContentToSource(ctx, tempBuildContext);
     } else {
-      await this.copyContentToNodeModules(ctx);
+      await this.copyContentToNodeModules(ctx, hashes);
     }
     await this.executePostBuild(ctx);
   }
@@ -216,7 +218,7 @@ export class OperationsService {
   }
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
-  private async copyContentToNodeModules(ctx: GenerateEventContext) {
+  private async copyContentToNodeModules(ctx: GenerateEventContext, hashes: Record<string, string>) {
     const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName())
 
     try {
@@ -234,6 +236,8 @@ export class OperationsService {
         path.join(targetLibDir, 'package.json')
       );
       this.logger.log(`Merged package.json files`);
+      await fs.writeJson(path.join(targetLibDir, 'hashes.json'), hashes, {spaces: 2});
+      this.logger.log(`Wrote hashes.json to ${targetLibDir}`);
     } catch (error) {
       this.logger.error(`Failed to copy content to node_modules: ${error}`);
       throw error;
@@ -250,6 +254,7 @@ export class OperationsService {
 
     await fs.ensureDir(targetLibDir);
     await fs.copy(path.join(this.generateDir, 'src'), targetLibDir);
+
     this.logger.log(`Copied ${targetLibDir}`);
     return "";
   }
@@ -276,7 +281,9 @@ export class OperationsService {
 
   @WithStatus(source => ({sourceId: source.id, step: 'clear'}))
   private async getDescriptors(ctx: GenerateEventContext, source: IIntrigSourceConfig) {
-    return await this.openApiService.getResourceDescriptors(source.id);
+    const descriptors = await this.openApiService.getResourceDescriptors(source.id);
+    // Hash is now available for operations.service to use
+    return descriptors;
   }
 
   @WithStatus(event => ({sourceId: '', step: 'clear'}))
@@ -292,5 +299,84 @@ export class OperationsService {
 
     fs.ensureDirSync(this.generateDir)
     return this.generateDir;
+  }
+
+  async verify(hashes: Record<string, string>) {
+    this.logger.log('Verifying hashes');
+    
+    try {
+      // 1. Load intrigConfig
+      const intrigConfig = this.configService.get();
+      const sources = intrigConfig.sources || [];
+      
+      // 2. Check that each key in hashes has a matching source id
+      const sourceIds = new Set(sources.map(source => source.id));
+      const hashKeys = Object.keys(hashes);
+      
+      for (const hashKey of hashKeys) {
+        if (!sourceIds.has(hashKey)) {
+          this.logger.error(`Hash key '${hashKey}' does not have a matching source id`);
+          return { 
+            status: 'conflict', 
+            message: `Hash key '${hashKey}' does not have a matching source id`,
+            statusCode: 409
+          };
+        }
+      }
+      
+      // 3. Check that there are no more sources than hashes
+      if (sources.length > hashKeys.length) {
+        const extraSources = sources
+          .map(s => s.id)
+          .filter(id => !hashKeys.includes(id));
+        this.logger.error(`There are more sources than hashes. Extra sources: ${extraSources.join(', ')}`);
+        return { 
+          status: 'conflict', 
+          message: `There are more sources than hashes. Extra sources: ${extraSources.join(', ')}`,
+          statusCode: 409
+        };
+      }
+      
+      // 4. Get hash for each source and validate they match
+      for (const source of sources) {
+        try {
+          const actualHash = await this.openApiService.getHash(source.id);
+          const expectedHash = hashes[source.id];
+          
+          if (actualHash !== expectedHash) {
+            this.logger.error(`Hash mismatch for source '${source.id}'. Expected: ${expectedHash}, Actual: ${actualHash}`);
+            return { 
+              status: 'conflict', 
+              message: `Hash mismatch for source '${source.id}'. Expected: ${expectedHash}, Actual: ${actualHash}`,
+              statusCode: 409
+            };
+          }
+        } catch (error: any) {
+          this.logger.error(`Failed to get hash for source '${source.id}': ${error.message}`);
+          return { 
+            status: 'conflict', 
+            message: `Failed to get hash for source '${source.id}': ${error.message}`,
+            statusCode: 409
+          };
+        }
+      }
+      
+      // 5. All validations passed
+      this.logger.log('All hash validations passed successfully');
+      return { 
+        status: 'verified', 
+        message: 'All hashes match successfully',
+        hashCount: Object.keys(hashes).length,
+        statusCode: 200
+      };
+      
+    } catch (error: any) {
+      this.logger.error(`Verification failed with error: ${error.message}`);
+      return { 
+        status: 'conflict', 
+        message: `Verification failed: ${error.message}`,
+        statusCode: 409
+      };
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { createUnplugin } from 'unplugin';
+import { DaemonManager, isIntrigProject } from './daemon-status';
 
 export interface CorePluginOptions {
   // Plugin options can be defined here
@@ -7,8 +8,19 @@ export interface CorePluginOptions {
 
 export const core = createUnplugin<CorePluginOptions | undefined>((options = {}) => ({
   name: '@intrig/plugin-core',
-  buildStart() {
-    console.log('core plugin buildStart');
+  async buildStart() {
+    console.log('🚀 @intrig/plugin-core buildStart');
+    
+    // Check if this is an Intrig-powered project
+    if (!isIntrigProject()) {
+      console.warn('⚠️  Warning: This is not an Intrig-powered project (intrig.config.json not found)');
+      console.warn('   Skipping Intrig plugin processes...');
+      return;
+    }
+    
+    const daemonManager = new DaemonManager();
+    await daemonManager.ensureDaemonRunning();
+    await daemonManager.checkHashesAndGenerate();
   },
   transformInclude(id) {
     // Define which files should be transformed
