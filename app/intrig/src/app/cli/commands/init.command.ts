@@ -48,6 +48,7 @@ export class InitCommand extends CommandRunner {
     }
 
     const config: IntrigConfig = {
+      $schema: "https://raw.githubusercontent.com/intrigsoft/intrig-core/refs/heads/main/docs/schema.json",
       sources: [],
       generator: generator.name()
     }

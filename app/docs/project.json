@@ -23,14 +23,14 @@
     "start": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "docusaurus start",
+        "command": "docusaurus start --port 8088",
         "cwd": "app/docs"
       }
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "docusaurus start",
+        "command": "docusaurus start --port 8088",
         "cwd": "app/docs"
       }
     },

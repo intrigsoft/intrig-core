@@ -64,12 +64,6 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'whyIntrig',
-          position: 'left',
-          label: 'Why Intrig?',
-        },
-        {
-          type: 'docSidebar',
           sidebarId: 'docs',
           position: 'left',
           label: 'Documentation',

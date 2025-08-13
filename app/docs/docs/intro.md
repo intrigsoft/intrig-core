@@ -1,53 +1,29 @@
----
-sidebar_position: 1
----
 
-# Getting Started with Intrig
+# Welcome to Intrig
 
-Welcome to **Intrig** - API Development Made Simple.
+Intrig is an API development tool that makes building and consuming APIs simple and efficient.
+
+## Get Started
+
+Ready to get started? Jump right into our [Getting Started Guide](./getting-started.md) to set up Intrig and create your first SDK.
 
 ## What is Intrig?
 
-Intrig is a comprehensive API development platform that simplifies the process of building, documenting, and managing APIs. It provides an intuitive backend system with automatic SDK generation for frontend development.
+Intrig is a powerful tool that bridges the gap between your backend APIs and frontend applications by:
 
-## Quick Start
+- **Generating type-safe SDKs** from your OpenAPI specifications
+- **Providing React hooks** for seamless API integration
+- **Offering real-time documentation** with Intrig Insight
+- **Supporting multiple frameworks** like React, Next.js, Vue, and more
 
-### Prerequisites
+## Quick Overview
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above
-- npm or yarn package manager
+The typical Intrig workflow is:
 
-### Installation
+1. **Install** Intrig in your project
+2. **Initialize** your configuration
+3. **Add API sources** from your OpenAPI specs
+4. **Generate** type-safe SDKs
+5. **Use** the generated hooks in your application
 
-Install Intrig CLI globally:
-
-```bash
-npm install -g intrig-cli
-```
-
-### Basic Workflow
-
-The typical Intrig development workflow:
-
-1. **Make changes** to your Intrig backend
-2. **Restart** the Intrig application to apply changes
-3. **Sync and generate** the SDK:
-   ```bash
-   intrig sync --all && intrig generate
-   ```
-4. **Use the generated SDK** in your frontend application
-
-## Key Features
-
-- **Automatic SDK Generation**: Generate type-safe SDKs for your frontend
-- **API Documentation**: Auto-generated interactive documentation
-- **Development Tools**: Powerful CLI for navigation and development
-- **Type Safety**: Full TypeScript support throughout the stack
-
-## Next Steps
-
-- Explore the API documentation
-- Learn about SDK generation
-- Understand the development workflow
-
-Ready to start building with Intrig? Let's dive deeper into the platform capabilities.
+[Get started now →](./getting-started.md)

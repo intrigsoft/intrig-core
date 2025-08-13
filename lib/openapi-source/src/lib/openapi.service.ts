@@ -53,7 +53,11 @@ export class IntrigOpenapiService {
       if (!source) {
         const error = `Source ${id} not found`;
         this.logger.error(error);
-        throw new Error(error);
+        errors.push({sourceId: id, error});
+        
+        // Don't throw, just log the error and continue
+        this.logger.warn(`Sync completed with error: Source ${id} not found`);
+        return;
       }
       
       this.logger.log(`Processing specific source: ${id}`);
@@ -63,7 +67,10 @@ export class IntrigOpenapiService {
       } catch (e: any) {
         const errorMsg = `Failed to sync source ${id}: ${e.message}`;
         this.logger.error(errorMsg, e);
-        throw new Error(errorMsg);
+        errors.push({sourceId: id, error: errorMsg});
+        
+        // Don't throw, just log the error and continue
+        this.logger.warn(`Sync completed with error: ${errorMsg}`);
       }
     }
     
