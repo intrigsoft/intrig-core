@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "$schema": "https://raw.githubusercontent.com/intrigsoft/intrig-core/refs/heads/tiranuom-patch-1/docs/schema.json",
+    "$schema": "https://raw.githubusercontent.com/intrigsoft/intrig-core/refs/heads/main/docs/schema.json",
     "sources": {
       "type": "array",
       "items": {
