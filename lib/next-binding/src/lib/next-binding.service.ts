@@ -1,7 +1,8 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding,
-  IIntrigSourceConfig, isRestDescriptor, isSchemaDescriptor, RelatedType,
+  GeneratorBinding, GeneratorContext,
+  IIntrigSourceConfig, IntrigSourceConfig,
+  isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
   RestData, RestDocumentation, RestOptions, Schema, SchemaDocumentation,
   SourceManagementService, Tab
@@ -32,16 +33,24 @@ import path from "path";
 import fs from "fs-extra";
 import * as process from "node:process";
 import { nextReactHookDocs } from './templates/docs/react-hook';
+import {nextAsyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template";
+import {typeUtilsTemplate} from "./templates/type-utils.template";
+import {nextSseHookDocs} from "./templates/docs/sse-hook";
+import {nextAsyncFunctionHookDocs} from "./templates/docs/async-hook";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
   "application/xml",
   "application/x-www-form-urlencoded",
+  "application/event-stream",
   "text/*"
 ])
 
 @Injectable()
 export class IntrigNextBindingService extends GeneratorBinding {
+
+  private readonly logger = new Logger(IntrigNextBindingService.name);
+
   constructor(private sourceManagementService: SourceManagementService,
               private config: ConfigService
   ) {
@@ -84,13 +93,25 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(nextExtraTemplate(this._path))
     await this.dump(nextLoggerTemplate(this._path))
     await this.dump(nextSwcrcTemplate(this._path))
+    await this.dump(typeUtilsTemplate(this._path))
   }
 
   override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
+    //TODO improve this logic to catch potential conflicts.
+    const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
+      .sort((a, b) => (a.data.contentType === "application/json" ? -1 : 0) - (b.data.contentType === "application/json" ? -1 : 0))
+      .filter((descriptor, index, array) => array.findIndex(other => other.data.operationId === descriptor.data.operationId) !== index)
+      .map(descriptor => descriptor.id);
+
+    const ctx = {
+      potentiallyConflictingDescriptors
+    };
+
     const groupedByPath: Record<string, ResourceDescriptor<RestData>[]> = {}
     for (const descriptor of descriptors) {
+      this.logger.log(`Generating source: ${descriptor.name}`)
       if (isRestDescriptor(descriptor)) {
-        await this.generateRestSource(source, descriptor)
+        await this.generateRestSource(source, descriptor, ctx)
         groupedByPath[descriptor.data.requestUrl!] = groupedByPath[descriptor.data.requestUrl!] || []
         groupedByPath[descriptor.data.requestUrl!].push(descriptor)
       } else if (isSchemaDescriptor(descriptor)) {
@@ -102,14 +123,19 @@ export class IntrigNextBindingService extends GeneratorBinding {
     }
   }
 
-  private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>): Promise<void> {
+  private async generateRestSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<RestData>, ctx: GeneratorContext): Promise<void> {
     const clientExports: string[] = [];
     const serverExports: string[] = [];
     await this.dump(nextParamsTemplate(descriptor, clientExports, serverExports, this._path))
     await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path))
     await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path))
-    //TODO incorporate rest options.
-    if (descriptor.data.method.toUpperCase() === 'GET' && !nonDownloadMimePatterns(descriptor.data.responseType!)) {
+    await this.dump(nextAsyncFunctionHookTemplate(descriptor, this._path, ctx))
+    
+    if ((descriptor.data.method.toUpperCase() === 'GET' &&
+        (!nonDownloadMimePatterns(descriptor.data.responseType!) || descriptor.data.responseType !== '*/*')
+      ) ||
+      descriptor.data.responseHeaders?.['content-disposition']
+    ) {
       await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path))
     }
     await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path))
@@ -177,16 +203,21 @@ ${"```"}
 
     const tabs: Tab[] = []
     if (result.data.responseType === 'text/event-stream') {
-      // tabs.push({
-      //   name: 'SSE Hook',
-      //   content: (await sseHookDocs(result)).content
-      // })
+      tabs.push({
+        name: 'SSE Hook',
+        content: (await nextSseHookDocs(result)).content
+      })
     } else {
       tabs.push({
         name: 'React Hook',
         content: (await nextReactHookDocs(result)).content
       })
     }
+    
+    tabs.push({
+      name: 'Async Hook',
+      content: (await nextAsyncFunctionHookDocs(result)).content
+    })
 
     return RestDocumentation.from({
       id: result.id,
