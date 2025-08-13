@@ -1,3 +1,15 @@
+## 0.0.15-6 (2025-08-13)
+
+### 🚀 Features
+
+- implement hash verification and daemon manager integration ([ef9f4d3](https://github.com/intrigsoft/intrig-core/commit/ef9f4d3))
+- add Rollup and Esbuild plugin configurations ([2d9077f](https://github.com/intrigsoft/intrig-core/commit/2d9077f))
+- add async and SSE hook templates with documentation support ([8d194d5](https://github.com/intrigsoft/intrig-core/commit/8d194d5))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-5 (2025-08-11)
 
 ### 🚀 Features
