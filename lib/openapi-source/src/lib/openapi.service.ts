@@ -31,36 +31,58 @@ export class IntrigOpenapiService {
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
     this.logger.log('Starting OpenAPI sync process');
+    const errors: Array<{sourceId: string, error: string}> = [];
 
     if (!id) {
+      // Process all sources with better error isolation
       for (const source of config.sources) {
         this.logger.log(`Processing source: ${source.id}`);
         try {
-          await this.doSync(source, config, ctx)
+          await this.doSync(source, config, ctx);
+          this.logger.log(`Successfully synced source: ${source.id}`);
         } catch (e: any) {
-          this.logger.error(`Failed to sync source ${source.id}: ${e.message}`, e);
+          const errorMsg = `Failed to sync source ${source.id}: ${e.message}`;
+          this.logger.error(errorMsg, e);
+          errors.push({sourceId: source.id, error: errorMsg});
+          
+          // Continue with other sources instead of failing completely
         }
       }
     } else {
       const source = config.sources.find(s => s.id === id);
       if (!source) {
-        this.logger.error(`Source ${id} not found`);
-        throw new Error(`Source ${id} not found`)
+        const error = `Source ${id} not found`;
+        this.logger.error(error);
+        throw new Error(error);
       }
+      
       this.logger.log(`Processing specific source: ${id}`);
       try {
-        await this.doSync(source, config, ctx)
+        await this.doSync(source, config, ctx);
+        this.logger.log(`Successfully synced source: ${id}`);
       } catch (e: any) {
-        this.logger.error(`Failed to sync source ${id}: ${e.message}`, e);
+        const errorMsg = `Failed to sync source ${id}: ${e.message}`;
+        this.logger.error(errorMsg, e);
+        throw new Error(errorMsg);
       }
     }
+    
+    if (errors.length > 0) {
+      const summary = `Sync completed with ${errors.length} errors: ${errors.map(e => e.sourceId).join(', ')}`;
+      this.logger.warn(summary);
+      
+      // If all sources failed, throw an error
+      if (errors.length === config.sources.length) {
+        throw new Error(`All sources failed to sync: ${errors.map(e => e.error).join('; ')}`);
+      }
+    }
+    
     this.logger.log('OpenAPI sync process completed');
   }
 
   private async doSync(source: IIntrigSourceConfig, config: IntrigConfig, ctx: SyncEventContext) {
     this.logger.debug(`Resolving OpenAPI spec from URL: ${source.specUrl}`);
     const response = await this.fetchSwaggerDoc(ctx, source);
-
     const raw = response.data;
     const spec = await this.decodeSwaggerDoc(ctx, source, raw);
     const normalized = await this.normalize(ctx, source, spec);
@@ -100,7 +122,7 @@ export class IntrigOpenapiService {
     );
   }
 
-  async getResourceDescriptors(id: string): Promise<ResourceDescriptor<RestData | Schema>[]> {
+  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string}> {
     const document = await this.specManagementService.read(id);
     if (!document) {
       throw new Error(`Spec ${id} not found`)
@@ -110,7 +132,9 @@ export class IntrigOpenapiService {
 
     const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
 
-    return [
+    const hash: string = (document.info as any)['x-intrig-hash'];
+
+    const descriptors = [
       ...restData.map(restData => ResourceDescriptor.from({
         id: sha1(`${id}_${restData.method}_${restData.paths.join('_')}_${restData.operationId}_${restData.contentType}_${restData.responseType}`),
         name: camelCase(restData.operationId),
@@ -127,7 +151,17 @@ export class IntrigOpenapiService {
         path: path.join(id, "components", "schemas"),
         data: schema
       }))
-    ]
+    ];
+
+    return { descriptors, hash };
+  }
+
+  async getHash(id: string): Promise<string> {
+    const document = await this.specManagementService.read(id);
+    if (!document) {
+      throw new Error(`Spec ${id} not found`)
+    }
+    return (document.info as any)['x-intrig-hash'];
   }
 
   private validate(normalized: OpenAPIV3_1.Document, restOptions: RestOptions | undefined) {
