@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": "https://raw.githubusercontent.com/intrigsoft/intrig-core/refs/heads/tiranuom-patch-1/docs/schema.json",
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "specUrl": { "type": "string", "format": "uri" }
+        },
+        "required": ["id", "name", "specUrl"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "generator": {
+      "type": "string",
+      "enum": ["react", "vue", "angular", "svelte"]
+    },
+    "codeAnalyzer": {
+      "type": "object",
+      "properties": {
+        "tsConfigPath": { "type": "string" }
+      },
+      "required": ["tsConfigPath"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["sources", "generator"],
+  "additionalProperties": false
+}
