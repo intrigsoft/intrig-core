@@ -1,0 +1,91 @@
+# CLI Reference
+
+<style>
+{`
+table {
+  table-layout: fixed;
+}
+table th:first-child,
+table td:first-child {
+  width: 25%;
+}
+`}
+</style>
+
+The **Intrig CLI** commands are organized by category for quick reference. Each section begins with a short description to help you understand when and why you might use these commands.
+
+## 🚀 Project Setup
+
+Set up Intrig in your project so it’s ready to manage and generate SDKs. This is usually your first step when starting with Intrig.
+
+| Command       | Description                                                                                                          | Common Options / Notes                     |
+| ------------- |----------------------------------------------------------------------------------------------------------------------| ------------------------------------------ |
+| `intrig init` | Detects project type, creates `intrig.config.json`, <br/> updates `.gitignore`, adds build scripts, runs post-init steps. | Run on fresh setup or migrating to Intrig. |
+
+---
+
+## 🔄 API Synchronization & SDK Generation
+
+Keep your project’s SDK in sync with backend API changes by updating sources and regenerating code.
+
+| Command                                | Description                                                       | Common Options / Notes                        |
+| -------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
+| `intrig sync --all`                    | Fetch latest OpenAPI definitions for all sources.                 | `--all` – sync all configured sources.        |
+| `intrig generate`                      | Create type-safe SDK with types, schemas, and framework bindings. | Often run after `sync`.                       |
+| `intrig sync --all && intrig generate` | Update APIs and regenerate SDK in one step.                       | Run after backend changes or before CI build. |
+
+---
+
+## 📂 API Source Management
+
+Add, list, or remove API sources from your Intrig configuration.
+
+| Command                         | Description                                               | Common Options / Notes                         |
+| ------------------------------- | --------------------------------------------------------- | ---------------------------------------------- |
+| `intrig sources add [spec-url]` | Add a new OpenAPI/Swagger source. Prompts for ID and URL. | ID in camelCase; updates `intrig.config.json`. |
+| `intrig sources ls`             | Display all configured API sources.                       | —                                              |
+| `intrig sources rm`             | Remove an API source interactively.                       | Confirms before deletion.                      |
+
+---
+
+## ⚙️ Daemon Control
+
+Manage the Intrig daemon process that runs background operations, required for certain features like Insight.
+
+| Command                 | Description                 | Common Options / Notes |
+| ----------------------- | --------------------------- | ---------------------- |
+| `intrig deamon up`      | Start background daemon.    | Required for Insight.  |
+| `intrig deamon down`    | Stop the daemon.            | —                      |
+| `intrig deamon restart` | Restart the daemon process. | —                      |
+| `intrig deamon status`  | Show if daemon is running.  | —                      |
+
+---
+
+## 🔍 Resource Discovery
+
+Find and inspect API resources such as endpoints and schemas directly from the CLI.
+
+| Command                 | Description                           | Common Options / Notes                         |
+| ----------------------- | ------------------------------------- |------------------------------------------------|
+| `intrig search "query"` | Find endpoints or schemas by keyword. | `--no-interactive`, `--option `.               |
+| `intrig view <id>`      | Display detailed info for a resource. | `--type endpoint \| schema`, `--tab-option `.  |
+
+---
+
+## 🌐 Insight Interface
+
+Launch the Intrig Insight web interface for interactive browsing and exploration of APIs and schemas.
+
+| Command          | Description                                 | Common Options / Notes                                    |
+| ---------------- | ------------------------------------------- |-----------------------------------------------------------|
+| `intrig insight` | Start web UI for browsing APIs and schemas. | `--silent`, `--port `. Requires daemon + synced sources.  |
+
+---
+
+**Typical Dev Flow:**
+
+1. Backend changes → restart app
+2. `intrig sync --all`
+3. `intrig generate`
+4. Work with generated SDK
+5. Use `intrig search` or `intrig insight` for discovery

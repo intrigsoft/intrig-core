@@ -1,4 +1,4 @@
-# **Intrig Quickstart Guide**
+# Intrig Quickstart Guide
 
 This guide walks you through setting up **Intrig**, generating your first SDK, and making your first API call from a **React** project. For other frameworks like Next.js, Remix, and Vue, see the [Other Framework Guides](#) *(placeholder link)*.
 

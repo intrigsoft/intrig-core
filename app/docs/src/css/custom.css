@@ -67,6 +67,34 @@
     --ifm-menu-color-active: #17dbc5;
 }
 
+.figure--center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.figure__img--diagram {
+    filter: grayscale(1);
+    transition: filter .3s ease;
+    width: min(50%, 720px); /* optional: tame huge images */
+}
+
+html[data-theme='dark'] .figure__img--diagram {
+    filter: grayscale(1) invert(1);
+}
+
+.figure__caption {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-top: .5rem;
+}
+
+html[data-theme='dark'] .figure__caption {
+    color: #9ca3af;
+}
+
 /* ==================== SIDEBAR ENHANCEMENTS ==================== */
 
 /* Main sidebar container */
@@ -159,47 +187,6 @@
     height: 1.5rem;
     background: var(--ifm-color-primary);
     border-radius: 2px;
-}
-
-/* Category icons (using CSS pseudo-elements for common categories) */
-.menu__link[href*="core"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "⚙️";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="adapters"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "🔌";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="cookbook"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "📖";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="samples"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "💡";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="integrations"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "🔗";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="reference"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "📚";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="migrations"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "🚀";
-    margin-right: 0.5rem;
-}
-
-.menu__link[href*="contributing"]:not(.menu__list .menu__list .menu__link)::before {
-    content: "🤝";
-    margin-right: 0.5rem;
 }
 
 /* Responsive adjustments */

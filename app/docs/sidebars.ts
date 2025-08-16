@@ -15,6 +15,44 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   docs: [
     'getting-started',
+    'thinking-in-intrig',
+    'core-concepts',
+    {
+      type: 'category',
+      label: 'How Intrig Works',
+      link: { type: 'doc', id: 'how-intrig-works/index' },
+      collapsible: true,
+      collapsed: false,
+      items: [
+        'how-intrig-works/synchronization',
+        'how-intrig-works/code-generation',
+      ],
+    },
+    'cli-reference',
+    {
+      type: 'category',
+      label: "React",
+      link: { type: "doc", id: 'react/index'},
+      collapsed: true,
+      collapsible: true,
+      items: [
+        {
+          type: 'category',
+          label: 'Core Concepts',
+          link: { type: 'doc', id: 'react/core-concepts/index' },
+          collapsible: true,
+          collapsed: false,
+          items: [
+            'react/core-concepts/entry-point',
+            'react/core-concepts/hook-conventions',
+            'react/core-concepts/state-management',
+            'react/core-concepts/stateful-vs-stateless',
+            'react/core-concepts/lifecycle-binding',
+            'react/core-concepts/hierarchical-thinking',
+          ],
+        },
+      ]
+    },
   ],
 };
 
