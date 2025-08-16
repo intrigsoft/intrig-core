@@ -100,7 +100,7 @@ export async function nextAsyncFunctionHookTemplate(
   // Basic imports
   imports.add(`import { z } from 'zod'`);
   imports.add(`import { useCallback } from 'react'`);
-  imports.add(`import { useTransientCall, encode, isError, isSuccess } from '@intrig/next'`);
+  imports.add(`import { useTransitionCall, encode, isError, isSuccess } from '@intrig/next'`);
 
   // Hook signature type
   const hookShape = extractAsyncHookShape(response, requestBody, imports);
@@ -157,7 +157,7 @@ const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${re
 const source = "${source}";
 
 function use${pascalCase(operationId)}AsyncHook(): [(${paramType}) => Promise<Response>, () => void] {
-  const [call, abort] = useTransientCall<Response, _ErrorType>({
+  const [call, abort] = useTransitionCall<Response, _ErrorType>({
     schema,
     errorSchema
   });

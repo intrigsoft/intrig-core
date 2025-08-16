@@ -477,7 +477,7 @@ export function useNetworkState<T, E = unknown>({
  * @param {ZodSchema<T>} [options.errorSchema] Optional schema to validate the error response data.
  * @return {[function(RequestType): Promise<T>, function(): void]} Returns a tuple containing a function to execute the request and a function to abort the ongoing request.
  */
-export function useTransientCall<T, E = unknown>({
+export function useTransitionCall<T, E = unknown>({
                                                    schema,
                                                    errorSchema
                                                  }: {
