@@ -17,7 +17,7 @@ import {load as yamlLoad} from "js-yaml";
 import RefParser from '@apidevtools/json-schema-ref-parser';
 import type {OpenAPIV3_1} from "openapi-types";
 import {normalize} from "./util/normalize";
-import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
+import {ExtractRequestsService} from "./util/extract-requests.service";
 import {extractSchemas} from "./util/extractSchemas";
 import * as path from 'path'
 import set from "lodash/set";
@@ -26,7 +26,11 @@ import set from "lodash/set";
 export class IntrigOpenapiService {
   private readonly logger = new Logger(IntrigOpenapiService.name);
 
-  constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {
+  constructor(
+    private httpService: HttpService, 
+    private specManagementService: SpecManagementService,
+    private extractRequestsService: ExtractRequestsService
+  ) {
   }
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
@@ -134,7 +138,7 @@ export class IntrigOpenapiService {
     if (!document) {
       throw new Error(`Spec ${id} not found`)
     }
-    const restData = extractRequestsFromSpec(document);
+    const restData = this.extractRequestsService.extractRequestsFromSpec(document);
     const schemas = extractSchemas(document);
 
     const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
