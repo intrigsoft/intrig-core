@@ -93,7 +93,7 @@ export async function reactAsyncFunctionHookTemplate(
   }: ResourceDescriptor<RestData>, _path: string, ctx: GeneratorContext) {
   const postfix = ctx.potentiallyConflictingDescriptors.includes(operationId) ? generatePostfix(contentType, responseType) : ''
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}Async${postfix}.ts`));
-
+  ctx.generatorCtx?.getCounter(source)?.inc("Stateless Hooks")
   const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`;
   const imports = new Set<string>();
 

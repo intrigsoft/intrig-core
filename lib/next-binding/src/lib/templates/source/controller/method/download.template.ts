@@ -1,6 +1,7 @@
 import {
   camelCase,
   generatePostfix,
+  GeneratorContext,
   pascalCase,
   ResourceDescriptor, RestData,
   typescript
@@ -9,19 +10,10 @@ import path from 'path';
 
 export function nextDownloadHookTemplate(
   {
-    source,
-    data: {
-      paths,
-      operationId,
-      requestUrl,
-      variables,
-      contentType,
-      responseType,
-    }
-  }: ResourceDescriptor<RestData>,
-  clientExports: string[] = [],
-  serverExports: string[] = [],
-  _path: string,
+    source, data: {
+    paths, operationId, requestUrl, variables, contentType, responseType,
+  }
+  }: ResourceDescriptor<RestData>, clientExports: string[] = [], serverExports: string[] = [], _path: string, ctx: GeneratorContext,
 ) {
   const ts = typescript(
     path.resolve(
@@ -33,6 +25,8 @@ export function nextDownloadHookTemplate(
       `${pascalCase(operationId)}${generatePostfix(contentType, responseType)}Link.tsx`,
     ),
   );
+
+  ctx.generatorCtx?.getCounter(source)?.inc("Download Hooks")
 
   const modifiedRequestUrl = `/api/${source}${requestUrl?.replace(/\{/g, '${')}`;
 

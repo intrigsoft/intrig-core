@@ -7,13 +7,14 @@ import { RestData } from "common";
 export class ExtractRequestsService {
   private readonly logger = new Logger(ExtractRequestsService.name);
 
-  extractRequestsFromSpec(spec: OpenAPIV3_1.Document): RestData[] {
+  extractRequestsFromSpec(spec: OpenAPIV3_1.Document): { restData: RestData[], skippedEndpoints: Array<{endpoint: string, reason: string}> } {
     this.logger.log('Starting extraction of requests from OpenAPI spec');
     this.logger.debug(`Spec title: ${spec.info?.title}, version: ${spec.info?.version}`);
     
     const pathCount = Object.keys(spec.paths || {}).length;
     this.logger.debug(`Processing ${pathCount} paths from OpenAPI spec`);
     const requests: RestData[] = [];
+    const skippedEndpoints: Array<{endpoint: string, reason: string}> = [];
 
     for (const [path, pathData] of Object.entries(spec.paths!)) {
       this.logger.debug(`Processing path: ${path}`);
@@ -63,8 +64,36 @@ export class ExtractRequestsService {
               }));
 
             const response = operation.responses?.['200'] as OpenAPIV3_1.ResponseObject ?? operation.responses?.['201'] as OpenAPIV3_1.ResponseObject;
+            
+            // Check if response exists
+            if (!response) {
+              const reason = 'missing 200/201 response';
+              const endpoint = `${method.toUpperCase()} ${path} (${operation.operationId})`;
+              this.logger.warn(`Endpoint ${endpoint} does not generate REST data - ${reason}`);
+              skippedEndpoints.push({endpoint, reason});
+              continue;
+            }
+            
+            // Check if response has content
+            if (!response.content || Object.keys(response.content).length === 0) {
+              const reason = 'response has no content';
+              const endpoint = `${method.toUpperCase()} ${path} (${operation.operationId})`;
+              this.logger.warn(`Endpoint ${endpoint} does not generate REST data - ${reason}`);
+              skippedEndpoints.push({endpoint, reason});
+              continue;
+            }
+            
             for (const [mediaType, content] of Object.entries(response?.content ?? {})) {
               const ref = content.schema as OpenAPIV3_1.ReferenceObject;
+
+              // Check if schema reference exists
+              if (!ref || !ref.$ref) {
+                const reason = `missing schema reference in ${mediaType} response`;
+                const endpoint = `${method.toUpperCase()} ${path} (${operation.operationId})`;
+                this.logger.warn(`Endpoint ${endpoint} does not generate REST data - ${reason}`);
+                skippedEndpoints.push({endpoint, reason});
+                continue;
+              }
 
               const responseHeaders: Record<string, string> = {};
               for (const key in (response?.headers ?? {})) {
@@ -112,13 +141,24 @@ export class ExtractRequestsService {
             }
           }
         } else {
-          this.logger.debug(`Skipping ${method.toUpperCase()} ${path} - missing operationId`);
+          const reason = 'missing operationId';
+          const endpoint = `${method.toUpperCase()} ${path}`;
+          this.logger.warn(`Endpoint ${endpoint} does not generate REST data - ${reason}`);
+          skippedEndpoints.push({endpoint, reason});
         }
       }
     }
     
+    // Log summary of skipped endpoints
+    if (skippedEndpoints.length > 0) {
+      this.logger.warn(`Found ${skippedEndpoints.length} endpoints that do not generate REST data:`);
+      skippedEndpoints.forEach(({endpoint, reason}) => {
+        this.logger.warn(`  - ${endpoint}: ${reason}`);
+      });
+    }
+    
     this.logger.log(`Completed extraction: found ${requests.length} REST endpoints from OpenAPI spec`);
-    return requests;
+    return { restData: requests, skippedEndpoints };
   }
 
   private isOperationObject(ob: any): ob is OpenAPIV3_1.OperationObject {

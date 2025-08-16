@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding, GeneratorContext,
+  GeneratorBinding, GeneratorContext, GenerateEventContext,
   IIntrigSourceConfig, IntrigSourceConfig,
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
@@ -96,7 +96,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(typeUtilsTemplate(this._path))
   }
 
-  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
+  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig, generatorCtx?: GenerateEventContext): Promise<void> {
     //TODO improve this logic to catch potential conflicts.
     const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
       .sort((a, b) => (a.data.contentType === "application/json" ? -1 : 0) - (b.data.contentType === "application/json" ? -1 : 0))
@@ -104,7 +104,8 @@ export class IntrigNextBindingService extends GeneratorBinding {
       .map(descriptor => descriptor.id);
 
     const ctx = {
-      potentiallyConflictingDescriptors
+      potentiallyConflictingDescriptors,
+      generatorCtx
     };
 
     const groupedByPath: Record<string, ResourceDescriptor<RestData>[]> = {}
@@ -115,11 +116,11 @@ export class IntrigNextBindingService extends GeneratorBinding {
         groupedByPath[descriptor.data.requestUrl!] = groupedByPath[descriptor.data.requestUrl!] || []
         groupedByPath[descriptor.data.requestUrl!].push(descriptor)
       } else if (isSchemaDescriptor(descriptor)) {
-        await this.generateSchemaSource(source, descriptor)
+        await this.generateSchemaSource(source, descriptor, ctx)
       }
     }
     for (const [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
-      await this.dump(nextRequestRouteTemplate(requestUrl, matchingPaths, this._path))
+      await this.dump(nextRequestRouteTemplate(requestUrl, matchingPaths, this._path, ctx))
     }
   }
 
@@ -127,8 +128,8 @@ export class IntrigNextBindingService extends GeneratorBinding {
     const clientExports: string[] = [];
     const serverExports: string[] = [];
     await this.dump(nextParamsTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path))
+    await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path, ctx))
+    await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path, ctx))
     await this.dump(nextAsyncFunctionHookTemplate(descriptor, this._path, ctx))
     
     if ((descriptor.data.method.toUpperCase() === 'GET' &&
@@ -136,19 +137,24 @@ export class IntrigNextBindingService extends GeneratorBinding {
       ) ||
       descriptor.data.responseHeaders?.['content-disposition']
     ) {
-      await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path))
+      await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path, ctx))
     }
-    await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path))
-    await this.dump(nextServerIndexTemplate([descriptor], serverExports, this._path))
+    await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path, ctx))
+    await this.dump(nextServerIndexTemplate([descriptor], serverExports, this._path, ctx))
   }
 
-  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
-    await this.dump(nextTypeTemplate({
+  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>, ctx: {
+    potentiallyConflictingDescriptors: string[];
+    generatorCtx: GenerateEventContext | undefined;
+  }) {
+    const content = nextTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
-    }))
+    });
+    ctx.generatorCtx?.getCounter(source.id)?.inc("Data Types")
+    await this.dump(content)
   }
 
   async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {

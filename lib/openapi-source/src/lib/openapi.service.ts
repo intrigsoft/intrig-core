@@ -133,12 +133,12 @@ export class IntrigOpenapiService {
     );
   }
 
-  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string}> {
+  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string, skippedEndpoints: Array<{endpoint: string, reason: string}>}> {
     const document = await this.specManagementService.read(id);
     if (!document) {
       throw new Error(`Spec ${id} not found`)
     }
-    const restData = this.extractRequestsService.extractRequestsFromSpec(document);
+    const { restData, skippedEndpoints } = this.extractRequestsService.extractRequestsFromSpec(document);
     const schemas = extractSchemas(document);
 
     const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
@@ -164,7 +164,7 @@ export class IntrigOpenapiService {
       }))
     ];
 
-    return { descriptors, hash };
+    return { descriptors, hash, skippedEndpoints };
   }
 
   async getHash(id: string): Promise<string> {

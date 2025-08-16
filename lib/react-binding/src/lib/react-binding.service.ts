@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding, GeneratorContext,
+  GeneratorBinding, GeneratorContext, GenerateEventContext,
   IIntrigSourceConfig, IntrigSourceConfig,
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
@@ -72,7 +72,7 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(typeUtilsTemplate(this._path))
   }
 
-  async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
+  async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig, generatorCtx?: GenerateEventContext): Promise<void> {
     //TODO improve this logic to catch potential conflicts.
     const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
       .sort((a, b) => (a.data.contentType === "application/json" ? -1 : 0) - (b.data.contentType === "application/json" ? -1 : 0))
@@ -80,7 +80,8 @@ export class ReactBindingService extends GeneratorBinding {
       .map(descriptor => descriptor.id);
 
     const ctx = {
-      potentiallyConflictingDescriptors
+      potentiallyConflictingDescriptors,
+      generatorCtx
     };
 
     for (const descriptor of descriptors) {
@@ -88,7 +89,7 @@ export class ReactBindingService extends GeneratorBinding {
       if (isRestDescriptor(descriptor)) {
         await this.generateRestSource(source, descriptor, ctx)
       } else if (isSchemaDescriptor(descriptor)) {
-        await this.generateSchemaSource(source, descriptor)
+        await this.generateSchemaSource(source, descriptor, ctx)
       }
     }
   }
@@ -128,13 +129,17 @@ export class ReactBindingService extends GeneratorBinding {
     return false
   }
 
-  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
+  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>, ctx: {
+    potentiallyConflictingDescriptors: string[];
+    generatorCtx: GenerateEventContext | undefined;
+  }) {
     const content = reactTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
     });
+    ctx.generatorCtx?.getCounter(source.id)?.inc("Data Types")
     await this.dump(content)
   }
 

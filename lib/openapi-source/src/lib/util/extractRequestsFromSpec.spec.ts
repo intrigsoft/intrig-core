@@ -48,8 +48,9 @@ describe('extractRequestsFromSpec', () => {
   });
 
   it('should return empty array for spec with no paths', () => {
-    const result = service.service.extractRequestsFromSpec(basicSpec);
-    expect(result).toEqual([]);
+    const result = service.extractRequestsFromSpec(basicSpec);
+    expect(result.restData).toEqual([]);
+    expect(result.skippedEndpoints).toEqual([]);
   });
 
   it('should extract GET request without parameters', () => {

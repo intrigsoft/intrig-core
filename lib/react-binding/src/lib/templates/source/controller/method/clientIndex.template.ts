@@ -9,8 +9,9 @@ import {
 import * as path from 'path'
 
 export async function reactClientIndexTemplate(descriptors: ResourceDescriptor<RestData>[], _path: string, ctx: GeneratorContext) {
-
   const {source, data: {paths, operationId, responseType, contentType}} = descriptors[0]
+
+  ctx.generatorCtx?.getCounter(source)?.inc("Endpoints");
 
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `client.ts`))
 

@@ -22,6 +22,9 @@ export function SourceDetailPage() {
 
   const [sourceStatsResp, fetchSourceStats] = useDataSearchControllerGetDataStats({
     clearOnUnmount: true,
+    params: {
+      source: sourceId ?? ''
+    },
   })
 
   useEffect(() => {

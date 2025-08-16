@@ -1,5 +1,6 @@
 import {
   camelCase,
+  GenerateEventContext,
   generatePostfix,
   pascalCase,
   ResourceDescriptor, RestData,
@@ -7,13 +8,18 @@ import {
 } from 'common';
 import * as path from "path";
 
-export async function nextRequestRouteTemplate(requestUrl: string, paths: ResourceDescriptor<RestData>[], _path: string) {
+export async function nextRequestRouteTemplate(requestUrl: string, paths: ResourceDescriptor<RestData>[], _path: string, ctx: {
+  potentiallyConflictingDescriptors: string[];
+  generatorCtx: GenerateEventContext | undefined;
+}) {
   const parts = requestUrl
     .replace(/\{/g, "[")
     .replace(/\}/g, "]")
     .split('/')
 
   const {source} = paths[0]
+
+  ctx.generatorCtx?.getCounter(source)?.inc("Routes")
 
   const ts = typescript(path.resolve(_path, 'src', "api", "(generated)", source, ...parts, `route.ts`))
 

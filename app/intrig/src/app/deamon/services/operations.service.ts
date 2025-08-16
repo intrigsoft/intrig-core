@@ -166,8 +166,9 @@ export class OperationsService {
     await this.clearGenerateDir(ctx);
     const hashes: Record<string, string> = {}
     for (const source of config.sources) {
-      const {descriptors, hash} = await this.getDescriptors(ctx, source);
+      const {descriptors, hash, skippedEndpoints} = await this.getDescriptors(ctx, source);
       hashes[source.id] = hash;
+      ctx.setSkippedEndpoints(source.id, skippedEndpoints);
       await this.generateSourceContent(ctx, descriptors, source);
     }
     await this.generateGlobalContent(ctx, config.sources);
@@ -180,6 +181,7 @@ export class OperationsService {
       await this.copyContentToNodeModules(ctx, hashes);
     }
     await this.executePostBuild(ctx);
+    await this.finalize(ctx)
   }
 
   @WithStatus(event => ({sourceId: '', step: 'postBuild'}))
@@ -276,7 +278,7 @@ export class OperationsService {
 
   @WithStatus((a, source) => ({sourceId: source.id, step: 'generate'}))
   private async generateSourceContent(ctx: GenerateEventContext, descriptors: ResourceDescriptor<RestData | Schema>[], source: IIntrigSourceConfig) {
-    await this.generatorBinding.generateSource(descriptors, source)
+    await this.generatorBinding.generateSource(descriptors, source, ctx)
   }
 
   @WithStatus(source => ({sourceId: source.id, step: 'clear'}))
@@ -378,5 +380,22 @@ export class OperationsService {
         statusCode: 409
       };
     }
+  }
+
+  private async finalize(ctx: GenerateEventContext) {
+    ctx.status({
+      step: 'finalize',
+      status: 'started',
+      sourceId: ''
+    })
+    ctx.status({
+      step: 'finalize',
+      sourceId: '',
+      status: 'success',
+      info: JSON.stringify({
+        skipEndpoints: ctx.getSkippedEndpoints(),
+        generationStats: ctx.getCodeGenerationBreakdown()
+      })
+    })
   }
 }

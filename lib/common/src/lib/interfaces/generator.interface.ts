@@ -3,10 +3,11 @@ import {IIntrigSourceConfig, IntrigSourceConfig} from "../model/intrig-source-co
 import {SchemaDocumentation} from "../model/schema";
 import {RestDocumentation} from "../model/rest-resource-data";
 import {RestOptions} from "../model/intrig-config";
+import {GenerateEventContext} from "../model/generate-event";
 
 export abstract class GeneratorBinding {
   abstract generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any>;
-  abstract generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void>;
+  abstract generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig, ctx?: GenerateEventContext): Promise<void>;
   abstract getLibName(): string
   abstract postBuild(): Promise<void>
   abstract getSchemaDocumentation(result: ResourceDescriptor<any>): Promise<SchemaDocumentation>

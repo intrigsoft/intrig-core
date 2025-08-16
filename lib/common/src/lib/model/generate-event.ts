@@ -4,7 +4,7 @@ import {MessageEvent} from "@nestjs/common";
 import {EventContext, EventDto} from "./event-context";
 
 
-type Step = 'getConfig' | 'clear' | 'read' | 'generate' | 'install' | 'build' | 'copy-to-node-modules' | 'postBuild';
+type Step = 'getConfig' | 'clear' | 'read' | 'generate' | 'install' | 'build' | 'copy-to-node-modules' | 'postBuild' | 'finalize';
 
 type Status = 'started' | 'success' | 'error';
 
@@ -62,7 +62,20 @@ export class GenerateDoneEventDto implements IGenerateDoneEventDto {
   }
 }
 
+export class StatsCounter {
+  private counters: Record<string, number> = {};
+  constructor(private sourceId: string) {
+  }
+
+  inc(key: string) {
+    this.counters[key] = (this.counters[key] || 0) + 1;
+  }
+}
+
 export class GenerateEventContext implements EventContext<IGenerateStatusEventDto> {
+  private skippedEndpointsBySource: Record<string, Array<{endpoint: string, reason: string}>> = {};
+  private codeGenerationBreakdown: Record<string, StatsCounter> = {};
+
   constructor(public events$: Subject<MessageEvent>) {
   }
 
@@ -73,5 +86,26 @@ export class GenerateEventContext implements EventContext<IGenerateStatusEventDt
   done(event: IGenerateDoneEventDto) {
     this.events$.next({data: GenerateDoneEventDto.from(event)});
     this.events$.complete();
+  }
+
+  setSkippedEndpoints(sourceId: string, skippedEndpoints: Array<{endpoint: string, reason: string}>) {
+    this.skippedEndpointsBySource[sourceId] = skippedEndpoints;
+  }
+
+  getSkippedEndpoints(): Record<string, Array<{endpoint: string, reason: string}>> {
+    return this.skippedEndpointsBySource;
+  }
+
+  getSkippedEndpointsForSource(sourceId: string): Array<{endpoint: string, reason: string}> {
+    return this.skippedEndpointsBySource[sourceId] || [];
+  }
+
+  getCounter(sourceId: string) {
+    this.codeGenerationBreakdown[sourceId] = this.codeGenerationBreakdown[sourceId] || new StatsCounter(sourceId);
+    return this.codeGenerationBreakdown[sourceId];
+  }
+
+  getCodeGenerationBreakdown(): Record<string, StatsCounter> {
+    return this.codeGenerationBreakdown;
   }
 }
