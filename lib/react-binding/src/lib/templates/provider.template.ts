@@ -13,9 +13,7 @@ export function reactProviderTemplate(_path: string, apisToSync: IntrigSourceCon
   }`
 
   const ts = typescript(path.resolve(_path, "src", "intrig-provider.tsx"))
-  return ts`
-import React, {
-  createContext,
+  return ts`import React, {
   PropsWithChildren,
   useCallback,
   useContext,
@@ -28,7 +26,8 @@ import {
   error,
   ErrorState,
   ErrorWithContext,
-  init, IntrigHook,
+  init,
+  IntrigHook,
   isSuccess,
   isError,
   isPending,
@@ -36,23 +35,22 @@ import {
   NetworkState,
   pending,
   Progress,
-  success
+  success, responseValidationError, configError, httpError, networkError,
 } from './network-state';
 import axios, {
   Axios,
   AxiosProgressEvent,
-  AxiosRequestConfig, 
   AxiosResponse,
   CreateAxiosDefaults,
   InternalAxiosRequestConfig,
   isAxiosError,
 } from 'axios';
-import { ZodSchema } from 'zod';
+import {ZodError, ZodSchema} from 'zod';
 import logger from './logger';
-import {flushSync} from "react-dom";
-import {createParser} from "eventsource-parser";
+import { flushSync } from 'react-dom';
+import { createParser } from 'eventsource-parser';
 
-import {Context, RequestType, GlobalState, SchemaOf} from './intrig-context';
+import { Context, RequestType, GlobalState, SchemaOf } from './intrig-context';
 
 /**
  * Handles state updates for network requests based on the provided action.
@@ -63,7 +61,7 @@ import {Context, RequestType, GlobalState, SchemaOf} from './intrig-context';
  */
 function requestReducer(
   state: GlobalState,
-  action: NetworkAction<unknown, unknown>
+  action: NetworkAction<unknown>,
 ): GlobalState {
   return {
     ...state,
@@ -76,7 +74,9 @@ export interface DefaultConfigs extends CreateAxiosDefaults {
   requestInterceptor?: (
     config: InternalAxiosRequestConfig,
   ) => Promise<InternalAxiosRequestConfig>;
-  responseInterceptor?: (config: AxiosResponse<any>) => Promise<AxiosResponse<any>>;
+  responseInterceptor?: (
+    config: AxiosResponse<any>,
+  ) => Promise<AxiosResponse<any>>;
 }
 
 export interface IntrigProviderProps {
@@ -84,26 +84,36 @@ export interface IntrigProviderProps {
   children: React.ReactNode;
 }
 
-function createAxiosInstance(defaultConfig?: DefaultConfigs, config?: DefaultConfigs) {
+function createAxiosInstance(
+  defaultConfig?: DefaultConfigs,
+  config?: DefaultConfigs,
+) {
   const axiosInstance = axios.create({
-    ...defaultConfig ?? {},
-    ...config ?? {},
+    ...(defaultConfig ?? {}),
+    ...(config ?? {}),
   });
   async function requestInterceptor(cfg: InternalAxiosRequestConfig) {
-    let intermediate = await defaultConfig?.requestInterceptor?.(cfg) ?? cfg;
+    let intermediate = (await defaultConfig?.requestInterceptor?.(cfg)) ?? cfg;
     return config?.requestInterceptor?.(intermediate) ?? intermediate;
   }
 
   async function responseInterceptor(cfg: AxiosResponse<any>) {
-    let intermediate = await defaultConfig?.responseInterceptor?.(cfg) ?? cfg;
+    let intermediate = (await defaultConfig?.responseInterceptor?.(cfg)) ?? cfg;
     return config?.responseInterceptor?.(intermediate) ?? intermediate;
   }
 
-  axiosInstance.interceptors.request.use(requestInterceptor)
+  axiosInstance.interceptors.request.use(requestInterceptor);
   axiosInstance.interceptors.response.use(responseInterceptor, (error) => {
     return Promise.reject(error);
-  })
+  });
   return axiosInstance;
+}
+
+function inferNetworkReason(e: any): 'timeout' | 'dns' | 'offline' | 'aborted' | 'unknown' {
+  if (e?.code === 'ECONNABORTED') return 'timeout';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline';
+  if (e?.name === 'AbortError') return 'aborted';
+  return 'unknown';
 }
 
 /**
@@ -130,80 +140,141 @@ export function IntrigProvider({
   }, [configs]);
 
   const contextValue = useMemo(() => {
-    async function execute<T, E = unknown>(request: RequestType, dispatch: (state: NetworkState<T, E>) => void, schema: ZodSchema<T> | undefined, errorSchema: ZodSchema<E> | undefined) {
+    async function execute<T>(
+      request: RequestType,
+      setState: (s: NetworkState<T>) => void,
+      schema?: ZodSchema<T>,          // success payload schema (optional)
+      errorSchema?: ZodSchema<any>,   // error-body schema for non-2xx (optional)
+    ) {
       try {
-        dispatch(pending());
-        let response = await axiosInstances[request.source].request(request);
+        setState(pending());
 
-        if (response.status >= 200 && response.status < 300) {
-          if (response.headers?.['content-type']?.includes('text/event-stream')) {
-            const reader = response.data.getReader();
+        const axios = axiosInstances[request.source];
+        if (!axios) {
+          setState(error(configError(${"`Unknown axios source '${request.source}'`"})));
+          return;
+        }
+
+        const response = await axios.request(request);
+        const status  = response.status;
+        const method  = (response.config?.method || 'GET').toUpperCase();
+        const url     = response.config?.url || '';
+        const ctype   = String(response.headers?.['content-type'] || '');
+
+        // -------------------- 2xx branch --------------------
+        if (status >= 200 && status < 300) {
+          // SSE stream
+          if (ctype.includes('text/event-stream')) {
+            const reader  = response.data.getReader();
             const decoder = new TextDecoder();
-            
+
             let lastMessage: any;
 
             const parser = createParser({
-              onEvent(message) {
-                let decoded = message.data
+              onEvent(evt) {
+                let decoded: unknown = evt.data;
+
+                // Try JSON parse; if schema is defined, we require valid JSON for validation
                 try {
-                  let parsed = JSON.parse(decoded);
+                  let parsed: unknown = JSON.parse(String(decoded));
                   if (schema) {
-                    let validated = schema.safeParse(parsed);
-                    if (!validated.success) {
-                      dispatch(
-                        error(validated.error.issues, response.status, request),
-                      );
+                    const vr = schema.safeParse(parsed);
+                    if (!vr.success) {
+                      setState(error(responseValidationError(vr.error, parsed)));
                       return;
                     }
-                    parsed = validated.data;
+                    parsed = vr.data;
                   }
                   decoded = parsed;
-                } catch (e) {
-                  logger.error(e);
+                } catch (ignore) {
+                  if (schema) {
+                    // schema expects structured data but chunk wasn’t JSON
+                    setState(error(responseValidationError(new ZodError([]), decoded)));
+                    return;
+                  }
+                  // if no schema, pass raw text
                 }
+
                 lastMessage = decoded;
-                flushSync(() => dispatch(pending(undefined, decoded)));
+                flushSync(() => setState(pending(undefined, decoded as T)));
               },
             });
 
             while (true) {
-              let { done, value } = await reader.read();
+              const { done, value } = await reader.read();
               if (done) {
-                flushSync(() => dispatch(success(lastMessage, response.headers)));
+                flushSync(() => setState(success(lastMessage as T, response.headers)));
                 break;
               }
-
               parser.feed(decoder.decode(value, { stream: true }));
             }
-          } else if (schema) {
-            let data = schema.safeParse(response.data);
-            if (!data.success) {
-              dispatch(
-                error(data.error.issues, response.status, request)
-              );
+            return;
+          }
+
+          // Non-SSE: validate body if a schema is provided
+          if (schema) {
+            const parsed = schema.safeParse(response.data);
+            if (!parsed.success) {
+              setState(error(responseValidationError(parsed.error, response.data)));
               return;
             }
-            dispatch(success(data.data, response.headers));
-          } else {
-            dispatch(success(response.data, response.headers));
+            setState(success(parsed.data, response.headers));
+            return;
           }
-        } else {
-          let { data, error: validationError } = errorSchema?.safeParse(response.data ?? {}) ?? {};
-          //todo: handle error validation error.
-          dispatch(
-            error(data ?? response.data ?? response.statusText, response.status)
-          );
+
+          // No schema → pass through
+          setState(success(response.data as T, response.headers));
+          return;
         }
+
+        // -------------------- non-2xx (HTTP error) --------------------
+        let errorBody: unknown = response.data;
+
+        if (errorSchema) {
+          const ev = errorSchema.safeParse(errorBody ?? {});
+          if (!ev.success) {
+            setState(error(responseValidationError(ev.error, errorBody)));
+            return;
+          }
+          errorBody = ev.data;
+        }
+
+        // NOTE: your httpError signature is (status, url, method, headers?, body?)
+        setState(error(httpError(status, url, method, response.headers, errorBody)));
+
       } catch (e: any) {
+        // -------------------- thrown / transport --------------------
         if (isAxiosError(e)) {
-          let { data, error: validationError } = errorSchema?.safeParse(e.response?.data ?? {}) ?? {};
-          dispatch(error(data ?? e.response?.data, e.response?.status, request));
-        } else {
-          dispatch(error(e));
+          const status = e.response?.status;
+          const method = (e.config?.method || 'GET').toUpperCase();
+          const url    = e.config?.url || '';
+
+          if (status != null) {
+            // HTTP error with response
+            let errorBody: unknown = e.response?.data;
+
+            if (errorSchema) {
+              const ev = errorSchema.safeParse(errorBody ?? {});
+              if (!ev.success) {
+                setState(error(responseValidationError(ev.error, errorBody)));
+                return;
+              }
+              errorBody = ev.data;
+            }
+
+            setState(error(httpError(status, url, method, e.response?.headers, errorBody)));
+            return;
+          }
+
+          // No response → network layer
+          setState(error(networkError(inferNetworkReason(e), e.request)));
+          return;
         }
+
+        // Non-Axios exception → treat as unknown network-ish failure
+        setState(error(networkError('unknown')));
       }
     }
-
     return {
       state,
       dispatch,
@@ -216,45 +287,76 @@ export function IntrigProvider({
   return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
-export interface StubType<P, B, T> {
-  <P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>): void
+export interface StubType {
+  <P, B, T>(
+    hook: IntrigHook<P, B, T>,
+    fn: (
+      params: P,
+      body: B,
+      dispatch: (state: NetworkState<T>) => void,
+    ) => Promise<void>,
+  ): void;
 }
 
 export type WithStubSupport<T> = T & {
-  stubs?: (stub: StubType<any, any, any>) => void;
-}
+  stubs?: (stub: StubType) => void;
+};
 
 export interface IntrigProviderStubProps {
-  configs?: ${configType};
-  stubs?: (stub: StubType<any, any, any>) => void;
+  configs?: {
+    defaults?: DefaultConfigs;
+    employee_api?: DefaultConfigs;
+  };
+  stubs?: (stub: StubType) => void;
   children: React.ReactNode;
 }
 
-export function IntrigProviderStub({ children, configs = {}, stubs = () => {} }: IntrigProviderStubProps) {
+export function IntrigProviderStub({
+  children,
+  configs = {},
+  stubs = () => {},
+}: IntrigProviderStubProps) {
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
   const collectedStubs = useMemo(() => {
-    let fns: Record<string, (params: any, body: any, dispatch: (state: NetworkState<any>) => void) => Promise<void>> = {};
-    function stub<P, B, T>(hook: IntrigHook<P, B, T>, fn: (params: P, body: B, dispatch: (state: NetworkState<T>) => void) => Promise<void>) {
+    let fns: Record<
+      string,
+      (
+        params: any,
+        body: any,
+        dispatch: (state: NetworkState<any>) => void,
+      ) => Promise<void>
+    > = {};
+    function stub<P, B, T>(
+      hook: IntrigHook<P, B, T>,
+      fn: (
+        params: P,
+        body: B,
+        dispatch: (state: NetworkState<T>) => void,
+      ) => Promise<void>,
+    ) {
       fns[hook.key] = fn;
     }
     stubs(stub);
-    return fns
+    return fns;
   }, [stubs]);
 
   const contextValue = useMemo(() => {
-
-    async function execute<T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: ZodSchema<T> | undefined) {
+    async function execute<T>(
+      request: RequestType,
+      dispatch: (state: NetworkState<T>) => void,
+      schema: ZodSchema<T> | undefined,
+    ) {
       let stub = collectedStubs[request.key];
 
       if (!!stub) {
         try {
           await stub(request.params, request.data, dispatch);
-        } catch (e) {
-          dispatch(error(e));
+        } catch (e: any) {
+          dispatch(error(configError(e?.message ?? '')));
         }
       } else {
-        dispatch(init())
+        dispatch(init());
       }
     }
 
@@ -267,9 +369,7 @@ export function IntrigProviderStub({ children, configs = {}, stubs = () => {} }:
     };
   }, [state, dispatch, configs, collectedStubs]);
 
-  return <Context.Provider value={contextValue}>
-    {children}
-  </Context.Provider>
+  return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 
 export interface StatusTrapProps {
@@ -308,11 +408,11 @@ export function StatusTrap({
           return false;
       }
     },
-    [type]
+    [type],
   );
 
   const dispatch = useCallback(
-    (event: NetworkAction<any, any>) => {
+    (event: NetworkAction<any>) => {
       if (!event.handled) {
         if (shouldHandleEvent(event.state)) {
           setRequests((prev) => [...prev, event.key]);
@@ -329,12 +429,12 @@ export function StatusTrap({
       }
       ctx.dispatch(event);
     },
-    [ctx, propagate, shouldHandleEvent]
+    [ctx, propagate, shouldHandleEvent],
   );
 
   const filteredState = useMemo(() => {
     return Object.fromEntries(
-      Object.entries(ctx.state).filter(([key]) => requests.includes(key))
+      Object.entries(ctx.state).filter(([key]) => requests.includes(key)),
     );
   }, [ctx.state, requests]);
 
@@ -351,12 +451,12 @@ export function StatusTrap({
   );
 }
 
-export interface NetworkStateProps<T, E = unknown> {
+export interface NetworkStateProps<T> {
   key: string;
   operation: string;
   source: string;
   schema?: SchemaOf<T>;
-  errorSchema?: SchemaOf<E>;
+  errorSchema?: SchemaOf<any>;
   debounceDelay?: number;
 }
 
@@ -376,7 +476,7 @@ export interface NetworkStateProps<T, E = unknown> {
  *          Returns a state object representing the current network state,
  *          a function to execute the network request, and a function to clear the request.
  */
-export function useNetworkState<T, E = unknown>({
+export function useNetworkState<T>({
   key,
   operation,
   source,
@@ -384,10 +484,10 @@ export function useNetworkState<T, E = unknown>({
   errorSchema,
   debounceDelay: requestDebounceDelay,
 }: NetworkStateProps<T>): [
-  NetworkState<T, E>,
+  NetworkState<T>,
   (request: RequestType) => void,
   () => void,
-  (state: NetworkState<T, E>) => void
+  (state: NetworkState<T>) => void,
 ] {
   const context = useContext(Context);
 
@@ -406,11 +506,13 @@ export function useNetworkState<T, E = unknown>({
     (state: NetworkState<T>) => {
       context.dispatch({ key, operation, source, state });
     },
-    [key, operation, source, context.dispatch]
+    [key, operation, source, context.dispatch],
   );
 
   const debounceDelay = useMemo(() => {
-    return requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0;
+    return (
+      requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0
+    );
   }, [context.configs, requestDebounceDelay, source]);
 
   const execute = useCallback(
@@ -429,7 +531,7 @@ export function useNetworkState<T, E = unknown>({
               type: 'upload',
               loaded: event.loaded,
               total: event.total,
-            })
+            }),
           );
           request.onUploadProgress?.(event);
         },
@@ -439,21 +541,26 @@ export function useNetworkState<T, E = unknown>({
               type: 'download',
               loaded: event.loaded,
               total: event.total,
-            })
+            }),
           );
           request.onDownloadProgress?.(event);
         },
         signal: abortController.signal,
       };
 
-      await context.execute(requestConfig, dispatch, schema, errorSchema as any);
+      await context.execute(
+        requestConfig,
+        dispatch,
+        schema,
+        errorSchema as any,
+      );
     },
-    [networkState, context.dispatch, axios]
+    [networkState, context.dispatch, axios],
   );
 
   const deboundedExecute = useMemo(
     () => debounce(execute, debounceDelay ?? 0),
-    [execute]
+    [execute],
   );
 
   const clear = useCallback(() => {
@@ -477,18 +584,18 @@ export function useNetworkState<T, E = unknown>({
  * @param {ZodSchema<T>} [options.errorSchema] Optional schema to validate the error response data.
  * @return {[function(RequestType): Promise<T>, function(): void]} Returns a tuple containing a function to execute the request and a function to abort the ongoing request.
  */
-export function useTransitionCall<T, E = unknown>({
-                                                   schema,
-                                                   errorSchema
-                                                 }: {
+export function useTransitionCall<T>({
+  schema,
+  errorSchema,
+}: {
   schema?: SchemaOf<T>;
-  errorSchema?: SchemaOf<T>
+  errorSchema?: SchemaOf<T>;
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController | undefined>(undefined);
 
   const call = useCallback(
-    async (request: RequestType)=> {
+    async (request: RequestType) => {
       controller.current?.abort();
       const abort = new AbortController();
       controller.current = abort;
@@ -506,7 +613,7 @@ export function useTransitionCall<T, E = unknown>({
           schema,
           errorSchema,
         );
-      })
+      });
     },
     [ctx, schema, errorSchema],
   );
@@ -564,7 +671,9 @@ export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {
-    let pendingStates = Object.values(ctx.filteredState as Record<string, NetworkState>).filter(isPending);
+    let pendingStates = Object.values(
+      ctx.filteredState as Record<string, NetworkState>,
+    ).filter(isPending);
     if (!pendingStates.length) {
       return init();
     }
@@ -578,7 +687,7 @@ export function useCentralPendingState() {
             loaded: progress.loaded + (current.progress?.loaded ?? 0),
           };
         },
-        { total: 0, loaded: 0 } satisfies Progress
+        { total: 0, loaded: 0 } satisfies Progress,
       );
     return pending(!!progress.total ? progress : undefined);
   }, [ctx.filteredState]);
