@@ -79,6 +79,6 @@ A common pattern is to **load data in a page/root component (active)** and let *
 
 ## Related Concepts
 
-* [Stateful vs Stateless Hooks](/react/core-concepts/stateful-vs-stateless) – deciding whether results should be cached in Intrig’s global store.
-* [Hierarchical Thinking](/react/core-concepts/hierarchical-thinking) – placing active hooks high in the tree so children can observe.
-* [Cookbook: Binding to Component Lifecycle](/react/cookbook/binding-to-component-lifecycle) – practical examples and patterns.
+* [Stateful vs Stateless Hooks](/docs/react/core-concepts/stateful-vs-stateless) – deciding whether results should be cached in Intrig's global store.
+* [Hierarchical Thinking](/docs/react/core-concepts/hierarchical-thinking) – placing active hooks high in the tree so children can observe.
+* [Cookbook: Binding to Component Lifecycle](/docs/react/cookbook/binding-to-component-lifecycle) – practical examples and patterns.

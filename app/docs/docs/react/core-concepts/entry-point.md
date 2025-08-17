@@ -16,5 +16,5 @@ By centralizing configuration in `IntrigProvider`, you reduce boilerplate, avoid
 
 **Next Steps:**
 
-* Learn about [Hook Conventions](/react/core-concepts/hook-conventions) to see how hooks consume the context provided by `IntrigProvider`.
-* Explore [State Management](/react/core-concepts/state-management) for insight into how Intrig stores and shares network state across components.
+* Learn about [Hook Conventions](/docs/react/core-concepts/hook-conventions) to see how hooks consume the context provided by `IntrigProvider`.
+* Explore [State Management](/docs/react/core-concepts/state-management) for insight into how Intrig stores and shares network state across components.

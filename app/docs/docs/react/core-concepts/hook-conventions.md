@@ -80,5 +80,5 @@ By following these conventions, Intrig ensures that every hook you use is consis
 
 **Next Steps:**
 
-* Learn about [State Management](/react/core-concepts/state-management) to see how hook states are stored and shared.
-* Explore [Stateful vs Stateless Hooks](/react/core-concepts/stateful-vs-stateless) for deeper insight into choosing the right hook for each use case.
+* Learn about [State Management](/docs/react/core-concepts/state-management) to see how hook states are stored and shared.
+* Explore [Stateful vs Stateless Hooks](/docs/react/core-concepts/stateful-vs-stateless) for deeper insight into choosing the right hook for each use case.

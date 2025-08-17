@@ -7,7 +7,7 @@ Intrig’s **Core Concepts** for React define the mental model for building appl
 ## Entry Point
 
 Every React application using Intrig starts with the `IntrigProvider`. It establishes the configuration for one or more API sources, sets up global defaults like base URLs and authentication headers, and makes these settings available to all generated hooks and utilities via React Context. Placing `IntrigProvider` at the root of your application ensures consistent behavior and state sharing across the entire component tree.
-Read more → [Entry Point](/react/core-concepts/entry-point)
+Read more → [Entry Point](/docs/react/core-concepts/entry-point)
 
 ---
 
@@ -15,7 +15,7 @@ Read more → [Entry Point](/react/core-concepts/entry-point)
 
 All generated hooks follow a consistent pattern to ensure readability and ease of use for developers familiar with Intrig. This includes standard naming based on API operation IDs, predictable signatures, and a consistent way to manage parameters, responses, and network states.
 
-Read more → [Hook Conventions](/react/core-concepts/hook-conventions)
+Read more → [Hook Conventions](/docs/react/core-concepts/hook-conventions)
 
 ---
 
@@ -23,7 +23,7 @@ Read more → [Hook Conventions](/react/core-concepts/hook-conventions)
 
 Intrig maintains a global store of network state for each API endpoint. This allows multiple components to access the same state without needing to pass props or manually synchronize data.
 
-Read more → [State Management](/react/core-concepts/state-management)
+Read more → [State Management](/docs/react/core-concepts/state-management)
 
 ---
 
@@ -31,7 +31,7 @@ Read more → [State Management](/react/core-concepts/state-management)
 
 Stateful hooks cache results in the global store and are ideal for data you want to reuse or observe from multiple components. Stateless hooks are best for one-off operations where caching isn’t needed.
 
-Read more → [Stateful vs Stateless Hooks](/react/core-concepts/stateful-vs-stateless)
+Read more → [Stateful vs Stateless Hooks](/docs/react/core-concepts/stateful-vs-stateless)
 
 ---
 
@@ -39,7 +39,7 @@ Read more → [Stateful vs Stateless Hooks](/react/core-concepts/stateful-vs-sta
 
 Active hooks load data when a component mounts and clean up when it unmounts. Passive observation allows components to display data loaded elsewhere without triggering additional requests.
 
-Read more → [Lifecycle Binding](/react/core-concepts/lifecycle-binding)
+Read more → [Lifecycle Binding](/docs/react/core-concepts/lifecycle-binding)
 
 ---
 
@@ -47,7 +47,7 @@ Read more → [Lifecycle Binding](/react/core-concepts/lifecycle-binding)
 
 Place data-fetching hooks higher in the component tree to minimize duplicate requests and make state sharing easier. Organizing your file structure to mirror your component hierarchy can make this pattern easier to apply.
 
-Read more → [Hierarchical Thinking](/react/core-concepts/hierarchical-thinking)
+Read more → [Hierarchical Thinking](/docs/react/core-concepts/hierarchical-thinking)
 
 ---
 

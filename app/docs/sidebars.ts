@@ -16,7 +16,6 @@ const sidebars: SidebarsConfig = {
   docs: [
     'getting-started',
     'thinking-in-intrig',
-    'core-concepts',
     {
       type: 'category',
       label: 'How Intrig Works',
@@ -41,7 +40,7 @@ const sidebars: SidebarsConfig = {
           label: 'Core Concepts',
           link: { type: 'doc', id: 'react/core-concepts/index' },
           collapsible: true,
-          collapsed: false,
+          collapsed: true,
           items: [
             'react/core-concepts/entry-point',
             'react/core-concepts/hook-conventions',
@@ -51,6 +50,21 @@ const sidebars: SidebarsConfig = {
             'react/core-concepts/hierarchical-thinking',
           ],
         },
+        {
+          type: 'category',
+          label: 'API Reference',
+          link: { type: 'doc', id: 'react/api/index'},
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'react/api/intrig-provider',
+            'react/api/network-state',
+            'react/api/is-success',
+            'react/api/is-error',
+            'react/api/is-pending',
+            'react/api/is-init'
+          ]
+        }
       ]
     },
   ],
