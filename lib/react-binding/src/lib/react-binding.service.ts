@@ -18,6 +18,12 @@ import {reactMediaTypeUtilsTemplate} from "./templates/media-type-utils.template
 import {reactNetworkStateTemplate} from "./templates/network-state.template";
 import {reactPackageJsonTemplate} from "./templates/packageJson.template";
 import {reactProviderTemplate} from "./templates/provider.template";
+import {reactProviderInterfacesTemplate} from "./templates/provider/interfaces.template";
+import {reactProviderReducerTemplate} from "./templates/provider/reducer.template";
+import {reactProviderAxiosConfigTemplate} from "./templates/provider/axios-config.template";
+import {reactProviderComponentsTemplate} from "./templates/provider/components.template";
+import {reactProviderHooksTemplate} from "./templates/provider/hooks.template";
+import {reactProviderMainTemplate} from "./templates/provider/main.template";
 import {reactTsConfigTemplate} from "./templates/tsconfig.template";
 import {reactClientIndexTemplate} from "./templates/source/controller/method/clientIndex.template";
 import {reactParamsTemplate} from "./templates/source/controller/method/params.template";
@@ -67,7 +73,13 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactMediaTypeUtilsTemplate(this._path))
     await this.dump(reactNetworkStateTemplate(this._path))
     await this.dump(reactPackageJsonTemplate(this._path))
-    await this.dump(reactProviderTemplate(this._path, apisToSync))
+    // Generate modular provider templates
+    await this.dump(reactProviderInterfacesTemplate(this._path, apisToSync))
+    await this.dump(reactProviderReducerTemplate(this._path))
+    await this.dump(reactProviderAxiosConfigTemplate(this._path, apisToSync))
+    await this.dump(reactProviderComponentsTemplate(this._path, apisToSync))
+    await this.dump(reactProviderHooksTemplate(this._path))
+    await this.dump(reactProviderMainTemplate(this._path, apisToSync))
     await this.dump(reactTsConfigTemplate(this._path))
     await this.dump(typeUtilsTemplate(this._path))
   }

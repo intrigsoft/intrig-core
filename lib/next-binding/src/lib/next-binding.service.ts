@@ -8,7 +8,12 @@ import {
   SourceManagementService, Tab
 } from "common";
 import { nextNetworkStateTemplate } from './templates/network-state.template';
-import { nextProviderTemplate } from './templates/provider.template';
+import { nextProviderInterfacesTemplate } from './templates/provider/interfaces.template';
+import { nextProviderReducerTemplate } from './templates/provider/reducer.template';
+import { nextProviderAxiosConfigTemplate } from './templates/provider/axios-config.template';
+import { nextProviderComponentsTemplate } from './templates/provider/components.template';
+import { nextProviderHooksTemplate } from './templates/provider/hooks.template';
+import { nextProviderMainTemplate } from './templates/provider/main.template';
 import { nextIndexTemplate } from './templates/index.template';
 import { nextTsConfigTemplate } from './templates/tsconfig.template';
 import { nextPackageJsonTemplate } from './templates/packageJson.template';
@@ -80,9 +85,15 @@ export class IntrigNextBindingService extends GeneratorBinding {
 
   private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
-  override async generateGlobal(): Promise<any> {
+  override async generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any> {
     await this.dump(nextNetworkStateTemplate(this._path))
-    await this.dump(nextProviderTemplate(this._path))
+    // Generate modular provider templates
+    await this.dump(nextProviderInterfacesTemplate(this._path, apisToSync))
+    await this.dump(nextProviderReducerTemplate(this._path))
+    await this.dump(nextProviderAxiosConfigTemplate(this._path, apisToSync))
+    await this.dump(nextProviderComponentsTemplate(this._path, apisToSync))
+    await this.dump(nextProviderHooksTemplate(this._path))
+    await this.dump(nextProviderMainTemplate(this._path, apisToSync))
     await this.dump(nextIntrigLayoutTemplate(this._path))
     await this.dump(nextIndexTemplate(this._path))
     await this.dump(nextTsConfigTemplate(this._path))
