@@ -28,11 +28,37 @@ Set up Intrig in your project so it’s ready to manage and generate SDKs. This 
 
 Keep your project’s SDK in sync with backend API changes by updating sources and regenerating code.
 
-| Command                                | Description                                                       | Common Options / Notes                        |
-| -------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
-| `intrig sync --all`                    | Fetch latest OpenAPI definitions for all sources.                 | `--all` – sync all configured sources.        |
-| `intrig generate`                      | Create type-safe SDK with types, schemas, and framework bindings. | Often run after `sync`.                       |
-| `intrig sync --all && intrig generate` | Update APIs and regenerate SDK in one step.                       | Run after backend changes or before CI build. |
+| Command                                | Description                                                       | Common Options / Notes                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `intrig sync --all`                    | Fetch latest OpenAPI definitions for all sources.                 | `--all` – sync all configured sources. `--id <sourceId>` – sync only one source.       |
+| `intrig generate`                      | Create type-safe SDK with types, schemas, and framework bindings. | Often run after `sync`.                                                               |
+| `intrig sync --all && intrig generate` | Update APIs and regenerate SDK in one step.                       | Run after backend changes or before CI build.                                          |
+
+### CI mode (`--ci`)
+
+Run sync and generate without relying on the Intrig daemon and without any interactive prompts. Ideal for CI pipelines.
+
+- What it does:
+  - Runs operations in-process (no auto-start of the Intrig daemon)
+  - Avoids any interactive prompts
+  - For `intrig sync`, if neither `--id` nor `--all` is provided, it defaults to syncing all sources
+- Recommended sequence in pipelines:
+
+```bash
+# After changing backend, restart the app before syncing (if applicable)
+# Then, keep SDK up-to-date in CI:
+intrig sync --ci --all && intrig generate --ci
+```
+
+Examples:
+
+```bash
+# Sync a specific source in CI
+intrig sync --ci --id my-api
+
+# Sync all sources and generate SDK in CI
+intrig sync --ci --all && intrig generate --ci
+```
 
 ---
 
@@ -54,10 +80,10 @@ Manage the Intrig daemon process that runs background operations, required for c
 
 | Command                 | Description                 | Common Options / Notes |
 | ----------------------- | --------------------------- | ---------------------- |
-| `intrig deamon up`      | Start background daemon.    | Required for Insight.  |
-| `intrig deamon down`    | Stop the daemon.            | —                      |
-| `intrig deamon restart` | Restart the daemon process. | —                      |
-| `intrig deamon status`  | Show if daemon is running.  | —                      |
+| `intrig daemon up`      | Start background daemon.    | Required for Insight.  |
+| `intrig daemon down`    | Stop the daemon.            | —                      |
+| `intrig daemon restart` | Restart the daemon process. | —                      |
+| `intrig daemon status`  | Show if daemon is running.  | —                      |
 
 ---
 
