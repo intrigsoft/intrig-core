@@ -701,8 +701,8 @@
     }
   },
   "info": {
-    "title": "Intrig Deamon API",
-    "description": "API for intrig deamon integrations",
+    "title": "Intrig Daemon API",
+    "description": "API for intrig daemon integrations",
     "version": "1.0",
     "contact": {}
   },
