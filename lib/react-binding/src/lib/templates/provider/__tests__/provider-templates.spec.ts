@@ -1,7 +1,9 @@
 import { reactProviderInterfacesTemplate } from '../interfaces.template';
 import { reactProviderReducerTemplate } from '../reducer.template';
 import { reactProviderAxiosConfigTemplate } from '../axios-config.template';
-import { reactProviderComponentsTemplate } from '../components.template';
+import { reactIntrigProviderTemplate } from '../intrig-provider.template';
+import { reactIntrigProviderStubTemplate } from '../intrig-provider-stub.template';
+import { reactStatusTrapTemplate } from '../status-trap.template';
 import { reactProviderHooksTemplate } from '../hooks.template';
 import { reactProviderMainTemplate } from '../main.template';
 import * as ts from 'typescript';
@@ -116,15 +118,33 @@ describe('Provider Templates', () => {
     });
   });
 
-  describe('reactProviderComponentsTemplate', () => {
+  describe('reactIntrigProviderTemplate', () => {
     it('should generate syntactically valid TypeScript code', () => {
-      const result = reactProviderComponentsTemplate(mockPath, mockApisToSync);
+      const result = reactIntrigProviderTemplate(mockPath, mockApisToSync);
       expect(result).toBeDefined();
       expect(result.content).toContain('export function IntrigProvider');
+      
+      validateTypeScriptSyntax(result.content, 'intrig-provider.tsx');
+    });
+  });
+
+  describe('reactIntrigProviderStubTemplate', () => {
+    it('should generate syntactically valid TypeScript code', () => {
+      const result = reactIntrigProviderStubTemplate(mockPath, mockApisToSync);
+      expect(result).toBeDefined();
       expect(result.content).toContain('export function IntrigProviderStub');
+      
+      validateTypeScriptSyntax(result.content, 'intrig-provider-stub.tsx');
+    });
+  });
+
+  describe('reactStatusTrapTemplate', () => {
+    it('should generate syntactically valid TypeScript code', () => {
+      const result = reactStatusTrapTemplate(mockPath, mockApisToSync);
+      expect(result).toBeDefined();
       expect(result.content).toContain('export function StatusTrap');
       
-      validateTypeScriptSyntax(result.content, 'provider-components.tsx');
+      validateTypeScriptSyntax(result.content, 'status-trap.tsx');
     });
   });
 
@@ -148,7 +168,9 @@ describe('Provider Templates', () => {
       expect(result.content).toContain('export * from \'./interfaces\'');
       expect(result.content).toContain('export * from \'./reducer\'');
       expect(result.content).toContain('export * from \'./axios-config\'');
-      expect(result.content).toContain('export * from \'./provider-components\'');
+      expect(result.content).toContain('export * from \'./intrig-provider\'');
+            expect(result.content).toContain('export * from \'./intrig-provider-stub\'');
+            expect(result.content).toContain('export * from \'./status-trap\'');
       expect(result.content).toContain('export * from \'./provider-hooks\'');
       
       validateTypeScriptSyntax(result.content, 'intrig-provider.tsx');
@@ -160,7 +182,9 @@ describe('Provider Templates', () => {
       const interfaces = reactProviderInterfacesTemplate(mockPath, mockApisToSync);
       const reducer = reactProviderReducerTemplate(mockPath);
       const axiosConfig = reactProviderAxiosConfigTemplate(mockPath, mockApisToSync);
-      const components = reactProviderComponentsTemplate(mockPath, mockApisToSync);
+      const provider = reactIntrigProviderTemplate(mockPath, mockApisToSync);
+            const providerStub = reactIntrigProviderStubTemplate(mockPath, mockApisToSync);
+            const statusTrap = reactStatusTrapTemplate(mockPath, mockApisToSync);
       const hooks = reactProviderHooksTemplate(mockPath);
       const main = reactProviderMainTemplate(mockPath, mockApisToSync);
 
@@ -168,7 +192,9 @@ describe('Provider Templates', () => {
       expect(interfaces.content).toBeTruthy();
       expect(reducer.content).toBeTruthy();
       expect(axiosConfig.content).toBeTruthy();
-      expect(components.content).toBeTruthy();
+      expect(provider.content).toBeTruthy();
+            expect(providerStub.content).toBeTruthy();
+            expect(statusTrap.content).toBeTruthy();
       expect(hooks.content).toBeTruthy();
       expect(main.content).toBeTruthy();
 

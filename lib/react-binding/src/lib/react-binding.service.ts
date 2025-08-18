@@ -21,7 +21,9 @@ import {reactProviderTemplate} from "./templates/provider.template";
 import {reactProviderInterfacesTemplate} from "./templates/provider/interfaces.template";
 import {reactProviderReducerTemplate} from "./templates/provider/reducer.template";
 import {reactProviderAxiosConfigTemplate} from "./templates/provider/axios-config.template";
-import {reactProviderComponentsTemplate} from "./templates/provider/components.template";
+import {reactIntrigProviderTemplate} from "./templates/provider/intrig-provider.template";
+import {reactIntrigProviderStubTemplate} from "./templates/provider/intrig-provider-stub.template";
+import {reactStatusTrapTemplate} from "./templates/provider/status-trap.template";
 import {reactProviderHooksTemplate} from "./templates/provider/hooks.template";
 import {reactProviderMainTemplate} from "./templates/provider/main.template";
 import {reactTsConfigTemplate} from "./templates/tsconfig.template";
@@ -78,7 +80,9 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactProviderInterfacesTemplate(this._path, apisToSync))
     await this.dump(reactProviderReducerTemplate(this._path))
     await this.dump(reactProviderAxiosConfigTemplate(this._path, apisToSync))
-    await this.dump(reactProviderComponentsTemplate(this._path, apisToSync))
+    await this.dump(reactIntrigProviderTemplate(this._path, apisToSync))
+        await this.dump(reactIntrigProviderStubTemplate(this._path, apisToSync))
+        await this.dump(reactStatusTrapTemplate(this._path, apisToSync))
     await this.dump(reactProviderHooksTemplate(this._path))
     await this.dump(reactProviderMainTemplate(this._path, apisToSync))
     await this.dump(reactTsConfigTemplate(this._path))
