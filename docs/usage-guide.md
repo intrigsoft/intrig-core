@@ -27,12 +27,12 @@ intrig [command] --help
 
 Intrig provides several commands to help you manage your project:
 
-### `deamon` - Daemon Related Operations
+### `daemon` - Daemon Related Operations
 
 Manages the Intrig daemon service that runs in the background.
 
 ```
-intrig deamon [subcommand]
+intrig daemon [subcommand]
 ```
 
 Subcommands:
@@ -43,10 +43,10 @@ Subcommands:
 
 Examples:
 ```
-intrig deamon up
-intrig deamon down
-intrig deamon restart
-intrig deamon status
+intrig daemon up
+intrig daemon down
+intrig daemon restart
+intrig daemon status
 ```
 
 ### `generate` - Generate Codebase
@@ -147,22 +147,22 @@ Here are some common workflows using Intrig:
 
 1. Start the daemon:
    ```
-   intrig deamon up
+   intrig daemon up
    ```
 
 2. Check daemon status:
    ```
-   intrig deamon status
+   intrig daemon status
    ```
 
 3. Restart the daemon after configuration changes:
    ```
-   intrig deamon restart
+   intrig daemon restart
    ```
 
 4. Stop the daemon when not needed:
    ```
-   intrig deamon down
+   intrig daemon down
    ```
 
 ## Troubleshooting
@@ -171,12 +171,12 @@ If you encounter issues with Intrig, try the following:
 
 1. Check if the daemon is running:
    ```
-   intrig deamon status
+   intrig daemon status
    ```
 
 2. Restart the daemon:
    ```
-   intrig deamon restart
+   intrig daemon restart
    ```
 
 3. Ensure your sources are correctly configured:
