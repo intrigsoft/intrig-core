@@ -1,24 +1,138 @@
-import { Command, CommandRunner } from 'nest-commander';
+import { Command, CommandRunner, Option } from 'nest-commander';
 import { ProcessManagerService } from '../process-manager.service';
 import { HttpService } from '@nestjs/axios';
 import chalk from 'chalk';
-import { lastValueFrom } from 'rxjs';
+import {lastValueFrom, Subject, Subscription} from 'rxjs';
 import { createParser, EventSourceMessage, ParseError } from 'eventsource-parser';
 import ora from 'ora';
+import {OperationsService} from "../../daemon/services/operations.service";
+import {GenerateEventContext} from "common";
 
 @Command({ name: 'generate', description: 'Generate codebase' })
 export class GenerateCommand extends CommandRunner {
   constructor(
     private pm: ProcessManagerService,
     private httpService: HttpService,        // ← inject HttpService
+    private operationsService: OperationsService,
   ) {
     super();
+  }
+
+  @Option({
+    flags: '--ci',
+    description: 'Run in CI mode (do not auto-start the Intrig daemon; run in-process)',
+  })
+  parseCiOption(val: boolean): boolean {
+    return val;
   }
 
   override async run(
     passedParams: string[],
     options?: Record<string, any>,
   ): Promise<void> {
+    // CI mode runs without starting daemon
+    if (options?.ci) {
+      await this.runInProcessNoDaemon();
+      return;
+    }
+    await this.runWithDaemon();
+  }
+
+  private async runInProcessNoDaemon() {
+    // 1) Set up an events Subject and context
+    const events$ = new Subject<MessageEvent>();
+    const ctx = new GenerateEventContext(events$);
+
+    // 2) Set up spinners and event subscription (mirrors your SSE code)
+    const spinners: Record<string, ora.Ora> = {};
+    const sub: Subscription = events$.subscribe({
+      next: (m) => {
+        const ev = m.data
+        const sourceId = ev.sourceId ?? 'global';
+        const step = ev.step ?? 'generate';
+        const label = `${sourceId} › ${step}`;
+
+        switch (ev.status) {
+          case 'started': {
+            // start or restart spinner for this label
+            if (!spinners[label]) {
+              spinners[label] = ora({
+                spinner: 'dots',
+                color: 'yellow',
+                text: label,
+                isEnabled: true,
+              }).start();
+            } else {
+              spinners[label].start();
+              spinners[label].text = label;
+            }
+            break;
+          }
+          case 'success': {
+            spinners[label]?.succeed(label);
+            delete spinners[label];
+
+            if (step === 'finalize') {
+              // optional: same finalize report you print for SSE
+              const infoObj = safeParseJson(ev.info);
+              this.printGenerationReport(infoObj);
+            }
+            break;
+          }
+          case 'error': {
+            spinners[label]?.fail(label);
+            delete spinners[label];
+            // You can also dump ev.info if it contains error detail
+            if (ev.info) {
+              console.error(chalk.red('Details:'), ev.info);
+            }
+            break;
+          }
+        }
+      },
+      error: (err) => {
+        // Rare for Subjects; added for completeness
+        console.error(chalk.red('Event stream error:'), err);
+      },
+      complete: () => {
+        // Ensure any still-running spinners are cleared
+        for (const key of Object.keys(spinners)) {
+          spinners[key]?.stop();
+          delete spinners[key];
+        }
+        console.log(chalk.green.bold('\n✔ Generation completed.'));
+      },
+    });
+
+    function safeParseJson(s?: string): any {
+      if (!s) return {};
+      try {
+        return JSON.parse(s);
+      } catch {
+        return { raw: s };
+      }
+    }
+
+    // 3) Kick off generation in the same process (no daemon)
+    try {
+      await this.operationsService.generate(ctx);
+      // If generate() completes without explicitly completing the Subject,
+      // you can complete it here to flush "completed" log.
+      events$.complete();
+    } catch (e) {
+      // ensure spinners are cleared on failure
+      for (const key of Object.keys(spinners)) {
+        spinners[key]?.fail(key);
+        delete spinners[key];
+      }
+      console.error(chalk.red('\nGeneration error:'), e);
+      throw e;
+    } finally {
+      sub.unsubscribe();
+    }
+  }
+
+  private async runWithDaemon() {
     // 1) fetch metadata
     const metadata = await this.pm.getMetadata();
     if (!metadata) {
@@ -31,7 +145,7 @@ export class GenerateCommand extends CommandRunner {
 
     // 3) open SSE stream
     const response = await lastValueFrom(
-      this.httpService.get(genUrl, { responseType: 'stream' }),
+      this.httpService.get(genUrl, {responseType: 'stream'}),
     );
     const stream = response.data as NodeJS.ReadableStream;
 
@@ -42,7 +156,7 @@ export class GenerateCommand extends CommandRunner {
     // 4) set up SSE parser
     const parser = createParser({
       onEvent(event: EventSourceMessage) {
-        const { sourceId = 'global', step = 'generate', status, info } = JSON.parse(event.data);
+        const {sourceId = 'global', step = 'generate', status, info} = JSON.parse(event.data);
         const label = `${sourceId} › ${step}`;
 
         switch (status) {

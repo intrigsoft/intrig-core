@@ -31,5 +31,6 @@ import { CodeAnalyzer } from '../utils/code-analyzer';
     LastVisitService,
     CodeAnalyzer,
   ],
+  exports: [OperationsService],
 })
-export class DeamonModule {}
+export class DaemonModule {}

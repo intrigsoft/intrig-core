@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IntrigConfigService } from '../deamon/services/intrig-config.service';
+import { IntrigConfigService } from '../daemon/services/intrig-config.service';
 import { ResourceDescriptor } from 'common';
 
 /**

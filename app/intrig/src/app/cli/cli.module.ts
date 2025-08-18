@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProcessManagerService } from './process-manager.service';
-import {DeamonCommand} from "./commands/deamon.command";
+import {DaemonCommand} from "./commands/daemon.command";
 import {GenerateCommand} from "./commands/generate.command";
 import {InitCommand} from "./commands/init.command";
 import {SyncCommand} from "./commands/sync.command";
@@ -16,12 +16,13 @@ import {InsightCommand} from "./commands/insight.command";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 import {ViewCommand} from "./commands/view.command";
+import {DaemonModule} from "../daemon/daemon.module";
 
 @Module({
-  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule],
+  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule, DaemonModule],
   providers: [
     ProcessManagerService,
-    ...DeamonCommand.registerWithSubCommands(),
+    ...DaemonCommand.registerWithSubCommands(),
     GenerateCommand,
     InitCommand,
     ...SourcesCommand.registerWithSubCommands(),

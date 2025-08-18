@@ -9,13 +9,13 @@ import {Logger, ValidationPipe} from "@nestjs/common";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
-import {IntrigConfigService} from "./app/deamon/services/intrig-config.service";
+import {IntrigConfigService} from "./app/daemon/services/intrig-config.service";
 import * as fs from 'fs';
 
 const logger = new Logger('Main');
 
 
-async function bootstrapDeamon() {
+async function bootstrapDaemon() {
   const app = await NestFactory.create(AppModule, {
     // logger: ['error'],
   });
@@ -28,8 +28,8 @@ async function bootstrapDeamon() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Intrig Deamon API')
-    .setDescription('API for intrig deamon integrations')
+    .setTitle('Intrig Daemon API')
+    .setDescription('API for intrig daemon integrations')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
@@ -56,7 +56,7 @@ async function bootstrapDeamon() {
 async function bootstrap() {
   const cmd = process.argv[2];
   if (cmd === 'run') {
-    await bootstrapDeamon()
+    await bootstrapDaemon()
   } else if (cmd === "mcp") {
     const app = await NestFactory.createApplicationContext(AppModule, {
       logger: false
@@ -91,19 +91,39 @@ async function bootstrap() {
       logger?.log('Initialized new Intrig project');
 
     }
+
+    // Catch truly unhandled errors too
+    process.on('uncaughtException', (err) => {
+      // Print full stack if possible
+      console.error('\n[uncaughtException]');
+      console.error(err?.stack || err);
+      // give stdout/stderr a tick to flush
+      setImmediate(() => process.exit(1));
+    });
+    process.on('unhandledRejection', (reason: any) => {
+      console.error('\n[unhandledRejection]');
+      console.error(reason?.stack || reason);
+      setImmediate(() => process.exit(1));
+    });
+
     try {
       await CommandFactory.run(AppModule, {
-        logger: false,
+        logger: ['error'],
         errorHandler(err: any) {
+          console.error('\n[cli error]');
+
           if (err.code === 'commander.help') {
             return process.exit(0);
           }
           const code = typeof err.exitCode === 'number' ? err.exitCode : 1;
-          process.exit(code);
+          console.error(err)
+          setImmediate(() => process.exit(code));
         }
       });
       process.exit(0);
     } catch (e) {
+      console.error('\n[catch]');
+      console.error(e?.stack || e);
       if (logger) {
         logger.error('Failed to run command', e);
       }
