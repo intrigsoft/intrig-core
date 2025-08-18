@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {
-  GeneratorBinding, GeneratorContext,
+  GeneratorBinding, GeneratorContext, GenerateEventContext,
   IIntrigSourceConfig, IntrigSourceConfig,
   isRestDescriptor, isSchemaDescriptor, RelatedType,
   ResourceDescriptor,
@@ -8,7 +8,12 @@ import {
   SourceManagementService, Tab
 } from "common";
 import { nextNetworkStateTemplate } from './templates/network-state.template';
-import { nextProviderTemplate } from './templates/provider.template';
+import { nextProviderInterfacesTemplate } from './templates/provider/interfaces.template';
+import { nextProviderReducerTemplate } from './templates/provider/reducer.template';
+import { nextProviderAxiosConfigTemplate } from './templates/provider/axios-config.template';
+import { nextProviderComponentsTemplate } from './templates/provider/components.template';
+import { nextProviderHooksTemplate } from './templates/provider/hooks.template';
+import { nextProviderMainTemplate } from './templates/provider/main.template';
 import { nextIndexTemplate } from './templates/index.template';
 import { nextTsConfigTemplate } from './templates/tsconfig.template';
 import { nextPackageJsonTemplate } from './templates/packageJson.template';
@@ -37,6 +42,7 @@ import {nextAsyncFunctionHookTemplate} from "./templates/source/controller/metho
 import {typeUtilsTemplate} from "./templates/type-utils.template";
 import {nextSseHookDocs} from "./templates/docs/sse-hook";
 import {nextAsyncFunctionHookDocs} from "./templates/docs/async-hook";
+import { schemaJsonSchemaDoc, schemaTypescriptDoc, schemaZodSchemaDoc } from './templates/docs/schema';
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -80,9 +86,15 @@ export class IntrigNextBindingService extends GeneratorBinding {
 
   private _path = this.config.get("generatedDir") ?? path.resolve(process.cwd(), '.intrig', 'generated')
 
-  override async generateGlobal(): Promise<any> {
+  override async generateGlobal(apisToSync: IntrigSourceConfig[]): Promise<any> {
     await this.dump(nextNetworkStateTemplate(this._path))
-    await this.dump(nextProviderTemplate(this._path))
+    // Generate modular provider templates
+    await this.dump(nextProviderInterfacesTemplate(this._path, apisToSync))
+    await this.dump(nextProviderReducerTemplate(this._path))
+    await this.dump(nextProviderAxiosConfigTemplate(this._path, apisToSync))
+    await this.dump(nextProviderComponentsTemplate(this._path, apisToSync))
+    await this.dump(nextProviderHooksTemplate(this._path))
+    await this.dump(nextProviderMainTemplate(this._path, apisToSync))
     await this.dump(nextIntrigLayoutTemplate(this._path))
     await this.dump(nextIndexTemplate(this._path))
     await this.dump(nextTsConfigTemplate(this._path))
@@ -96,7 +108,7 @@ export class IntrigNextBindingService extends GeneratorBinding {
     await this.dump(typeUtilsTemplate(this._path))
   }
 
-  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig): Promise<void> {
+  override async generateSource(descriptors: ResourceDescriptor<any>[], source: IIntrigSourceConfig, generatorCtx?: GenerateEventContext): Promise<void> {
     //TODO improve this logic to catch potential conflicts.
     const potentiallyConflictingDescriptors = descriptors.filter(isRestDescriptor)
       .sort((a, b) => (a.data.contentType === "application/json" ? -1 : 0) - (b.data.contentType === "application/json" ? -1 : 0))
@@ -104,7 +116,8 @@ export class IntrigNextBindingService extends GeneratorBinding {
       .map(descriptor => descriptor.id);
 
     const ctx = {
-      potentiallyConflictingDescriptors
+      potentiallyConflictingDescriptors,
+      generatorCtx
     };
 
     const groupedByPath: Record<string, ResourceDescriptor<RestData>[]> = {}
@@ -115,11 +128,11 @@ export class IntrigNextBindingService extends GeneratorBinding {
         groupedByPath[descriptor.data.requestUrl!] = groupedByPath[descriptor.data.requestUrl!] || []
         groupedByPath[descriptor.data.requestUrl!].push(descriptor)
       } else if (isSchemaDescriptor(descriptor)) {
-        await this.generateSchemaSource(source, descriptor)
+        await this.generateSchemaSource(source, descriptor, ctx)
       }
     }
     for (const [requestUrl, matchingPaths] of Object.entries(groupedByPath)) {
-      await this.dump(nextRequestRouteTemplate(requestUrl, matchingPaths, this._path))
+      await this.dump(nextRequestRouteTemplate(requestUrl, matchingPaths, this._path, ctx))
     }
   }
 
@@ -127,8 +140,8 @@ export class IntrigNextBindingService extends GeneratorBinding {
     const clientExports: string[] = [];
     const serverExports: string[] = [];
     await this.dump(nextParamsTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path))
-    await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path))
+    await this.dump(nextRequestHookTemplate(descriptor, clientExports, serverExports, this._path, ctx))
+    await this.dump(nextRequestMethodTemplate(descriptor, clientExports, serverExports, this._path, ctx))
     await this.dump(nextAsyncFunctionHookTemplate(descriptor, this._path, ctx))
     
     if ((descriptor.data.method.toUpperCase() === 'GET' &&
@@ -136,19 +149,24 @@ export class IntrigNextBindingService extends GeneratorBinding {
       ) ||
       descriptor.data.responseHeaders?.['content-disposition']
     ) {
-      await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path))
+      await this.dump(nextDownloadHookTemplate(descriptor, clientExports, serverExports, this._path, ctx))
     }
-    await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path))
-    await this.dump(nextServerIndexTemplate([descriptor], serverExports, this._path))
+    await this.dump(nextClientIndexTemplate([descriptor], clientExports, this._path, ctx))
+    await this.dump(nextServerIndexTemplate([descriptor], serverExports, this._path, ctx))
   }
 
-  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>) {
-    await this.dump(nextTypeTemplate({
+  private async generateSchemaSource(source: IIntrigSourceConfig, descriptor: ResourceDescriptor<Schema>, ctx: {
+    potentiallyConflictingDescriptors: string[];
+    generatorCtx: GenerateEventContext | undefined;
+  }) {
+    const content = nextTypeTemplate({
       schema: descriptor.data.schema,
       typeName: descriptor.data.name,
       sourcePath: this._path,
       paths: [source.id, "components", "schemas"],
-    }))
+    });
+    ctx.generatorCtx?.getCounter(source.id)?.inc("Data Types")
+    await this.dump(content)
   }
 
   async getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation> {
@@ -174,25 +192,17 @@ export class IntrigNextBindingService extends GeneratorBinding {
           collector[collectorType] += line + "\n"
       }
     })
+    const tabs: Tab[] = []
+    tabs.push({ name: 'Typescript Type', content: (await schemaTypescriptDoc(collector['Typescript Type'], result)).content })
+    tabs.push({ name: 'JSON Schema', content: (await schemaJsonSchemaDoc(collector['JSON Schema'], result)).content })
+    tabs.push({ name: 'Zod Schema', content: (await schemaZodSchemaDoc(collector['Zod Schema'], result)).content })
+
     return SchemaDocumentation.from({
       id: result.id,
       name: result.data.name,
-      description: "", //TODO improvise description
+      description: result.data.schema?.description ?? '',
       jsonSchema: result.data.schema,
-      tabs: [
-        ["Typescript Type", 'TypeScript interface definition'],
-        ["JSON Schema", 'JSON Schema definition'],
-        ["Zod Schema", 'Zod schema for runtime validation']
-      ].map(([name, description]) => ({
-        name,
-        content: `
-# ${name}
-${description}
-${"```ts"}
-${collector[name]?.trim()}
-${"```"}
-        `
-      })),
+      tabs,
       relatedTypes: [],
       relatedEndpoints: []
     })

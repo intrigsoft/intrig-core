@@ -11,31 +11,24 @@ import {GENERATORS} from "../cli/tokens";
 import {GenerateCommand} from "../cli/commands/generate.command";
 import {ConfigModule} from "@nestjs/config";
 import {HttpModule} from "@nestjs/axios";
-import {EndpointsResource} from "./endpoints.resource";
-import {SchemaResource} from "./schema.resource";
+import {AiResource} from "./ai.resource";
 
 const instructions = `
 Intrig is a code generation tool that consumes OpenAPI (Swagger) documentation and generates typed data models and React hooks for frontend developers.
 
-Use this MCP server to discover available endpoints, data types, and usage patterns for the generated hooks. The server provides both structured metadata and markdown documentation.
+Use this MCP server to discover available endpoints and data types, and to view unified documentation for each resource.
 
-There are two main usage patterns for hooks:
+Two AI-friendly tools are exposed:
 
-1. Stateful hooks: These manage persistent or shared state (e.g., user info, cart). They return a tuple like [state, fetchFn, clearFn], support caching, and follow the React useState pattern.
+1. ai-search: Unified search across endpoints (type: "endpoint") and data types (type: "schema").
+2. ai-view: Concatenated documentation for a specific resource id and type.
 
-2. Stateless hooks: These are for one-off operations like validation. They return a tuple like [asyncFn, abortFn], bypass caching, and are often suffixed with 'Async'.
-
-Usage Instructions:
-- Use the 'catalog-endpoints' or 'search-endpoints' tools to discover available endpoints.
-- Use the 'endpoint-usage' tool to understand how to use a hook properly.
-- Use 'catalog-schemas' or 'search-data-types' tools to discover available data types.
-- Use 'schema-representations' tool to retrieve markdown representations and examples of data types.
-- Always consult 'endpoint-usage' before generating or suggesting code—do not guess usage patterns.
+Notes:
+- Prefer ai-search first, then ai-view with the selected id and type.
+- Hooks typically follow the import path '@intrig/react/<source>/<tag>/<operation>/client'.
 - Use utility methods like 'isSuccess', 'isPending', and 'isError' from '@intrig/react' to handle hook responses.
-- To manage multiple hook instances, use the 'key' property to differentiate them.
-- Hooks follow a structured import path: '@intrig/react/<source>/<tag>/<operation>/client'.
 
-Note: This MCP server only provides documentation and structure. It does not execute hooks or mutate data.
+This MCP server only provides documentation and structure. It does not execute hooks or mutate data.
 `;
 
 
@@ -66,8 +59,7 @@ Note: This MCP server only provides documentation and structure. It does not exe
         return [nextCliService, reactCliService]
       }
     },
-    EndpointsResource,
-    SchemaResource
+    AiResource
   ]
 })
 export class McpModule {}

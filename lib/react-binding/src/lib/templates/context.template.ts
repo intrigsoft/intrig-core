@@ -38,7 +38,7 @@ export type SchemaOf<T> = ZodType<T, ZodTypeDef, any>;
 export interface ContextType {
   state: GlobalState;
   filteredState: GlobalState;
-  dispatch: Dispatch<NetworkAction<unknown, unknown>>;
+  dispatch: Dispatch<NetworkAction<unknown>>;
   configs: ${configType};
   execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: SchemaOf<T> | undefined, errorSchema: SchemaOf<T> | undefined) => Promise<void>;
 }

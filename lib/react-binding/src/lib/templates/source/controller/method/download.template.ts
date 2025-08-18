@@ -14,13 +14,13 @@ function extractHookShapeAndOptionsShape(response: string | undefined, requestBo
     if (requestBody) {
       imports.add(`import { BinaryFunctionHook, BinaryHookOptions } from "@intrig/react"`);
       return {
-        hookShape: `BinaryFunctionHook<Params, RequestBody, Response, _ErrorType>`,
+        hookShape: `BinaryFunctionHook<Params, RequestBody, Response>`,
         optionsShape: `BinaryHookOptions<Params, RequestBody>`
       };
     } else {
       imports.add(`import { UnaryFunctionHook, UnaryHookOptions } from "@intrig/react"`);
       return {
-        hookShape: `UnaryFunctionHook<Params, Response, _ErrorType>`,
+        hookShape: `UnaryFunctionHook<Params, Response>`,
         optionsShape: `UnaryHookOptions<Params>`
       };
     }
@@ -28,13 +28,13 @@ function extractHookShapeAndOptionsShape(response: string | undefined, requestBo
     if (requestBody) {
       imports.add(`import { BinaryProduceHook, BinaryHookOptions } from "@intrig/react"`);
       return {
-        hookShape: `BinaryProduceHook<Params, RequestBody, _ErrorType>`,
+        hookShape: `BinaryProduceHook<Params, RequestBody>`,
         optionsShape: `BinaryHookOptions<Params, RequestBody>`
       };
     } else {
       imports.add(`import { UnaryProduceHook, UnaryHookOptions } from "@intrig/react"`);
       return {
-        hookShape: `UnaryProduceHook<Params, _ErrorType>`,
+        hookShape: `UnaryProduceHook<Params>`,
         optionsShape: `UnaryHookOptions<Params>`
       };
     }
@@ -105,13 +105,14 @@ export async function reactDownloadHookTemplate({source,
                                                 }: ResourceDescriptor<RestData>, _path: string, ctx: GeneratorContext) {
   const postfix = ctx.potentiallyConflictingDescriptors.includes(operationId) ? generatePostfix(contentType, responseType) : ''
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}${postfix}Download.ts`))
+  ctx.generatorCtx?.getCounter(source)?.inc("Download Hooks")
 
   const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`
 
   const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
   imports.add(`import { useCallback, useEffect } from 'react'`)
-  imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, init, successfulDispatch, validationError, encode, isSuccess} from "@intrig/react"`)
+  imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, init, successfulDispatch, validationError, encode, isSuccess, requestValidationError} from "@intrig/react"`)
 
   const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
 
@@ -160,8 +161,8 @@ export async function reactDownloadHookTemplate({source,
     const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${responseType}"
     const source = "${source}"
 
-    function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response, _ErrorType>, (${paramType}) => DispatchState<any>, () => void] {
-      let [state, dispatch, clear, dispatchState] = useNetworkState<Response, _ErrorType>({
+    function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response>, (${paramType}) => DispatchState<any>, () => void] {
+      let [state, dispatch, clear, dispatchState] = useNetworkState<Response>({
         key: options?.key ?? 'default',
         operation,
         source,
@@ -209,6 +210,7 @@ export async function reactDownloadHookTemplate({source,
           ${requestBody ? `
           const validationResult = requestBodySchema.safeParse(data);
           if (!validationResult.success) {
+            dispatchState(error(requestValidationError(validationResult.error)));
             return validationError(validationResult.error.errors);
           }
           ` : ``}

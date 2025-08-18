@@ -5,7 +5,7 @@ import { DeamonModule } from './deamon/deamon.module';
 import {CommonModule} from "common";
 import {ConfigModule} from "@nestjs/config";
 import configuration from "./config/configuration";
-// import {McpModule} from "./mcp/mcp.module";
+import {McpModule} from "./mcp/mcp.module";
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import configuration from "./config/configuration";
     CliModule,
     DiscoveryModule,
     DeamonModule,
-    // McpModule,
+    ...((process?.argv?.[2] === 'mcp' || process?.env?.MCP_ENABLED === '1') ? [McpModule] : []),
   ],
   controllers: [],
   providers: [],

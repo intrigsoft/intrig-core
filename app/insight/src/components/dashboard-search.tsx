@@ -21,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { HttpMethodBadge } from "./http-method-badge";
 
 // Interface for search result data items
 interface DashboardSearchProps {
@@ -130,21 +131,7 @@ export function DashboardSearch({ placeholder = "Search endpoints and data types
                       <div className="flex justify-between items-center">
                         <span className="font-medium">{item.name}</span>
                         {item.data?.method && (
-                          <span className={`text-xs px-2 py-1 rounded-md font-medium ${
-                            item.data.method.toLowerCase() === 'get' 
-                              ? 'bg-blue-100 text-blue-700' 
-                              : item.data.method.toLowerCase() === 'post'
-                              ? 'bg-green-100 text-green-700'
-                              : item.data.method.toLowerCase() === 'put'
-                              ? 'bg-amber-100 text-amber-700'
-                              : item.data.method.toLowerCase() === 'delete'
-                              ? 'bg-red-100 text-red-700'
-                              : item.data.method.toLowerCase() === 'patch'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}>
-                            {item.data.method.toUpperCase()}
-                          </span>
+                          <HttpMethodBadge method={item.data.method} variant="subtle" />
                         )}
                       </div>
                       <span className="text-xs text-muted-foreground">

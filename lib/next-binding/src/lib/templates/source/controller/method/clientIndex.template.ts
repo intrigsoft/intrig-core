@@ -1,14 +1,12 @@
 import {
-  camelCase, ResourceDescriptor, RestData,
+  camelCase, GeneratorContext, ResourceDescriptor, RestData,
   typescript
 } from 'common';
 import * as path from 'path'
 import * as _ from "lodash";
 
 export function nextClientIndexTemplate(
-  requestProperties: ResourceDescriptor<RestData>[],
-  clientExports: string[] = [],
-  _path: string,
+  requestProperties: ResourceDescriptor<RestData>[], clientExports: string[] = [], _path: string, ctx: GeneratorContext,
 ) {
   const { source, data: {paths, operationId} } =
     requestProperties[0];
@@ -23,6 +21,8 @@ export function nextClientIndexTemplate(
       `client.ts`,
     ),
   );
+
+  ctx.generatorCtx?.getCounter(source)?.inc("Client Side Endpoints")
 
   // if (requestProperties.length === 1)
   //   return ts`

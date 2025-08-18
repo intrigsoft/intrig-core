@@ -12,18 +12,18 @@ function extractAsyncHookShape(response: string | undefined, requestBody: string
   if (response) {
     if (requestBody) {
       imports.add(`import { BinaryFunctionAsyncHook } from "@intrig/react"`);
-      return `BinaryFunctionAsyncHook<Params, RequestBody, Response, _ErrorType>`;
+      return `BinaryFunctionAsyncHook<Params, RequestBody, Response>`;
     } else {
       imports.add(`import { UnaryFunctionAsyncHook } from "@intrig/react"`);
-      return `UnaryFunctionAsyncHook<Params, Response, _ErrorType>`;
+      return `UnaryFunctionAsyncHook<Params, Response>`;
     }
   } else {
     if (requestBody) {
       imports.add(`import { BinaryProduceAsyncHook } from "@intrig/react"`);
-      return `BinaryProduceAsyncHook<Params, RequestBody, _ErrorType>`;
+      return `BinaryProduceAsyncHook<Params, RequestBody>`;
     } else {
       imports.add(`import { UnaryProduceAsyncHook } from "@intrig/react"`);
-      return `UnaryProduceAsyncHook<Params, _ErrorType>`;
+      return `UnaryProduceAsyncHook<Params>`;
     }
   }
 }
@@ -93,14 +93,14 @@ export async function reactAsyncFunctionHookTemplate(
   }: ResourceDescriptor<RestData>, _path: string, ctx: GeneratorContext) {
   const postfix = ctx.potentiallyConflictingDescriptors.includes(operationId) ? generatePostfix(contentType, responseType) : ''
   const ts = typescript(path.resolve(_path, 'src', source, ...paths, camelCase(operationId), `use${pascalCase(operationId)}Async${postfix}.ts`));
-
+  ctx.generatorCtx?.getCounter(source)?.inc("Stateless Hooks")
   const modifiedRequestUrl = `${requestUrl?.replace(/\{/g, "${")}`;
   const imports = new Set<string>();
 
   // Basic imports
   imports.add(`import { z } from 'zod'`);
   imports.add(`import { useCallback } from 'react'`);
-  imports.add(`import { useTransientCall, encode, isError, isSuccess } from '@intrig/react'`);
+  imports.add(`import { useTransitionCall, encode, isError, isSuccess } from '@intrig/react'`);
 
   // Hook signature type
   const hookShape = extractAsyncHookShape(response, requestBody, imports);
@@ -157,7 +157,7 @@ const operation = "${method.toUpperCase()} ${requestUrl}| ${contentType} -> ${re
 const source = "${source}";
 
 function use${pascalCase(operationId)}AsyncHook(): [(${paramType}) => Promise<Response>, () => void] {
-  const [call, abort] = useTransientCall<Response, _ErrorType>({
+  const [call, abort] = useTransitionCall<Response>({
     schema,
     errorSchema
   });

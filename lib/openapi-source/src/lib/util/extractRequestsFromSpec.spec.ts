@@ -1,5 +1,5 @@
 import { OpenAPIV3_1 } from 'openapi-types';
-import { extractRequestsFromSpec } from './extractRequestsFromSpec';
+import { ExtractRequestsService } from './extract-requests.service';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 
 // Mock the ref-management dependencies
@@ -10,8 +10,10 @@ vi.mock('./ref-management', () => ({
 
 describe('extractRequestsFromSpec', () => {
   let basicSpec: OpenAPIV3_1.Document;
+  let service: ExtractRequestsService;
 
   beforeEach(() => {
+    service = new ExtractRequestsService();
     basicSpec = {
       openapi: '3.1.0',
       info: {
@@ -46,8 +48,9 @@ describe('extractRequestsFromSpec', () => {
   });
 
   it('should return empty array for spec with no paths', () => {
-    const result = extractRequestsFromSpec(basicSpec);
-    expect(result).toEqual([]);
+    const result = service.extractRequestsFromSpec(basicSpec);
+    expect(result.restData).toEqual([]);
+    expect(result.skippedEndpoints).toEqual([]);
   });
 
   it('should extract GET request without parameters', () => {
@@ -75,7 +78,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       paths: ['users'],
@@ -130,7 +133,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0].variables).toHaveLength(2);
     expect(result[0].variables?.[0]).toEqual({
@@ -186,7 +189,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       paths: ['users'],
@@ -229,7 +232,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       paths: ['users'],
@@ -277,7 +280,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0].requestBody).toBeUndefined();
     expect(result[0].contentType).toBeUndefined();
@@ -320,7 +323,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(2);
     expect(result[0].contentType).toBe('application/json');
     expect(result[0].requestBody).toBe('CreateUserRequest');
@@ -354,7 +357,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0].responseExamples).toEqual({
       user1: '{"value":{"id":"1","name":"John"}}',
@@ -413,7 +416,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0].errorResponses).toEqual({
       'application/json': {
@@ -456,7 +459,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(1);
     expect(result[0].operationId).toBe('createUser');
   });
@@ -499,7 +502,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(2);
     expect(result[0].paths).toEqual([]);
     expect(result[1].paths).toEqual([]);
@@ -530,7 +533,7 @@ describe('extractRequestsFromSpec', () => {
       }
     };
 
-    const result = extractRequestsFromSpec(basicSpec);
+    const result = service.extractRequestsFromSpec(basicSpec);
     expect(result).toHaveLength(0); // Should not create request without response content
   });
 
@@ -542,7 +545,7 @@ describe('extractRequestsFromSpec', () => {
       paths: {}
     };
     
-    const result = extractRequestsFromSpec(emptySpec as any);
+    const result = service.extractRequestsFromSpec(emptySpec as any);
     expect(result).toEqual([]);
   });
 });

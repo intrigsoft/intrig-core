@@ -17,13 +17,13 @@ export interface EventContext<StatusEvent extends EventDto<any>> {
   events$: Subject<MessageEvent>
 }
 
-export function WithStatus<Step, Args extends any[]>(
+export function WithStatus<Step, Args extends any[], Ctx extends EventContext<EventDto<Step>>>(
   eventFactory: (...args: Args) => Omit<EventDto<Step>, 'status'>,
 ) {
   return (
     target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(ctx: EventContext<EventDto<Step>>, ...args: Args) => Promise<any>>,
+    descriptor: TypedPropertyDescriptor<(ctx: Ctx, ...args: Args) => Promise<any>>,
   )=> {
     const original = descriptor.value
     descriptor.value = async function (ctx, ...args: Args) {

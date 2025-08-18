@@ -9,6 +9,7 @@ export interface CodeAnalyzerConfig {
 }
 
 export interface IntrigConfig {
+  $schema?: string;
   sources: IIntrigSourceConfig[];
   generator: string;
   restOptions?: RestOptions;
@@ -16,12 +17,14 @@ export interface IntrigConfig {
 }
 
 export class IntrigConfigImpl implements IntrigConfig {
+  $schema?: string;
   sources: IIntrigSourceConfig[];
   generator: string;
   restOptions?: RestOptions;
   codeAnalyzer?: CodeAnalyzerConfig;
 
   constructor(config: IntrigConfig) {
+    this.$schema = config.$schema;
     this.sources = config.sources;
     this.generator = config.generator;
     this.restOptions = config.restOptions;

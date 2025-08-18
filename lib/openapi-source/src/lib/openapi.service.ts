@@ -17,7 +17,7 @@ import {load as yamlLoad} from "js-yaml";
 import RefParser from '@apidevtools/json-schema-ref-parser';
 import type {OpenAPIV3_1} from "openapi-types";
 import {normalize} from "./util/normalize";
-import {extractRequestsFromSpec} from "./util/extractRequestsFromSpec";
+import {ExtractRequestsService} from "./util/extract-requests.service";
 import {extractSchemas} from "./util/extractSchemas";
 import * as path from 'path'
 import set from "lodash/set";
@@ -26,7 +26,11 @@ import set from "lodash/set";
 export class IntrigOpenapiService {
   private readonly logger = new Logger(IntrigOpenapiService.name);
 
-  constructor(private httpService: HttpService, private specManagementService: SpecManagementService) {
+  constructor(
+    private httpService: HttpService, 
+    private specManagementService: SpecManagementService,
+    private extractRequestsService: ExtractRequestsService
+  ) {
   }
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
@@ -53,7 +57,11 @@ export class IntrigOpenapiService {
       if (!source) {
         const error = `Source ${id} not found`;
         this.logger.error(error);
-        throw new Error(error);
+        errors.push({sourceId: id, error});
+        
+        // Don't throw, just log the error and continue
+        this.logger.warn(`Sync completed with error: Source ${id} not found`);
+        return;
       }
       
       this.logger.log(`Processing specific source: ${id}`);
@@ -63,7 +71,10 @@ export class IntrigOpenapiService {
       } catch (e: any) {
         const errorMsg = `Failed to sync source ${id}: ${e.message}`;
         this.logger.error(errorMsg, e);
-        throw new Error(errorMsg);
+        errors.push({sourceId: id, error: errorMsg});
+        
+        // Don't throw, just log the error and continue
+        this.logger.warn(`Sync completed with error: ${errorMsg}`);
       }
     }
     
@@ -122,12 +133,12 @@ export class IntrigOpenapiService {
     );
   }
 
-  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string}> {
+  async getResourceDescriptors(id: string): Promise<{descriptors: ResourceDescriptor<RestData | Schema>[], hash: string, skippedEndpoints: Array<{endpoint: string, reason: string}>}> {
     const document = await this.specManagementService.read(id);
     if (!document) {
       throw new Error(`Spec ${id} not found`)
     }
-    const restData = extractRequestsFromSpec(document);
+    const { restData, skippedEndpoints } = this.extractRequestsService.extractRequestsFromSpec(document);
     const schemas = extractSchemas(document);
 
     const sha1 = (str: string) => crypto.createHash('sha1').update(str).digest('hex');
@@ -153,7 +164,7 @@ export class IntrigOpenapiService {
       }))
     ];
 
-    return { descriptors, hash };
+    return { descriptors, hash, skippedEndpoints };
   }
 
   async getHash(id: string): Promise<string> {

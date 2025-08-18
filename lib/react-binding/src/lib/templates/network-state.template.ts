@@ -4,6 +4,7 @@ import * as path from 'path'
 export function reactNetworkStateTemplate(_path: string) {
   const ts = typescript(path.resolve(_path, "src", "network-state.tsx"))
   return ts`import { ZodError } from 'zod';
+import {AxiosResponseHeaders, RawAxiosResponseHeaders} from "axios";
 
 /**
  * State of an asynchronous call. Network state follows the state diagram given below.
@@ -28,14 +29,14 @@ export function reactNetworkStateTemplate(_path: string) {
  *
  * </pre>
  */
-export interface NetworkState<T = unknown, E = unknown> {
+export interface NetworkState<T = unknown> {
   state: 'init' | 'pending' | 'success' | 'error';
 }
 
 /**
  * Network call is not yet started
  */
-export interface InitState<T, E = unknown> extends NetworkState<T, E> {
+export interface InitState<T> extends NetworkState<T> {
   state: 'init';
 }
 
@@ -43,7 +44,9 @@ export interface InitState<T, E = unknown> extends NetworkState<T, E> {
  * Checks whether the state is init state
  * @param state
  */
-export function isInit<T, E = unknown>(state: NetworkState<T, E>): state is InitState<T, E> {
+export function isInit<T>(
+  state: NetworkState<T>,
+): state is InitState<T> {
   return state.state === 'init';
 }
 
@@ -53,7 +56,7 @@ export function isInit<T, E = unknown>(state: NetworkState<T, E>): state is Init
  * @template T The type of the state.
  * @return {InitState<T>} An object representing the initial state.
  */
-export function init<T, E = unknown>(): InitState<T, E> {
+export function init<T>(): InitState<T> {
   return {
     state: 'init',
   };
@@ -62,7 +65,7 @@ export function init<T, E = unknown>(): InitState<T, E> {
 /**
  * Network call is not yet completed
  */
-export interface PendingState<T, E = unknown> extends NetworkState<T, E> {
+export interface PendingState<T> extends NetworkState<T> {
   state: 'pending';
   progress?: Progress;
   data?: T;
@@ -89,7 +92,9 @@ export interface Progress {
  * Checks whether the state is pending state
  * @param state
  */
-export function isPending<T, E = unknown>(state: NetworkState<T, E>): state is PendingState<T, E> {
+export function isPending<T>(
+  state: NetworkState<T>,
+): state is PendingState<T> {
   return state.state === 'pending';
 }
 
@@ -98,10 +103,10 @@ export function isPending<T, E = unknown>(state: NetworkState<T, E>): state is P
  *
  * @return {PendingState<T>} An object representing the pending state.
  */
-export function pending<T, E = unknown>(
+export function pending<T>(
   progress: Progress | undefined = undefined,
-  data: T | undefined = undefined
-): PendingState<T, E> {
+  data: T | undefined = undefined,
+): PendingState<T> {
   return {
     state: 'pending',
     progress,
@@ -112,7 +117,7 @@ export function pending<T, E = unknown>(
 /**
  * Network call is completed with success state
  */
-export interface SuccessState<T, E = unknown> extends NetworkState<T, E> {
+export interface SuccessState<T> extends NetworkState<T> {
   state: 'success';
   data: T;
   headers?: Record<string, any | undefined>;
@@ -122,7 +127,9 @@ export interface SuccessState<T, E = unknown> extends NetworkState<T, E> {
  * Checks whether the state is success response
  * @param state
  */
-export function isSuccess<T, E = unknown>(state: NetworkState<T, E>): state is SuccessState<T, E> {
+export function isSuccess<T>(
+  state: NetworkState<T>,
+): state is SuccessState<T> {
   return state.state === 'success';
 }
 
@@ -133,29 +140,32 @@ export function isSuccess<T, E = unknown>(state: NetworkState<T, E>): state is S
  * @param headers
  * @return {SuccessState<T>} An object representing a success state containing the provided data.
  */
-export function success<T, E = unknown>(data: T, headers?: Record<string, any | undefined>): SuccessState<T, E> {
+export function success<T>(
+  data: T,
+  headers?: Record<string, any | undefined>,
+): SuccessState<T> {
   return {
     state: 'success',
     data,
-    headers
+    headers,
   };
 }
 
 /**
  * Network call is completed with error response
  */
-export interface ErrorState<T, E = unknown> extends NetworkState<T, E> {
+export interface ErrorState<T> extends NetworkState<T> {
   state: 'error';
-  error: E;
-  statusCode?: number;
-  request?: any;
+  error: IntrigError;
 }
 
 /**
  * Checks whether the state is error state
  * @param state
  */
-export function isError<T, E = unknown>(state: NetworkState<T, E>): state is ErrorState<T, E> {
+export function isError<T>(
+  state: NetworkState<T>,
+): state is ErrorState<T> {
   return state.state === 'error';
 }
 
@@ -166,18 +176,295 @@ export function isError<T, E = unknown>(state: NetworkState<T, E>): state is Err
  * @param {string} [statusCode] - An optional status code associated with the error.
  * @return {ErrorState<T>} An object representing the error state.
  */
-export function error<T, E = unknown>(
-  error: E,
-  statusCode?: number,
-  request?: any
+export function error<T>(
+  error: IntrigError,
 ): ErrorState<T> {
   return {
     state: 'error',
-    error,
-    statusCode,
+    error
+  };
+}
+
+/**
+ * Represents the base structure for error information in the application.
+ *
+ * This interface is used to define the type of error encountered in various contexts.
+ *
+ * Properties:
+ * - type: Specifies the category of the error which determines its nature and source.
+ *   - 'http': Indicates the error is related to HTTP operations.
+ *   - 'network': Indicates the error occurred due to network issues.
+ *   - 'request-validation': Represents errors that occurred during request validation.
+ *   - 'response-validation': Represents errors that occurred during response validation.
+ *   - 'config': Pertains to errors associated with configuration issues.
+ */
+export interface IntrigErrorBase {
+  type: 'http' | 'network' | 'request-validation' | 'response-validation' | 'config';
+}
+
+/**
+ * Interface representing an HTTP-related error.
+ * Extends the \`IntrigErrorBase\` base interface to provide information specific to HTTP errors.
+ *
+ * @property type - The type identifier for the error, always set to 'http'.
+ * @property status - The HTTP status code associated with the error.
+ * @property url - The URL that caused the error.
+ * @property method - The HTTP method used in the request that resulted in the error.
+ * @property headers - Optional. The HTTP headers relevant to the request and/or response, represented as a record of key-value pairs.
+ * @property body - Optional. The parsed body of the server error, if available.
+ */
+export interface HttpError extends IntrigErrorBase {
+  type: 'http';
+  status: number;
+  url: string;
+  method: string;
+  headers?: RawAxiosResponseHeaders | AxiosResponseHeaders;
+  body?: unknown; // parsed server error body if any
+}
+
+/**
+ * Determines if the given error is an HTTP error.
+ *
+ * @param {IntrigError} error - The error object to check.
+ * @return {boolean} Returns true if the error is an instance of HttpError; otherwise, false.
+ */
+export function isHttpError(error: IntrigError): error is HttpError {
+  return error.type === 'http';
+}
+
+/**
+ * Creates an object representing an HTTP error.
+ *
+ * @param {number} status - The HTTP status code of the error.
+ * @param {string} url - The URL associated with the HTTP error.
+ * @param {string} method - The HTTP method that resulted in the error.
+ * @param {Record<string, string | string[] | undefined>} [headers] - Optional headers involved in the HTTP error.
+ * @param {unknown} [body] - Optional body data related to the HTTP error.
+ * @return {HttpError} An object encapsulating details about the HTTP error.
+ */
+export function httpError(
+  status: number,
+  url: string,
+  method: string,
+  headers?: RawAxiosResponseHeaders | AxiosResponseHeaders,
+  body?: unknown
+): HttpError {
+  return {
+    type: 'http',
+    status,
+    url,
+    method,
+    headers,
+    body
+  };
+}
+
+/**
+ * Represents a network-related error. This error type is used to indicate issues during network operations.
+ * Extends the base error functionality from IntrigErrorBase.
+ *
+ * Properties:
+ * - \`type\`: Specifies the type of error as 'network'.
+ * - \`reason\`: Indicates the specific reason for the network error. Possible values include:
+ *   - 'timeout': Occurs when the network request times out.
+ *   - 'dns': Represents DNS resolution issues.
+ *   - 'offline': Indicates the device is offline or has no network connectivity.
+ *   - 'aborted': The network request was aborted.
+ *   - 'unknown': An unspecified network issue occurred.
+ * - \`request\`: Optional property representing the network request that caused the error. Its structure can vary depending on the implementation context.
+ */
+export interface NetworkError extends IntrigErrorBase {
+  type: 'network';
+  reason: 'timeout' | 'dns' | 'offline' | 'aborted' | 'unknown';
+  request?: any;
+}
+
+/**
+ * Determines if the provided error is of type NetworkError.
+ *
+ * @param {IntrigError} error - The error object to be checked.
+ * @return {boolean} Returns true if the error is of type NetworkError, otherwise false.
+ */
+export function isNetworkError(error: IntrigError): error is NetworkError {
+  return error.type === 'network';
+}
+
+/**
+ * Creates a network error object with the specified reason and optional request details.
+ *
+ * @param {'timeout' | 'dns' | 'offline' | 'aborted' | 'unknown'} reason - The reason for the network error.
+ * @param {any} [request] - Optional information about the network request that caused the error.
+ * @return {NetworkError} An object representing the network error.
+ */
+export function networkError(
+  reason: 'timeout' | 'dns' | 'offline' | 'aborted' | 'unknown',
+  request?: any,
+): NetworkError {
+  return {
+    type: 'network',
+    reason,
     request,
   };
 }
+
+/**
+ * Represents an error that occurs during request validation.
+ *
+ * This interface extends the \`IntrigErrorBase\` to provide
+ * additional details about validation errors in the request.
+ *
+ * \`RequestValidationError\` includes a specific error type
+ * identifier, details about the validation error, and information
+ * about the fields that failed validation.
+ *
+ * The \`type\` property indicates the error type as 'request-validation'.
+ * The \`error\` property holds the ZodError object with detailed validation
+ * errors from the Zod library.
+ * The \`fieldErrors\` property is a mapping of field names to an array
+ * of validation error messages for that field.
+ */
+export interface RequestValidationError extends IntrigErrorBase {
+  type: 'request-validation';
+  error: ZodError;
+}
+
+/**
+ * Checks if the given error is of type RequestValidationError.
+ *
+ * @param {IntrigError} error - The error object to be checked.
+ * @return {boolean} Returns true if the error is a RequestValidationError; otherwise, false.
+ */
+export function isRequestValidationError(error: IntrigError): error is RequestValidationError {
+  return error.type === 'request-validation';
+}
+
+/**
+ * Constructs a RequestValidationError object, capturing details about validation errors.
+ *
+ * @param {ZodError} error - The primary Zod validation error object containing detailed error information.
+ * @param {Record<string, string[]>} fieldErrors - An object mapping field names to arrays of validation error messages.
+ * @return {RequestValidationError} An object representing the request validation error, including the error type, detailed error, and field-specific errors.
+ */
+export function requestValidationError(
+  error: ZodError
+): RequestValidationError {
+  return {
+    type: 'request-validation',
+    error
+  };
+}
+
+/**
+ * Describes an error encountered during response validation, typically
+ * when the structure or content of a response does not meet the expected schema.
+ *
+ * This interface extends the \`IntrigErrorBase\` to provide additional
+ * details specific to validation issues.
+ *
+ * The \`type\` property is a discriminative field, always set to 'response-validation',
+ * for identifying this specific kind of error.
+ *
+ * The \`error\` property contains a \`ZodError\` object, which provides structured
+ * details about the validation failure, including paths and specific issues.
+ *
+ * The optional \`raw\` property may hold the unprocessed or unparsed response data,
+ * which can be useful for debugging and troubleshooting.
+ */
+export interface ResponseValidationError extends IntrigErrorBase {
+  type: 'response-validation';
+  error: ZodError;
+  // optional: raw/unparsed response for troubleshooting
+  raw?: unknown;
+}
+
+/**
+ * Determines if the provided error is of type ResponseValidationError.
+ *
+ * @param {IntrigError} error - The error object to be evaluated.
+ * @return {boolean} Returns true if the error is a ResponseValidationError, otherwise false.
+ */
+export function isResponseValidationError(error: IntrigError): error is ResponseValidationError {
+  return error.type === 'response-validation';
+}
+
+/**
+ * Constructs a ResponseValidationError object to represent a response validation failure.
+ *
+ * @param {ZodError} error - The error object representing the validation issue.
+ * @param {unknown} [raw] - Optional raw data related to the validation error.
+ * @return {ResponseValidationError} An object containing the type of error, the validation error object, and optional raw data.
+ */
+export function responseValidationError(
+  error: ZodError,
+  raw?: unknown,
+): ResponseValidationError {
+  return {
+    type: 'response-validation',
+    error,
+    raw,
+  };
+}
+
+/**
+ * Represents an error related to configuration issues.
+ * ConfigError is an extension of IntrigErrorBase, designed specifically
+ * to handle and provide details about errors encountered in application
+ * configuration.
+ *
+ * @interface ConfigError
+ * @extends IntrigErrorBase
+ *
+ * @property type - Identifies the error type as 'config'.
+ * @property message - Describes the details of the configuration error encountered.
+ */
+export interface ConfigError extends IntrigErrorBase {
+  type: 'config';
+  message: string;
+}
+
+/**
+ * Determines if the provided error is a configuration error.
+ *
+ * @param {IntrigError} error - The error object to be checked.
+ * @return {boolean} Returns true if the error is of type 'ConfigError', otherwise false.
+ */
+export function isConfigError(error: IntrigError): error is ConfigError {
+  return error.type === 'config';
+}
+
+/**
+ * Generates a configuration error object with a specified error message.
+ *
+ * @param {string} message - The error message to be associated with the configuration error.
+ * @return {ConfigError} The configuration error object containing the error type and message.
+ */
+export function configError(message: string): ConfigError {
+  return {
+    type: 'config',
+    message,
+  };
+}
+
+/**
+ * Represents a union type for errors that may occur while handling HTTP requests,
+ * network operations, request and response validations, or configuration issues.
+ *
+ * This type encompasses various error types to provide a unified representation
+ * for different error scenarios during the execution of a program.
+ *
+ * Types:
+ * - HttpError: Represents an error occurred in HTTP responses.
+ * - NetworkError: Represents an error related to underlying network operations.
+ * - RequestValidationError: Represents an error in request validation logic.
+ * - ResponseValidationError: Represents an error in response validation logic.
+ * - ConfigError: Represents an error related to configuration issues.
+ */
+export type IntrigError =
+  | HttpError
+  | NetworkError
+  | RequestValidationError
+  | ResponseValidationError
+  | ConfigError;
 
 /**
  * Represents an error state with additional contextual information.
@@ -190,7 +477,8 @@ export function error<T, E = unknown>(
  * @property {string} operation - The operation being performed when the error occurred.
  * @property {string} key - A unique key identifying the specific error instance.
  */
-export interface ErrorWithContext<T = unknown, E = unknown> extends ErrorState<T, E> {
+export interface ErrorWithContext<T = unknown>
+  extends ErrorState<T> {
   source: string;
   operation: string;
   key: string;
@@ -204,33 +492,92 @@ export interface ErrorWithContext<T = unknown, E = unknown> extends ErrorState<T
  * @property {NetworkState<any>} state - The current state of the network action
  * @property {string} key - The unique identifier for the network action
  */
-export interface NetworkAction<T, E> {
+export interface NetworkAction<T> {
   key: string;
   source: string;
   operation: string;
-  state: NetworkState<T, E>;
+  state: NetworkState<T>;
   handled?: boolean;
 }
 
 type HookWithKey = {
   key: string;
-}
+};
 
+export type UnitHookOptions =
+  | { key?: string; fetchOnMount?: false; clearOnUnmount?: boolean }
+  | {
+      key?: string;
+      fetchOnMount: true;
+      params?: Record<string, any>;
+      clearOnUnmount?: boolean;
+    };
+export type UnitHook = ((
+  options: UnitHookOptions,
+) => [
+  NetworkState<never>,
+  (params?: Record<string, any>) => DispatchState<any>,
+  () => void,
+]) &
+  HookWithKey;
+export type ConstantHook<T> = ((
+  options: UnitHookOptions,
+) => [
+  NetworkState<T>,
+  (params?: Record<string, any>) => DispatchState<any>,
+  () => void,
+]) &
+  HookWithKey;
 
-export type UnitHookOptions = { key?: string; fetchOnMount?: false; clearOnUnmount?: boolean } | { key?: string; fetchOnMount: true; params?: Record<string, any>; clearOnUnmount?: boolean };
-export type UnitHook<E = unknown> = ((options: UnitHookOptions) => [NetworkState<never, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
-export type ConstantHook<T, E = unknown> = ((options: UnitHookOptions) => [NetworkState<T, E>, (params?: Record<string, any>) => DispatchState<any>, () => void]) & HookWithKey;
+export type UnaryHookOptions<P> =
+  | { key?: string; fetchOnMount?: false; clearOnUnmount?: boolean }
+  | { key?: string; fetchOnMount: true; params: P; clearOnUnmount?: boolean };
+export type UnaryProduceHook<P> = ((
+  options?: UnaryHookOptions<P>,
+) => [NetworkState<never>, (params: P) => DispatchState<any>, () => void]) &
+  HookWithKey;
+export type UnaryFunctionHook<P, T> = ((
+  options?: UnaryHookOptions<P>,
+) => [NetworkState<T>, (params: P) => DispatchState<any>, () => void]) &
+  HookWithKey;
 
-export type UnaryHookOptions<P> = { key?: string, fetchOnMount?: false, clearOnUnmount?: boolean } | { key?: string, fetchOnMount: true, params: P, clearOnUnmount?: boolean };
-export type UnaryProduceHook<P, E = unknown> = ((options?: UnaryHookOptions<P>) => [NetworkState<never, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
-export type UnaryFunctionHook<P, T, E = unknown> = ((options?: UnaryHookOptions<P>) => [NetworkState<T, E>, (params: P) => DispatchState<any>, () => void]) & HookWithKey;
+export type BinaryHookOptions<P, B> =
+  | { key?: string; fetchOnMount?: false; clearOnUnmount?: boolean }
+  | {
+      key?: string;
+      fetchOnMount: true;
+      params: P;
+      body: B;
+      clearOnUnmount?: boolean;
+    };
+export type BinaryProduceHook<P, B> = ((
+  options?: BinaryHookOptions<P, B>,
+) => [
+  NetworkState<never>,
+  (body: B, params: P) => DispatchState<any>,
+  () => void,
+]) &
+  HookWithKey;
+export type BinaryFunctionHook<P, B, T> = ((
+  options?: BinaryHookOptions<P, B>,
+) => [
+  NetworkState<T>,
+  (body: B, params: P) => DispatchState<any>,
+  () => void,
+]) &
+  HookWithKey;
 
-export type BinaryHookOptions<P, B> = { key?: string, fetchOnMount?: false, clearOnUnmount?: boolean } | { key?: string, fetchOnMount: true, params: P, body: B, clearOnUnmount?: boolean };
-export type BinaryProduceHook<P, B, E = unknown> = ((options?: BinaryHookOptions<P, B>) => [NetworkState<never, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
-export type BinaryFunctionHook<P, B, T, E = unknown> = ((options?: BinaryHookOptions<P, B>) => [NetworkState<T, E>, (body: B, params: P) => DispatchState<any>, () => void]) & HookWithKey;
-
-export type IntrigHookOptions<P = undefined, B = undefined> = UnitHookOptions | UnaryHookOptions<P> | BinaryHookOptions<P, B>;
-export type IntrigHook<P = undefined, B = undefined, T = any, E = unknown> = UnitHook<E> | ConstantHook<T, E> | UnaryProduceHook<P, E> | UnaryFunctionHook<P, T, E> | BinaryProduceHook<P, B, E> | BinaryFunctionHook<P, B, T, E>;
+export type IntrigHookOptions<P = undefined, B = undefined> =
+  | UnitHookOptions
+  | UnaryHookOptions<P>
+  | BinaryHookOptions<P, B>;
+export type IntrigHook<P = undefined, B = undefined, T = any> =
+  | UnitHook
+  | ConstantHook<T>
+  | UnaryProduceHook<P>
+  | UnaryFunctionHook<P, T>
+  | BinaryProduceHook<P, B>
+  | BinaryFunctionHook<P, B, T>;
 
 export interface AsyncRequestOptions {
   hydrate?: boolean;
@@ -239,23 +586,31 @@ export interface AsyncRequestOptions {
 
 // Async hook variants for transient (promise-returning) network requests
 
-export type UnaryFunctionAsyncHook<P, T, E = unknown> = ((
-) => [(params: P) => Promise<T>, () => void]) & {
+export type UnaryFunctionAsyncHook<P, T> = (() => [
+  (params: P) => Promise<T>,
+  () => void,
+]) & {
   key: string;
 };
 
-export type BinaryFunctionAsyncHook<P, B, T, E = unknown> = ((
-) => [(body: B, params: P) => Promise<T>, () => void]) & {
+export type BinaryFunctionAsyncHook<P, B, T> = (() => [
+  (body: B, params: P) => Promise<T>,
+  () => void,
+]) & {
   key: string;
 };
 
-export type UnaryProduceAsyncHook<P, E = unknown> = ((
-) => [(params: P) => Promise<void>, () => void]) & {
+export type UnaryProduceAsyncHook<P> = (() => [
+  (params: P) => Promise<void>,
+  () => void,
+]) & {
   key: string;
 };
 
-export type BinaryProduceAsyncHook<P, B, E = unknown> = ((
-) => [(body: B, params: P) => Promise<void>, () => void]) & {
+export type BinaryProduceAsyncHook<P, B> = (() => [
+  (body: B, params: P) => Promise<void>,
+  () => void,
+]) & {
   key: string;
 };
 
@@ -268,7 +623,7 @@ export type BinaryProduceAsyncHook<P, B, E = unknown> = ((
  * @property {string} state The current state of the dispatch process.
  */
 export interface DispatchState<T> {
-  state: string
+  state: string;
 }
 
 /**
@@ -280,8 +635,8 @@ export interface DispatchState<T> {
  *
  * @property {string} state - The state of the dispatch, always 'success'.
  */
-export interface SuccessfulDispatch<T> extends DispatchState<T>{
-  state: 'success'
+export interface SuccessfulDispatch<T> extends DispatchState<T> {
+  state: 'success';
 }
 
 /**
@@ -291,8 +646,8 @@ export interface SuccessfulDispatch<T> extends DispatchState<T>{
  */
 export function successfulDispatch<T>(): DispatchState<T> {
   return {
-    state: 'success'
-  }
+    state: 'success',
+  };
 }
 
 /**
@@ -301,8 +656,10 @@ export function successfulDispatch<T>(): DispatchState<T> {
  * @param {DispatchState<T>} value - The dispatch state to check.
  * @return {value is SuccessfulDispatch<T>} - True if the dispatch state indicates success, false otherwise.
  */
-export function isSuccessfulDispatch<T>(value: DispatchState<T>): value is SuccessfulDispatch<T> {
-  return value.state === 'success'
+export function isSuccessfulDispatch<T>(
+  value: DispatchState<T>,
+): value is SuccessfulDispatch<T> {
+  return value.state === 'success';
 }
 
 /**
@@ -311,9 +668,9 @@ export function isSuccessfulDispatch<T>(value: DispatchState<T>): value is Succe
  *
  * @typeparam T - The type of the data associated with this dispatch state.
  */
-export interface ValidationError<T> extends DispatchState<T>{
-  state: 'validation-error'
-  error: any
+export interface ValidationError<T> extends DispatchState<T> {
+  state: 'validation-error';
+  error: any;
 }
 
 /**
@@ -325,8 +682,8 @@ export interface ValidationError<T> extends DispatchState<T>{
 export function validationError<T>(error: any): ValidationError<T> {
   return {
     state: 'validation-error',
-    error
-  }
+    error,
+  };
 }
 
 /**
@@ -335,148 +692,10 @@ export function validationError<T>(error: any): ValidationError<T> {
  * @param {DispatchState<T>} value - The DispatchState object to evaluate.
  * @return {boolean} - Returns true if the provided DispatchState object is a ValidationError, otherwise returns false.
  */
-export function isValidationError<T>(value: DispatchState<T>): value is ValidationError<T> {
-  return value.state === 'validation-error'
-}
-
-/**
- * Represents an error structure with a specified type and associated data.
- *
- * @template T - The type of the data associated with the error.
- * @template E - The type of the error detail.
- *
- * @property {string} type - A string representing the type of the error.
- */
-export interface IntrigError<T, E> {
-  type: string
-}
-
-/**
- * Represents an error encountered during a network operation.
- * Extends from the \`IntrigError\` interface, adding network-specific properties.
- *
- * @template T - The type of the intrinsic data associated with the error.
- * @template E - The type of the error details, defaulting to \`unknown\`.
- *
- * @property {string} type - A constant property representing the error type, always set to 'network'.
- * @property {string} statusCode - A string representation of the HTTP status code associated with the error, indicating the nature of the network failure.
- * @property {E} error - The detailed error information specific to the failure, type extends from the generic E, allowing flexibility in the error details.
- * @property {any} request - The request object that was attempted when the network error occurred, providing context for what operation failed.
- */
-export interface NetworkError<T, E = unknown> extends IntrigError<T, E>{
-  type: 'network'
-  statusCode: string
-  error: E
-  request: any
-}
-
-/**
- * Constructs a network error object.
- *
- * @param error The error object corresponding to the network request.
- * @param statusCode A string representing the HTTP status code returned.
- * @param request The request object associated with the network operation.
- * @return A NetworkError object containing the error type, status code, error details, and the original request.
- */
-export function networkError<T, E>(error: E, statusCode: string, request: any): NetworkError<T, E> {
-  return {
-    type: 'network',
-    statusCode,
-    error,
-    request
-  }
-}
-
-/**
- * Determines if the provided IntrigError is of type 'network'.
- *
- * @param {IntrigError<T, E>} value - The error value to check the type of.
- * @return {boolean} - Returns true if the error is of type 'network', otherwise false.
- */
-export function isNetworkError<T, E>(value: IntrigError<T, E>): value is NetworkError<T, E> {
-  return value.type === 'network'
-}
-
-/**
- * Interface representing a request validation error.
- *
- * This error occurs when a validation process on a request fails. It extends the IntrigError interface
- * by adding specific properties related to request validation.
- *
- * @template T - The type of the data associated with the error.
- * @template E - The optional type of additional error information. Defaults to unknown.
- *
- * @extends IntrigError<T, E>
- *
- * @property {string} type - A string literal indicating the error type as 'request-validation'.
- * @property {ZodError} error - An instance of ZodError containing detailed validation error information.
- */
-export interface RequestValidationError<T, E = unknown> extends IntrigError<T, E>{
-  type: 'request-validation'
-  error: ZodError
-}
-
-/**
- * Constructs a RequestValidationError object encapsulating the ZodError.
- *
- * @param {ZodError} error - The error object resulting from Zod schema validation.
- * @return {RequestValidationError<T, E>} A RequestValidationError object containing the validation error information.
- */
-export function requestValidationError<T, E>(error: ZodError): RequestValidationError<T, E> {
-  return {
-    type: 'request-validation',
-    error
-  }
-}
-
-/**
- * Determines if a given error is of type RequestValidationError.
- *
- * @param value The error object to check, which implements the IntrigError interface.
- * @return A boolean indicating whether the error is a RequestValidationError.
- */
-export function isRequestValidationError<T, E>(value: IntrigError<T, E>): value is RequestValidationError<T, E> {
-  return value.type === 'request-validation'
-}
-
-/**
- * ResponseValidationError interface is designed to extend the capabilities of the IntrigError interface,
- * specifically for handling errors related to response validation.
- *
- * @template T - Represents the type of the data or payload associated with the error.
- * @template E - Represents the type of any additional error information. Defaults to unknown.
- *
- * @extends IntrigError
- *
- * @property type - A string literal that identifies the type of error as 'response-validation'.
- * @property error - An instance of ZodError representing the validation error encountered.
- */
-export interface ResponseValidationError<T, E = unknown> extends IntrigError<T, E>{
-  type: 'response-validation'
-  error: ZodError
-}
-
-/**
- * Constructs a ResponseValidationError object with a specified error.
- *
- * @param {ZodError} error - The validation error encountered during response validation.
- * @return {ResponseValidationError<T, E>} An error object containing the type of error and the validation error details.
- */
-export function responseValidationError<T, E>(error: ZodError): ResponseValidationError<T, E> {
-  return {
-    type: 'response-validation',
-    error
-  }
-}
-
-/**
- * Determines if the given error is a response validation error.
- *
- * @param {IntrigError<T, E>} value - The error object to assess.
- * @return {boolean} True if the error is a response validation error, otherwise false.
- */
-export function isResponseValidationError<T, E>(value: IntrigError<T, E>): value is ResponseValidationError<T, E> {
-  return value.type === 'response-validation'
+export function isValidationError<T>(
+  value: DispatchState<T>,
+): value is ValidationError<T> {
+  return value.state === 'validation-error';
 }
 
   `

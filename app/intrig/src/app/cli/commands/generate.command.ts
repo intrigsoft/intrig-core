@@ -36,10 +36,12 @@ export class GenerateCommand extends CommandRunner {
     const stream = response.data as NodeJS.ReadableStream;
 
     const spinners: Record<string, ora.Ora> = {}
+
+    const $this = this;
     // 4) set up SSE parser
     const parser = createParser({
       onEvent(event: EventSourceMessage) {
-        const { sourceId = 'global', step = 'generate', status } = JSON.parse(event.data);
+        const { sourceId = 'global', step = 'generate', status, info } = JSON.parse(event.data);
         const label = `${sourceId} › ${step}`;
 
         switch (status) {
@@ -54,6 +56,11 @@ export class GenerateCommand extends CommandRunner {
           case 'success':
             spinners[label]?.succeed(label);
             delete spinners[label];
+
+            if (step === 'finalize') {
+              const infoObj = JSON.parse(info ?? "{}");
+              $this.printGenerationReport(infoObj);
+            }
             break;
           case 'error':
             spinners[label]?.fail(label)
@@ -82,5 +89,49 @@ export class GenerateCommand extends CommandRunner {
         resolve();
       });
     });
+  }
+
+  private printGenerationReport(infoObj: any): void {
+    console.log('\n' + chalk.cyan.bold('📊 Generation Report'));
+    console.log(chalk.gray('─'.repeat(50)));
+
+    // Print skipped endpoints section
+    if (infoObj.skipEndpoints && Object.keys(infoObj.skipEndpoints).length > 0) {
+      console.log('\n' + chalk.yellow.bold('⚠️  Skipped Endpoints:'));
+      
+      for (const [sourceId, skippedEndpoints] of Object.entries(infoObj.skipEndpoints)) {
+        console.log(chalk.cyan(`\n  ${sourceId}:`));
+        
+        (skippedEndpoints as any[]).forEach((item, index) => {
+          const isLast = index === (skippedEndpoints as any[]).length - 1;
+          const prefix = isLast ? '  └─' : '  ├─';
+          console.log(`${prefix} ${chalk.red(item.endpoint)}`);
+          console.log(`${isLast ? '    ' : '  │ '} ${chalk.dim('Reason:')} ${chalk.gray(item.reason)}`);
+        });
+      }
+    } else {
+      console.log('\n' + chalk.green('✅ No endpoints were skipped'));
+    }
+
+    // Print generation statistics section
+    if (infoObj.generationStats && Object.keys(infoObj.generationStats).length > 0) {
+      console.log('\n' + chalk.blue.bold('📈 Generation Statistics:'));
+      
+      for (const [sourceId, stats] of Object.entries(infoObj.generationStats)) {
+        const sourceStats = stats as any;
+        console.log(chalk.cyan(`\n  ${sourceId}:`));
+        
+        if (sourceStats.counters) {
+          const counters = Object.entries(sourceStats.counters);
+          counters.forEach(([type, count], index) => {
+            const isLast = index === counters.length - 1;
+            const prefix = isLast ? '  └─' : '  ├─';
+            console.log(`${prefix} ${chalk.white(type)}: ${chalk.green.bold(count)}`);
+          });
+        }
+      }
+    }
+
+    console.log('\n' + chalk.gray('─'.repeat(50)));
   }
 }

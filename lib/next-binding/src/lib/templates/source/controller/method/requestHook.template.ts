@@ -1,6 +1,7 @@
 import {
   camelCase,
   generatePostfix,
+  GeneratorContext,
   pascalCase, ResourceDescriptor, RestData,
   typescript,
   Variable
@@ -88,20 +89,10 @@ function extractErrorParams(errorTypes: (string | undefined)[]) {
 
 export function nextRequestHookTemplate(
   {
-    source,
-    data: {
-      paths,
-      operationId,
-      response,
-      requestUrl,
-      variables,
-      requestBody,
-      contentType,
-      responseType,
-      errorResponses,
-      method,
-    }
-  }: ResourceDescriptor<RestData>, clientExports: string[] = [], serverExports: string[] = [], _path: string,
+    source, data: {
+    paths, operationId, response, requestUrl, variables, requestBody, contentType, responseType, errorResponses, method,
+  }
+  }: ResourceDescriptor<RestData>, clientExports: string[] = [], serverExports: string[] = [], _path: string, ctx: GeneratorContext,
 ) {
   const ts = typescript(
     path.resolve(
@@ -113,6 +104,8 @@ export function nextRequestHookTemplate(
       `use${pascalCase(operationId)}${generatePostfix(contentType, responseType)}.ts`,
     ),
   );
+
+  ctx.generatorCtx?.getCounter(source)?.inc("Stateful Hooks")
 
   const modifiedRequestUrl = `/api/${source}${requestUrl?.replace(/\{/g, '${')}`;
 
