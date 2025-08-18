@@ -6,7 +6,8 @@
     "predev": "intrig prebuild",
     "prebuild": "intrig prebuild",
     "postbuild": "intrig postbuild",
-    "test:react-binding": "nx test react-binding"
+    "test:react-binding": "nx test react-binding",
+    "intrig:generate": "intrig generate"
   },
   "private": true,
   "type": "module",
