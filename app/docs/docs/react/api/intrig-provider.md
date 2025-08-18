@@ -278,4 +278,4 @@ function AppProvider({ children }) {
 
 - [Hook Conventions](/docs/react/core-concepts/hook-conventions) - Learn how hooks consume IntrigProvider configuration
 - [Entry Point](/docs/react/core-concepts/entry-point) - Understand IntrigProvider's role as the application entry point
-- [Network State](/docs/react/core-concepts/network-state) - Deep dive into state management patterns
+- [Network State](/docs/react/api/network-state) - Deep dive into state management patterns

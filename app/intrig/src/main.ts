@@ -61,8 +61,26 @@ async function bootstrap() {
     const app = await NestFactory.createApplicationContext(AppModule, {
       logger: false
     });
-    await app.init()
+    
+    // Enable shutdown hooks for proper cleanup
+    app.enableShutdownHooks();
+    
+    // Initialize the application - this triggers onApplicationBootstrap
+    await app.init();
+    
+    // Keep the process alive by preventing exit
     process.stdin.resume();
+    
+    // Handle graceful shutdown
+    process.on('SIGINT', async () => {
+      await app.close();
+      process.exit(0);
+    });
+    
+    process.on('SIGTERM', async () => {
+      await app.close();
+      process.exit(0);
+    });
   } else {
     if (cmd === 'init') {
       const configPath = './intrig.config.json';

@@ -39,6 +39,7 @@ import {reactAsyncFunctionHookTemplate} from "./templates/source/controller/meth
 import {reactAsyncFunctionHookDocs} from "./templates/docs/async-hook";
 import {typeUtilsTemplate} from "./templates/type-utils.template";
 import {reactDownloadHookDocs} from "./templates/docs/download-hook";
+import { schemaJsonSchemaDoc, schemaTypescriptDoc, schemaZodSchemaDoc } from "./templates/docs/schema";
 
 const nonDownloadMimePatterns = picomatch([
   "application/json",
@@ -178,25 +179,17 @@ export class ReactBindingService extends GeneratorBinding {
           collector[collectorType] += line + "\n"
       }
     })
+    const tabs: Tab[] = []
+    tabs.push({ name: 'Typescript Type', content: (await schemaTypescriptDoc(collector['Typescript Type'], result)).content })
+    tabs.push({ name: 'JSON Schema', content: (await schemaJsonSchemaDoc(collector['JSON Schema'], result)).content })
+    tabs.push({ name: 'Zod Schema', content: (await schemaZodSchemaDoc(collector['Zod Schema'], result)).content })
+
     return SchemaDocumentation.from({
       id: result.id,
       name: result.data.name,
-      description: "", //TODO improvise description
+      description: result.data.schema?.description ?? '',
       jsonSchema: result.data.schema,
-      tabs: [
-        ["Typescript Type", 'TypeScript interface definition'],
-        ["JSON Schema", 'JSON Schema definition'],
-        ["Zod Schema", 'Zod schema for runtime validation']
-      ].map(([name, description]) => ({
-        name,
-        content: `
-# ${name}
-${description}
-${"```ts"}
-${collector[name]?.trim()}
-${"```"}
-        `
-      })),
+      tabs,
       relatedTypes: [],
       relatedEndpoints: []
     })
