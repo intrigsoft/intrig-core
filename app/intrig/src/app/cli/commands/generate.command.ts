@@ -37,6 +37,7 @@ export class GenerateCommand extends CommandRunner {
 
     const spinners: Record<string, ora.Ora> = {}
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const $this = this;
     // 4) set up SSE parser
     const parser = createParser({
