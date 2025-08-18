@@ -1,7 +1,7 @@
 import {useEffect, useMemo} from 'react';
 import { useParams, Link } from 'react-router-dom';
-import {useDataSearchControllerGetEndpointById} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetEndpointById/useDataSearchControllerGetEndpointById';
-import {useDataSearchControllerGetFileList} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList';
+import {useDataSearchControllerGetEndpointById} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetEndpointById/useDataSearchControllerGetEndpointById';
+import {useDataSearchControllerGetFileList} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList';
 import {isSuccess, isPending, isError} from "@intrig/react";
 import { UrlAwareTabs } from "@/components/url-aware-tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

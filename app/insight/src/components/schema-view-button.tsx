@@ -10,7 +10,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
-import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
+import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
 import { isSuccess, isPending, isError } from "@intrig/react";
 
 interface SchemaViewButtonProps {

@@ -7,7 +7,7 @@ import { FileIcon } from "lucide-react";
 import {isError, isPending, isSuccess} from "@intrig/react";
 import {
   useDataSearchControllerGetFileList
-} from "@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList";
+} from "@intrig/react/daemon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList";
 
 export function UsageCountBadge() {
   const [fileResp] = useDataSearchControllerGetFileList();

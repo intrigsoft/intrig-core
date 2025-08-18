@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {PinIcon, PinOffIcon} from 'lucide-react'
-import { LastVisitItem } from "@intrig/react/deamon_api/components/schemas/LastVisitItem";
-import {useDataSearchControllerGetPinnedItems} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetPinnedItems/useDataSearchControllerGetPinnedItems'
-import {useDataSearchControllerTogglePinItemAsync} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerTogglePinItem/useDataSearchControllerTogglePinItemAsync'
+import { LastVisitItem } from "@intrig/react/daemon_api/components/schemas/LastVisitItem";
+import {useDataSearchControllerGetPinnedItems} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetPinnedItems/useDataSearchControllerGetPinnedItems'
+import {useDataSearchControllerTogglePinItemAsync} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerTogglePinItem/useDataSearchControllerTogglePinItemAsync'
 import {useCallback, useContext, useEffect, useMemo, useTransition} from "react";
 import {isSuccess} from "@intrig/react";
 

@@ -17,7 +17,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <IntrigProvider configs={{
-      deamon_api: {
+      daemon_api: {
         baseURL
       }
     }}>
