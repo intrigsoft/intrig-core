@@ -7,15 +7,15 @@ export function reactProviderMainTemplate(_path: string, apisToSync: IntrigSourc
 export * from './interfaces';
 export * from './reducer';
 export * from './axios-config';
-export * from './provider-components';
+export * from './intrig-provider';
+export * from './intrig-provider-stub';
+export * from './status-trap';
 export * from './provider-hooks';
 
 // Main provider exports for backward compatibility
-export {
-  IntrigProvider,
-  IntrigProviderStub,
-  StatusTrap,
-} from './provider-components';
+export { IntrigProvider } from './intrig-provider';
+export { IntrigProviderStub } from './intrig-provider-stub';
+export { StatusTrap } from './status-trap';
 
 export {
   useNetworkState,
