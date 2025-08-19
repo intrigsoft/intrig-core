@@ -44,11 +44,11 @@ export function useAsNetworkState<T, F extends (...args: any) => Promise<T>>(
   fn: F,
   options: any = {},
 ): [NetworkState<T>, (...params: Parameters<F>) => void, () => void] {
-  let id = useId();
+  const id = useId();
 
-  let context = useIntrigContext();
+  const context = useIntrigContext();
 
-  let key = options.key ?? 'default';
+  const key = options.key ?? 'default';
 
   const networkState = useMemo(() => {
     return context.state?.[${"`promiseState:${id}:${key}}`"}] ?? init();

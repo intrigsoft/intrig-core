@@ -1,20 +1,4 @@
-import { readFileSync } from 'fs';
-
-// Reading the SWC compilation config for the spec files
-const swcJestConfig = JSON.parse(
-  readFileSync(`${__dirname}/.spec.swcrc`, 'utf-8')
-);
-
-// Disable .swcrc look-up by SWC core because we're passing in swcJestConfig ourselves
-swcJestConfig.swcrc = false;
-
-export default {
-  displayName: 'react-binding',
-  preset: '../../jest.preset.cjs',
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
-  },
-  moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: 'test-output/jest/coverage',
-};
+// Re-export the CommonJS Jest config to avoid TS/ESM resolution issues during Nx Jest execution.
+/* eslint-disable */
+// @ts-ignore - CJS module has no type declarations
+export { default } from './jest.config.cjs';

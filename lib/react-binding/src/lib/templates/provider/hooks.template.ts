@@ -71,7 +71,7 @@ export function useNetworkState<T>({
 
   const debounceDelay = useMemo(() => {
     return (
-      requestDebounceDelay ?? context.configs?.[source]?.debounceDelay ?? 0
+      requestDebounceDelay ?? context.configs?.[source as keyof (typeof context)['configs']]?.debounceDelay ?? 0
     );
   }, [context.configs, requestDebounceDelay, source]);
 
@@ -80,10 +80,10 @@ export function useNetworkState<T>({
       logger.info(${"`Executing request ${key} ${operation} ${source}`"});
       logger.debug("=>", request)
 
-      let abortController = new AbortController();
+      const abortController = new AbortController();
       setAbortController(abortController);
 
-      let requestConfig: RequestType = {
+      const requestConfig: RequestType = {
         ...request,
         onUploadProgress(event: AxiosProgressEvent) {
           dispatch(
@@ -192,7 +192,7 @@ export function useCentralError() {
     return Object.entries(ctx.filteredState as Record<string, NetworkState>)
       .filter(([, state]) => isError(state))
       .map(([k, state]) => {
-        let [source, operation, key] = k.split(':');
+        const [source, operation, key] = k.split(':');
         return {
           ...(state as ErrorState<unknown>),
           source,
@@ -213,14 +213,14 @@ export function useCentralPendingState() {
   const ctx = useContext(Context);
 
   const result: NetworkState = useMemo(() => {
-    let pendingStates = Object.values(
+    const pendingStates = Object.values(
       ctx.filteredState as Record<string, NetworkState>,
     ).filter(isPending);
     if (!pendingStates.length) {
       return init();
     }
 
-    let progress = pendingStates
+    const progress = pendingStates
       .filter((a) => a.progress)
       .reduce(
         (progress, current) => {
@@ -231,7 +231,7 @@ export function useCentralPendingState() {
         },
         { total: 0, loaded: 0 } satisfies Progress,
       );
-    return pending(!!progress.total ? progress : undefined);
+    return pending(progress.total ? progress : undefined);
   }, [ctx.filteredState]);
 
   return result;

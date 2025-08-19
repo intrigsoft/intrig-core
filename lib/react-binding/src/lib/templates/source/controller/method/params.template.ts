@@ -17,6 +17,10 @@ export async function reactParamsTemplate({
 
   const {variableImports, variableTypes} = decodeVariables(variables ?? [], source, "@intrig/react");
 
+  if (variableTypes.length === 0) return ts`
+  export type ${pascalCase(operationId)}Params = Record<string, any>
+  `
+
   return ts`
      ${variableImports}
 

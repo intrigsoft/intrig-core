@@ -24,12 +24,12 @@ export function createAxiosInstance(
   });
   
   async function requestInterceptor(cfg: InternalAxiosRequestConfig) {
-    let intermediate = (await defaultConfig?.requestInterceptor?.(cfg)) ?? cfg;
+    const intermediate = (await defaultConfig?.requestInterceptor?.(cfg)) ?? cfg;
     return config?.requestInterceptor?.(intermediate) ?? intermediate;
   }
 
   async function responseInterceptor(cfg: AxiosResponse<any>) {
-    let intermediate = (await defaultConfig?.responseInterceptor?.(cfg)) ?? cfg;
+    const intermediate = (await defaultConfig?.responseInterceptor?.(cfg)) ?? cfg;
     return config?.responseInterceptor?.(intermediate) ?? intermediate;
   }
 

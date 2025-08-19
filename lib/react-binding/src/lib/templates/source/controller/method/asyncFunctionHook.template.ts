@@ -163,7 +163,7 @@ function use${pascalCase(operationId)}AsyncHook(): [(${paramType}) => Promise<Re
   });
 
   const doExecute = useCallback<(${paramType}) => Promise<Response>>(async (${paramExpression}) => {
-    let { ${paramExplode} } = p;
+    const { ${paramExplode} } = p;
 
     ${requestBody ? `
     const validationResult = requestBodySchema.safeParse(data);

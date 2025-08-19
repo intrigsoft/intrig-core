@@ -17,7 +17,7 @@ import {
   IntrigHook,
   NetworkState,
 } from './network-state';
-import { Context, RequestType, GlobalState, SchemaOf } from './intrig-context';
+import { SchemaOf } from './intrig-context';
 
 export interface DefaultConfigs extends CreateAxiosDefaults {
   debounceDelay?: number;

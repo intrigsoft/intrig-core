@@ -3,7 +3,7 @@ import * as path from 'path';
 
 export function reactIntrigProviderStubTemplate(_path: string, _apisToSync: IntrigSourceConfig[]) {
   const ts = typescript(path.resolve(_path, 'src', 'intrig-provider-stub.tsx'));
-  return ts`import React, { PropsWithChildren, useMemo, useReducer } from 'react';
+  return ts`import { useMemo, useReducer } from 'react';
 import { ZodSchema } from 'zod';
 import { Context, RequestType, GlobalState } from './intrig-context';
 import { IntrigProviderStubProps } from './interfaces';
@@ -13,12 +13,14 @@ import { requestReducer } from './reducer';
 export function IntrigProviderStub({
   children,
   configs = {},
-  stubs = () => {},
+  stubs = () => {
+    //intentionally left blank
+  },
 }: IntrigProviderStubProps) {
   const [state, dispatch] = useReducer(requestReducer, {} as GlobalState);
 
   const collectedStubs = useMemo(() => {
-    let fns: Record<string, (
+    const fns: Record<string, (
       params: any,
       body: any,
       dispatch: (state: NetworkState<any>) => void,
@@ -43,9 +45,9 @@ export function IntrigProviderStub({
       dispatch: (state: NetworkState<T>) => void,
       schema: ZodSchema<T> | undefined,
     ) {
-      let stub = collectedStubs[request.key];
+      const stub = collectedStubs[request.key];
 
-      if (!!stub) {
+      if (stub) {
         try {
           await stub(request.params, request.data, dispatch);
         } catch (e: any) {

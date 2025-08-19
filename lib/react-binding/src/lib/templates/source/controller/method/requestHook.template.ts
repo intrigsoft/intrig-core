@@ -160,7 +160,7 @@ export async function reactRequestHookTemplate({source,
     const source = "${source}"
 
     function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response>, (${paramType}) => DispatchState<any>, () => void] {
-      let [state, dispatch, clear, dispatchState] = useNetworkState<Response>({
+      const [state, dispatch, clear, dispatchState] = useNetworkState<Response>({
         key: options?.key ?? 'default',
         operation,
         source,
@@ -168,8 +168,8 @@ export async function reactRequestHookTemplate({source,
         errorSchema
       });
 
-      let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
-        let { ${paramExplode}} = p
+      const doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
+        const { ${paramExplode}} = p
 
           ${requestBody ? `
           const validationResult = requestBodySchema.safeParse(data);
