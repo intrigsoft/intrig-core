@@ -1,3 +1,22 @@
+## 0.0.15-7 (2025-08-19)
+
+### 🚀 Features
+
+- add Jest testing support for `react-binding` library ([f6648bf](https://github.com/intrigsoft/intrig-core/commit/f6648bf))
+- add `UrlAwareTabs` component and update dependencies ([2591b31](https://github.com/intrigsoft/intrig-core/commit/2591b31))
+- add `Collapsible` component and update dependencies ([8f889ed](https://github.com/intrigsoft/intrig-core/commit/8f889ed))
+- add Docusaurus site for documentation ([0dd55a9](https://github.com/intrigsoft/intrig-core/commit/0dd55a9))
+- remove custom Navbar and Content wrappers, update documentation structure ([ed19595](https://github.com/intrigsoft/intrig-core/commit/ed19595))
+- integrate detailed stats and skipped endpoints reporting into code generation flow ([1225773](https://github.com/intrigsoft/intrig-core/commit/1225773))
+- add modularized provider templates for React and Next.js ([82cca30](https://github.com/intrigsoft/intrig-core/commit/82cca30))
+- replace endpoint and schema resources with AI-friendly tools ([93e8f1b](https://github.com/intrigsoft/intrig-core/commit/93e8f1b))
+- add modularized tests and documentation for Next.js provider templates ([37b577f](https://github.com/intrigsoft/intrig-core/commit/37b577f))
+- modularize React provider templates and add new tests ([4cfcadd](https://github.com/intrigsoft/intrig-core/commit/4cfcadd))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-6 (2025-08-13)
 
 ### 🚀 Features
