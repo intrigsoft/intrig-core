@@ -46,7 +46,7 @@ jobs:
 
           # Run the bin by absolute path (avoids PATH issues)
           "$TMP/node_modules/.bin/intrig" --help
-          "$TMP/node_modules/.bin/intrig" --ci generate
+          "$TMP/node_modules/.bin/intrig" generate --ci
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
