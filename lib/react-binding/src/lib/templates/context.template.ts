@@ -14,7 +14,7 @@ import { NetworkAction, NetworkState } from '@intrig/react/network-state';
 import { AxiosProgressEvent, AxiosRequestConfig } from 'axios';
 import { ZodSchema, ZodType, ZodTypeDef } from 'zod';
 import { createContext, useContext, Dispatch } from 'react';
-import { DefaultConfigs } from '@intrig/react/intrig-provider';
+import { DefaultConfigs } from './interfaces';
 
 type GlobalState = Record<string, NetworkState>;
 

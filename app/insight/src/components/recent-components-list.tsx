@@ -9,11 +9,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BracesIcon, Link2Icon, ServerIcon } from "lucide-react";
-import {useDataSearchControllerGetLastVisitedItems} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetLastVisitedItems/client'
+import {useDataSearchControllerGetLastVisitedItems} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetLastVisitedItems/client'
 import {useLocation, Link} from "react-router-dom";
 import {isSuccess} from "@intrig/react";
 import { PinButton } from "@/components/pin-button";
-import {EntityView} from "@intrig/react/deamon_api/components/schemas/EntityView";
+import {EntityView} from "@intrig/react/daemon_api/components/schemas/EntityView";
 
 export function RecentComponentsList() {
 

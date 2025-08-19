@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import {useDebounceState} from "@/lib/useDebounceState";
 import {
   useDataSearchControllerSearch
-} from "@intrig/react/deamon_api/DataSearch/dataSearchControllerSearch/useDataSearchControllerSearch";
+} from "@intrig/react/daemon_api/DataSearch/dataSearchControllerSearch/useDataSearchControllerSearch";
 import {isSuccess} from "@intrig/react";
 import {
   Pagination,

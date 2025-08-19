@@ -131,7 +131,7 @@ export class ReactBindingService extends GeneratorBinding {
   }
 
   private isDownloadableResource(descriptor: ResourceDescriptor<RestData>) {
-    if (descriptor.data.responseHeaders?.['content-disposition']) {
+    if (descriptor.data.responseHeaders?.['Content-Disposition']) {
       return true
     }
     if (descriptor.data.method.toUpperCase() !== 'GET') {

@@ -1,8 +1,8 @@
 {
   "sources": [
     {
-      "id": "deamon_api",
-      "name": "Intrig Deamon API",
+      "id": "daemon_api",
+      "name": "Intrig Daemon API",
       "specUrl": "http://localhost:3000/api/swagger.json"
     }
   ],

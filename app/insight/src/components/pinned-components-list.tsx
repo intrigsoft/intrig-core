@@ -9,10 +9,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BracesIcon, Link2Icon, ServerIcon } from "lucide-react";
-import {useDataSearchControllerGetPinnedItems} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetPinnedItems/client'
+import {useDataSearchControllerGetPinnedItems} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetPinnedItems/client'
 import {useLocation, Link} from "react-router-dom";
 import {isSuccess} from "@intrig/react";
-import {LastVisitItem} from "@intrig/react/deamon_api/components/schemas/LastVisitItem";
+import {LastVisitItem} from "@intrig/react/daemon_api/components/schemas/LastVisitItem";
 import { PinButton } from "@/components/pin-button";
 
 export function PinnedComponentsList() {

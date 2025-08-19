@@ -1,6 +1,6 @@
 import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {useSourcesControllerDownloadOpenApiFileDownload} from '@intrig/react/deamon_api/Sources/sourcesControllerDownloadOpenApiFile/useSourcesControllerDownloadOpenApiFileDownload'
+import {useSourcesControllerDownloadOpenApiFileDownload} from '@intrig/react/daemon_api/Sources/sourcesControllerDownloadOpenApiFile/useSourcesControllerDownloadOpenApiFileDownload'
 import {useEffect} from "react";
 
 interface SourceDownloadButtonProps {

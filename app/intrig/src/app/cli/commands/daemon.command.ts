@@ -1,7 +1,7 @@
 import {Command, CommandRunner, SubCommand} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
 
-@SubCommand({name: 'up', description: 'Start the deamon.'})
+@SubCommand({name: 'up', description: 'Start the daemon.'})
 export class UpSubCommand extends CommandRunner {
   constructor(private readonly pm: ProcessManagerService) {
     super();
@@ -20,7 +20,7 @@ export class UpSubCommand extends CommandRunner {
   }
 }
 
-@SubCommand({name: 'down', description: 'Stop the deamon.'})
+@SubCommand({name: 'down', description: 'Stop the daemon.'})
 export class DownSubCommand extends CommandRunner {
   constructor(private readonly pm: ProcessManagerService) {
     super();
@@ -39,7 +39,7 @@ export class DownSubCommand extends CommandRunner {
   }
 }
 
-@SubCommand({name: 'restart', description: 'Restart the deamon.'})
+@SubCommand({name: 'restart', description: 'Restart the daemon.'})
 export class RestartSubCommand extends CommandRunner {
   constructor(private readonly pm: ProcessManagerService) {
     super();
@@ -52,7 +52,7 @@ export class RestartSubCommand extends CommandRunner {
   }
 }
 
-@SubCommand({name: 'status', description: 'Check the deamon status.'})
+@SubCommand({name: 'status', description: 'Check the daemon status.'})
 export class StatusSubCommand extends CommandRunner {
   constructor(private readonly pm: ProcessManagerService) {
     super();
@@ -67,8 +67,8 @@ export class StatusSubCommand extends CommandRunner {
 
 
 @Command({
-  name: "deamon",
-  description: "Deamon related operations.",
+  name: "daemon",
+  description: "Daemon related operations.",
   subCommands: [
     UpSubCommand,
     DownSubCommand,
@@ -76,7 +76,7 @@ export class StatusSubCommand extends CommandRunner {
     StatusSubCommand
   ]
 })
-export class DeamonCommand extends CommandRunner {
+export class DaemonCommand extends CommandRunner {
   async run(passedParams: string[]): Promise<void> {
     this.command.outputHelp();
   }

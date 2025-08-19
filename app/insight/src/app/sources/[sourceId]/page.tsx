@@ -6,8 +6,8 @@ import { DashboardSearch } from '@/components/dashboard-search';
 import { SourceDownloadButton } from '@/components/source-download-button';
 import { UrlAwareTabs } from '@/components/url-aware-tabs';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import {useSourcesControllerGetById} from '@intrig/react/deamon_api/Sources/sourcesControllerGetById/useSourcesControllerGetById'
-import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats'
+import {useSourcesControllerGetById} from '@intrig/react/daemon_api/Sources/sourcesControllerGetById/useSourcesControllerGetById'
+import {useDataSearchControllerGetDataStats} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats'
 import {isSuccess} from "@intrig/react";
 import EndpointsTab from "@/app/sources/[sourceId]/components/endpoints-tab";
 import DataTypesTab from "@/app/sources/[sourceId]/components/datatypes-tab";

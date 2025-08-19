@@ -6,7 +6,7 @@ export function reactIndexTemplate(_path: string){
   const ts = typescript(path.resolve(_path, "src", "index.ts"))
 
   return ts`
-  export * from './intrig-provider';
+  export * from './intrig-provider-main';
   export * from './network-state';
   export * from './extra';
   export * from './media-type-utils';

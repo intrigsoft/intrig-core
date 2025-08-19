@@ -9,11 +9,11 @@ import {
   CommandList,
   CommandSeparator
 } from "@/components/ui/command";
-import {useDataSearchControllerSearch} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerSearch/useDataSearchControllerSearch'
+import {useDataSearchControllerSearch} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerSearch/useDataSearchControllerSearch'
 import {isSuccess} from '@intrig/react'
 import {useDebounceState} from "@/lib/useDebounceState";
 import {useEffect} from "react";
-import {ResourceDescriptor} from "@intrig/react/deamon_api/components/schemas/ResourceDescriptor";
+import {ResourceDescriptor} from "@intrig/react/daemon_api/components/schemas/ResourceDescriptor";
 import { Link } from "react-router-dom";
 import {
   Tooltip,

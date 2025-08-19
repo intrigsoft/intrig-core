@@ -1,6 +1,6 @@
 import {useEffect, useMemo} from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
+import { useDataSearchControllerGetSchemaDocsById } from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetSchemaDocsById/useDataSearchControllerGetSchemaDocsById';
 import {isSuccess, isPending, isError} from "@intrig/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import {
 import { OpenAPIV3_1 } from "openapi-types";
 import {
   useDataSearchControllerGetFileList
-} from "@intrig/react/deamon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList";
+} from "@intrig/react/daemon_api/DataSearch/dataSearchControllerGetFileList/useDataSearchControllerGetFileList";
 import {UsageCountBadge, UsageFilesList} from "@/components/usage-files-list";
 
 export function DatatypeDetailPage() {

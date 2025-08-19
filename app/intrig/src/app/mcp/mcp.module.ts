@@ -35,7 +35,7 @@ This MCP server only provides documentation and structure. It does not execute h
 @Module({
   imports: [
     Mcp.forRoot({
-      name: 'intrig-deamon',
+      name: 'intrig-daemon',
       version: '0.0.1',
       transport: McpTransportType.STDIO,
       instructions

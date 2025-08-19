@@ -3,8 +3,8 @@ import { ServerIcon, Link2Icon, BracesIcon, ComponentIcon, LayoutDashboardIcon }
 import { StatCard } from '@/components/stat-card';
 import { DashboardSearch } from '@/components/dashboard-search';
 import { SourceCard } from '@/components/source-card';
-import {useDataSearchControllerGetDataStats} from '@intrig/react/deamon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats';
-import {useSourcesControllerList} from '@intrig/react/deamon_api/Sources/sourcesControllerList/useSourcesControllerList'
+import {useDataSearchControllerGetDataStats} from '@intrig/react/daemon_api/DataSearch/dataSearchControllerGetDataStats/useDataSearchControllerGetDataStats';
+import {useSourcesControllerList} from '@intrig/react/daemon_api/Sources/sourcesControllerList/useSourcesControllerList'
 import {isError, isSuccess} from "@intrig/react";
 
 export function HomePage() {
