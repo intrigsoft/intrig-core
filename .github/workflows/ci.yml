@@ -52,7 +52,7 @@ jobs:
       # - run: npx nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: Nx affected (lint, test, build)
-        run: npx nx affected -t lint test build
+        run: npx nx affected -t lint test build --verbose
         env:
           NX_DAEMON: "false"
 
