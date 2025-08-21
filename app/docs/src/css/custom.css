@@ -519,3 +519,9 @@ html[data-theme='dark'] .figure__caption {
         padding: 0.75rem 1rem;
     }
 }
+
+/* Themed GitHub icon visibility for navbar */
+.github-icon { display: inline-block; line-height: 0; }
+.github-icon img { display: none; }
+html[data-theme='light'] .github-icon--light { display: inline; }
+html[data-theme='dark'] .github-icon--dark { display: inline; }

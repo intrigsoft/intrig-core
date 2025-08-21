@@ -55,6 +55,10 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
+    colorMode: {
+      defaultMode: 'dark',
+      respectPrefersColorScheme: false,
+    },
     navbar: {
       title: '',
       logo: {
@@ -69,9 +73,9 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/intrigsoft/intrig-core',
-          label: 'GitHub',
+          type: 'html',
           position: 'right',
+          value: '<a href="https://github.com/intrigsoft/intrig-core" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" class="github-icon"><img src="/img/github-dark.svg" alt="GitHub" height="24" class="github-icon--light" style="vertical-align: middle;" /><img src="/img/github.svg" alt="GitHub" height="24" class="github-icon--dark" style="vertical-align: middle;" /></a>',
         },
       ],
     },

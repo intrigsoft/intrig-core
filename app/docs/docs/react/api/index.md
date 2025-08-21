@@ -13,8 +13,8 @@ At a high level, you’ll work with:
 
 * **Generated Hooks** – Functions tailored to your API definition:
 
-    * **Stateful hooks** cache results in the global store, making them ideal for reusable or observable data.
-    * **Stateless hooks** run one-off calls without storing results, perfect for actions like form submissions.
-    * **Specialized hooks** extend the model for streaming (`SSE Hook`) and file transfers (`Download Hook`).
+    * **Stateful hooks** cache results in the global store, making them ideal for reusable or observable data. See: [Stateful Hook Template](/docs/react/api/stateful-hook)
+    * **Stateless hooks** run one-off calls without storing results, perfect for actions like form submissions. See: [Stateless Hook Template](/docs/react/api/stateless-hook)
+    * **Specialized hooks** extend the model for streaming (`SSE Hook`) and file transfers (`Download Hook`). See: [Download Hook Template](/docs/react/api/download-hook)
 
 Together, these components let you call APIs with minimal boilerplate while keeping type safety and integration consistency at the center of your workflow.
