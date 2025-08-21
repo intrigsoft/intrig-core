@@ -11,6 +11,7 @@ import {
 import { Logo } from "@/components/logo";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { GitHubLink } from "@/components/github-link";
+import { DocsLink } from "@/components/docs-link";
 import { DashboardSearch } from "@/components/dashboard-search";
 import { Link } from "react-router-dom";
 import { RecentComponentsList } from "@/components/recent-components-list";
@@ -72,7 +73,10 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center justify-between px-2">
           <ThemeSwitch />
-          <GitHubLink />
+          <div className="flex items-center gap-1.5">
+            <DocsLink />
+            <GitHubLink />
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
