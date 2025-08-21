@@ -14,6 +14,7 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
  */
 const sidebars: SidebarsConfig = {
   docs: [
+    'intro',
     'getting-started',
     'thinking-in-intrig',
     {
@@ -62,7 +63,10 @@ const sidebars: SidebarsConfig = {
             'react/api/is-success',
             'react/api/is-error',
             'react/api/is-pending',
-            'react/api/is-init'
+            'react/api/is-init',
+            'react/api/stateful-hook',
+            'react/api/stateless-hook',
+            'react/api/download-hook'
           ]
         }
       ]

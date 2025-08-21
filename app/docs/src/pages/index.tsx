@@ -155,20 +155,28 @@ export default function Home() {
                 $ref: '#/components/schemas/Employee'`}</CodeBlock>
 
               <div className="text-xs mt-4 mb-2 font-semibold text-gray-700 dark:text-gray-300">Generated React usage</div>
-              <CodeBlock language="tsx" className={'p-1 rounded-xl'}>{`import { isSuccess } from '@intrig/react';
+              <CodeBlock language="tsx" className={'p-1 rounded-xl'}>{`import { isPending, isError, isSuccess } from '@intrig/react';
 import { useGetEmployee } from '@intrig/react/employee/client';
 
 export default function EmployeeCard({ id }: { id: string }) {
-  const [state, refresh] = useGetEmployee({ params: { id } });
+  // Stateful hook: [state, execute, clear]
+  const [state, getEmployee, clear] = useGetEmployee({
+    fetchOnMount: true,
+    clearOnUnmount: true,
+    params: { id },
+  });
 
-  if (state.pending) return <p>Loading…</p>;
-  if (state.error) return <p>Failed: {String(state.error)}</p>;
+  if (isPending(state)) return <p>Loading…</p>;
+  if (isError(state)) return <p>Failed: {String(state.error)}</p>;
   if (!isSuccess(state)) return null;
 
   return (
     <div className="card">
       <h3>{state.data.name}</h3>
-      <button onClick={refresh}>Refresh</button>
+      <div className="flex gap-2">
+        <button onClick={() => getEmployee({ id })}>Refresh</button>
+        <button onClick={clear}>Reset</button>
+      </div>
     </div>
   );
 }`}</CodeBlock>
