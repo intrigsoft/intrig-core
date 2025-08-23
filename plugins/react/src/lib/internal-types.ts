@@ -1,3 +1,5 @@
+import { StatsCounter } from "@intrig/plugin-sdk";
+
 export class InternalGeneratorContext {
   private codeGenerationBreakdown: Record<string, StatsCounter> = {};
   constructor(public readonly potentiallyConflictingDescriptors: string[]) {}

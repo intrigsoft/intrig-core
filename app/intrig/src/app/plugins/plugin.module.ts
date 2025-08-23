@@ -4,5 +4,6 @@ import { PluginHostService } from './plugin-host.service';
 
 @Module({
   providers: [PluginRegistryService, PluginHostService],
+  exports: [PluginRegistryService, PluginHostService],
 })
 export class PluginModule {}

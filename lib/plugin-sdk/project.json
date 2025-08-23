@@ -3,7 +3,27 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "lib/plugin-sdk/src",
   "projectType": "library",
-  "tags": [],
-  "// targets": "to see all targets run: nx show project @intrig/plugin-sdk --web",
-  "targets": {}
+  "tags": ["Intrig", "plugin-sdk"],
+  "targets": {
+    "build": {
+      "executor": "@nx/rollup:rollup",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/lib/plugin-sdk",
+        "main": "lib/plugin-sdk/src/index.ts",
+        "tsConfig": "lib/plugin-sdk/tsconfig.lib.json",
+        "compiler": "swc",
+        "format": ["esm", "cjs"],
+        "outputFileName": "index.js",
+        "assets": [
+          {
+            "input": "lib/plugin-sdk",
+            "glob": "package.json",
+            "output": "."
+          }
+        ],
+        "rollupConfig": "lib/plugin-sdk/rollup.config.cjs"
+      }
+    }
+  }
 }

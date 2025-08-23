@@ -13,7 +13,7 @@
         "main": "plugins/react/src/index.ts",
         "tsConfig": "plugins/react/tsconfig.lib.json",
         "compiler": "swc",
-        "format": ["esm"],
+        "format": ["esm", "cjs"],
         "outputFileName": "index.js",
         "assets": [
           {

@@ -34,17 +34,19 @@ module.exports = (config) => {
     newConfig.output = newConfig.output.map((o) => ({
       ...o,
       // Emit all JS files under a nested 'dist' directory inside the outputPath
-      entryFileNames: 'dist/index.js',
-      chunkFileNames: 'dist/[name].js',
-      assetFileNames: 'dist/[name][extname]'
+      entryFileNames: o.format === 'cjs' ? 'dist/index.cjs' : 'dist/index.js',
+      chunkFileNames: o.format === 'cjs' ? 'dist/[name].cjs' : 'dist/[name].js',
+      assetFileNames: 'dist/[name][extname]',
+      exports: o.format === 'cjs' ? 'named' : undefined
     }));
   } else if (newConfig.output) {
     newConfig.output = {
       ...newConfig.output,
       // Emit all JS files under a nested 'dist' directory inside the outputPath
-      entryFileNames: 'dist/index.js',
-      chunkFileNames: 'dist/[name].js',
-      assetFileNames: 'dist/[name][extname]'
+      entryFileNames: newConfig.output.format === 'cjs' ? 'dist/index.cjs' : 'dist/index.js',
+      chunkFileNames: newConfig.output.format === 'cjs' ? 'dist/[name].cjs' : 'dist/[name].js',
+      assetFileNames: 'dist/[name][extname]',
+      exports: newConfig.output.format === 'cjs' ? 'named' : undefined
     };
   }
   newConfig.external = external;

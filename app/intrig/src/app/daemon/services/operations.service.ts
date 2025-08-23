@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
 import type {GenerateEventContext, IIntrigSourceConfig, IntrigConfig} from "common";
 import {
-  GeneratorBinding,
+  // GeneratorBinding,
   IntrigSourceConfig,
   PackageManagerService,
   ResourceDescriptor,
@@ -16,6 +16,8 @@ import * as fs from 'fs-extra'
 import {ConfigService} from '@nestjs/config';
 import {IntrigOpenapiService} from "openapi-source";
 import {SearchService} from "./search.service";
+import {PluginRegistryService} from "../../plugins/plugin-registry.service";
+import {CompiledContent} from "@intrig/plugin-sdk";
 
 interface TempBuildContext {
   srcDir: string;
@@ -32,10 +34,11 @@ export class OperationsService {
 
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
-              private generatorBinding: GeneratorBinding,
+              // private generatorBinding: GeneratorBinding,
               private packageManagerService: PackageManagerService,
               private config: ConfigService,
               private searchService: SearchService,
+              private pluginRegistryService: PluginRegistryService,
   ) {
   }
 
@@ -66,13 +69,13 @@ export class OperationsService {
     try {
       const config = await this.getConfig(ctx);
       const prevDescriptors = await this.getPreviousState(ctx, config);
-      const restOptions = this.generatorBinding.getRestOptions();
+      // const restOptions = this.generatorBinding.getRestOptions();
       
       await this.openApiService.sync({
         ...config,
         restOptions: {
           ...config.restOptions,
-          ...restOptions
+          // ...restOptions
         }
       }, id, ctx);
       
@@ -165,13 +168,16 @@ export class OperationsService {
     const config = await this.getConfig(ctx)
     await this.clearGenerateDir(ctx);
     const hashes: Record<string, string> = {}
+    const _descriptors: ResourceDescriptor<any>[] = []
     for (const source of config.sources) {
       const {descriptors, hash, skippedEndpoints} = await this.getDescriptors(ctx, source);
       hashes[source.id] = hash;
       ctx.setSkippedEndpoints(source.id, skippedEndpoints);
-      await this.generateSourceContent(ctx, descriptors, source);
+      _descriptors.push(...descriptors)
+      // await this.generateSourceContent(ctx, descriptors, source);
     }
-    await this.generateGlobalContent(ctx, config.sources);
+    await this.generateContent(ctx, config.sources, _descriptors);
+    // await this.generateGlobalContent(ctx, config.sources);
     await this.installDependencies(ctx);
     await this.buildContent(ctx);
     const tempBuildContext: TempBuildContext = (config as any).__dangorouslyOverrideBuild;
@@ -186,7 +192,7 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'postBuild'}))
   private async executePostBuild(ctx: GenerateEventContext) {
-    await this.generatorBinding.postBuild()
+    // await this.generatorBinding.postBuild()
   }
 
   private generateDir = this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated");
@@ -221,7 +227,7 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext, hashes: Record<string, string>) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', '@intrig', this.generatorBinding.getLibName())
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', this.pluginRegistryService.name!)
 
     try {
       if (await fs.pathExists(path.join(targetLibDir, 'src'))) {
@@ -248,7 +254,7 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToSource(ctx: GenerateEventContext, tempBuildContext: TempBuildContext) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, '@intrig', this.generatorBinding.getLibName())
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, this.pluginRegistryService.name!)
     if (fs.pathExistsSync(targetLibDir)) {
       await fs.remove(targetLibDir);
       this.logger.log(`Removed existing ${targetLibDir}`);
@@ -271,15 +277,32 @@ export class OperationsService {
     await this.packageManagerService.install(this.generateDir)
   }
 
-  @WithStatus(event => ({sourceId: '', step: 'generate'}))
-  private async generateGlobalContent(ctx: GenerateEventContext, apisToSync: IntrigSourceConfig[]) {
-    await this.generatorBinding.generateGlobal(apisToSync)
+  @WithStatus((...args) => ({sourceId: '', step: 'generate'}))
+  private async generateContent(ctx: GenerateEventContext, sources: IntrigSourceConfig[], descriptors: ResourceDescriptor<any>[]) {
+    const _generatorDir = this.generateDir
+    return this.pluginRegistryService.instance?.generate({
+      sources,
+      restDescriptors: descriptors.filter(d => d.type === 'rest') as ResourceDescriptor<RestData>[],
+      schemaDescriptors: descriptors.filter(d => d.type === 'schema') as ResourceDescriptor<Schema>[],
+      async dump(compilerContent: Promise<CompiledContent>) {
+        const {content, path: _path} = await compilerContent
+        this.dump(Promise.resolve({
+          content,
+          path: path.resolve(_generatorDir, _path)
+        }))
+      }
+    });
   }
 
-  @WithStatus((a, source) => ({sourceId: source.id, step: 'generate'}))
-  private async generateSourceContent(ctx: GenerateEventContext, descriptors: ResourceDescriptor<RestData | Schema>[], source: IIntrigSourceConfig) {
-    await this.generatorBinding.generateSource(descriptors, source, ctx)
-  }
+  // @WithStatus(event => ({sourceId: '', step: 'generate'}))
+  // private async generateGlobalContent(ctx: GenerateEventContext, apisToSync: IntrigSourceConfig[]) {
+  //   await this.generatorBinding.generateGlobal(apisToSync)
+  // }
+  //
+  // @WithStatus((a, source) => ({sourceId: source.id, step: 'generate'}))
+  // private async generateSourceContent(ctx: GenerateEventContext, descriptors: ResourceDescriptor<RestData | Schema>[], source: IIntrigSourceConfig) {
+  //   await this.generatorBinding.generateSource(descriptors, source, ctx)
+  // }
 
   @WithStatus(source => ({sourceId: source.id, step: 'clear'}))
   private async getDescriptors(ctx: GenerateEventContext, source: IIntrigSourceConfig) {

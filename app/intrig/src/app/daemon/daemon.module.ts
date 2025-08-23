@@ -5,7 +5,6 @@ import { IntrigConfigService } from './services/intrig-config.service';
 import { OpenapiService } from './services/openapi.service';
 import { OperationsController } from './controllers/operations.controller';
 import { OperationsService } from './services/operations.service';
-import { GeneratorModule } from './generator/generator.module';
 import { OpenapiSourceModule } from 'openapi-source';
 import { HttpModule } from '@nestjs/axios';
 import { DataSearchController } from './controllers/data-search.controller';
@@ -13,13 +12,14 @@ import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
 import { CodeAnalyzer } from '../utils/code-analyzer';
+import {PluginModule} from "../plugins/plugin.module";
 
 @Module({
   imports: [
     CommonModule,
-    GeneratorModule.register(),
     OpenapiSourceModule,
     HttpModule,
+    PluginModule
   ],
   controllers: [SourcesController, OperationsController, DataSearchController],
   providers: [

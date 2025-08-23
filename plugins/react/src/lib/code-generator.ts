@@ -1,4 +1,5 @@
 import { GeneratorContext, StatsCounter } from "@intrig/plugin-sdk";
+import {InternalGeneratorContext} from "./internal-types.js";
 import { packageJsonTemplate } from "./templates/packageJson.template.js";
 import { indexTemplate } from "./templates/index.template.js";
 import { networkStateTemplate } from "./templates/network-state.template.js";
@@ -21,7 +22,6 @@ import { reactIntrigProviderTemplate } from "./templates/provider/intrig-provide
 import { reactIntrigProviderStubTemplate } from "./templates/provider/intrig-provider-stub.template.js";
 import { reactStatusTrapTemplate } from "./templates/provider/status-trap.template.js";
 import {requestHookTemplate} from "./templates/source/controller/method/requestHook.template.js";
-import {InternalGeneratorContext} from "./internal-types.js";
 import {paramsTemplate} from "./templates/source/controller/method/params.template.js";
 import {asyncFunctionHookTemplate} from "./templates/source/controller/method/asyncFunctionHook.template.js";
 import {clientIndexTemplate} from "./templates/source/controller/method/clientIndex.template.js";

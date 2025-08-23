@@ -3,7 +3,7 @@ import {generateCode} from "./code-generator.js";
 import {getSchemaDocumentation} from "./get-schema-documentation.js";
 import {getEndpointDocumentation} from "./get-endpoint-documentation.js";
 
-export default function createPlugin(): IntrigGeneratorPlugin {
+function createPlugin(): IntrigGeneratorPlugin {
   return {
     meta() {
       return {
@@ -17,3 +17,6 @@ export default function createPlugin(): IntrigGeneratorPlugin {
     getEndpointDocumentation
   }
 }
+
+export { createPlugin };
+export default createPlugin;
