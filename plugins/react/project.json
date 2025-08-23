@@ -1,0 +1,29 @@
+{
+  "name": "@intrig/plugin-react",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "plugins/react/src",
+  "projectType": "library",
+  "tags": ["Intrig", "react", "generator"],
+  "targets": {
+    "build": {
+      "executor": "@nx/rollup:rollup",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/plugins/react",
+        "main": "plugins/react/src/index.ts",
+        "tsConfig": "plugins/react/tsconfig.lib.json",
+        "compiler": "swc",
+        "format": ["esm"],
+        "outputFileName": "index.js",
+        "assets": [
+          {
+            "input": "plugins/react",
+            "glob": "package.json",
+            "output": "."
+          }
+        ],
+        "rollupConfig": "plugins/react/rollup.config.cjs"
+      }
+    }
+  }
+}

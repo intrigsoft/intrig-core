@@ -17,7 +17,6 @@ import {reactLoggerTemplate} from "./templates/logger.template";
 import {reactMediaTypeUtilsTemplate} from "./templates/media-type-utils.template";
 import {reactNetworkStateTemplate} from "./templates/network-state.template";
 import {reactPackageJsonTemplate} from "./templates/packageJson.template";
-import {reactProviderTemplate} from "./templates/provider.template";
 import {reactProviderInterfacesTemplate} from "./templates/provider/interfaces.template";
 import {reactProviderReducerTemplate} from "./templates/provider/reducer.template";
 import {reactProviderAxiosConfigTemplate} from "./templates/provider/axios-config.template";
@@ -81,8 +80,8 @@ export class ReactBindingService extends GeneratorBinding {
     await this.dump(reactProviderReducerTemplate(this._path))
     await this.dump(reactProviderAxiosConfigTemplate(this._path, apisToSync))
     await this.dump(reactIntrigProviderTemplate(this._path, apisToSync))
-        await this.dump(reactIntrigProviderStubTemplate(this._path, apisToSync))
-        await this.dump(reactStatusTrapTemplate(this._path, apisToSync))
+    await this.dump(reactIntrigProviderStubTemplate(this._path, apisToSync))
+    await this.dump(reactStatusTrapTemplate(this._path, apisToSync))
     await this.dump(reactProviderHooksTemplate(this._path))
     await this.dump(reactProviderMainTemplate(this._path, apisToSync))
     await this.dump(reactTsConfigTemplate(this._path))

@@ -19,6 +19,9 @@
   ],
   "references": [
     {
+      "path": "../../lib/plugin-sdk/tsconfig.lib.json"
+    },
+    {
       "path": "../../lib/openapi-source/tsconfig.lib.json"
     },
     {

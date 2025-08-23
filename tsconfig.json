@@ -41,6 +41,12 @@
     },
     {
       "path": "./plugins/esbuild"
+    },
+    {
+      "path": "./lib/plugin-sdk"
+    },
+    {
+      "path": "./plugins/react"
     }
   ]
 }

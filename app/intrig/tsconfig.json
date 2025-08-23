@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../lib/plugin-sdk"
+    },
+    {
       "path": "../../lib/openapi-source"
     },
     {
