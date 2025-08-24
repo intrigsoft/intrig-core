@@ -1,4 +1,4 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {Inject, Injectable, Logger} from '@nestjs/common';
 import type {GenerateEventContext, IIntrigSourceConfig, IntrigConfig} from "common";
 import {
   // GeneratorBinding,
@@ -16,8 +16,8 @@ import * as fs from 'fs-extra'
 import {ConfigService} from '@nestjs/config';
 import {IntrigOpenapiService} from "openapi-source";
 import {SearchService} from "./search.service";
-import {PluginRegistryService} from "../../plugins/plugin-registry.service";
-import {CompiledContent} from "@intrig/plugin-sdk";
+import type {CompiledContent, IntrigGeneratorPlugin} from "@intrig/plugin-sdk";
+import {INTRIG_PLUGIN, INTRIG_PLUGIN_NAME} from "../../plugins/plugin.module";
 
 interface TempBuildContext {
   srcDir: string;
@@ -27,18 +27,18 @@ interface TempBuildContext {
 export class OperationsService {
 
   private readonly logger = new Logger(OperationsService.name);
-  
+
   // Add sync coordination
   private syncInProgress = new Set<string>();
   private readonly SYNC_TIMEOUT = 300000; // 5 minutes timeout
 
   constructor(private openApiService: IntrigOpenapiService,
               private configService: IntrigConfigService,
-              // private generatorBinding: GeneratorBinding,
               private packageManagerService: PackageManagerService,
               private config: ConfigService,
               private searchService: SearchService,
-              private pluginRegistryService: PluginRegistryService,
+              @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin,
+              @Inject(INTRIG_PLUGIN_NAME) private pluginName: string,
   ) {
   }
 
@@ -49,28 +49,28 @@ export class OperationsService {
 
   async sync(ctx: SyncEventContext, id?: string | undefined) {
     const syncKey = id || 'all';
-    
+
     // Check if sync is already in progress
     if (this.syncInProgress.has(syncKey)) {
       const error = `Sync already in progress for: ${syncKey}`;
       this.logger.warn(error);
       throw new Error(error);
     }
-    
+
     // Add timeout protection
     const timeoutId = setTimeout(() => {
       this.syncInProgress.delete(syncKey);
       this.logger.error(`Sync timeout for ${syncKey} after ${this.SYNC_TIMEOUT}ms`);
     }, this.SYNC_TIMEOUT);
-    
+
     this.syncInProgress.add(syncKey);
     this.logger.log(`Starting sync operation for: ${syncKey}`);
-    
+
     try {
       const config = await this.getConfig(ctx);
       const prevDescriptors = await this.getPreviousState(ctx, config);
       // const restOptions = this.generatorBinding.getRestOptions();
-      
+
       await this.openApiService.sync({
         ...config,
         restOptions: {
@@ -78,12 +78,12 @@ export class OperationsService {
           // ...restOptions
         }
       }, id, ctx);
-      
+
       const newDescriptors = await this.getNewState(ctx, config);
       await this.indexDiff(ctx, prevDescriptors, newDescriptors);
-      
+
       this.logger.log(`Sync operation completed successfully for: ${syncKey}`);
-      
+
     } catch (error: any) {
       this.logger.error(`Sync operation failed for ${syncKey}: ${error.message}`, error);
       throw error;
@@ -104,7 +104,7 @@ export class OperationsService {
   private async getPreviousState(ctx: SyncEventContext, config: IntrigConfig) {
     let prevDescriptors: ResourceDescriptor<RestData | Schema>[] = [];
     const errors: string[] = [];
-    
+
     for (const source of config.sources) {
       try {
         const {descriptors} = await this.openApiService.getResourceDescriptors(source.id);
@@ -114,18 +114,18 @@ export class OperationsService {
         const errorMsg = `Failed to load previous state for source ${source.id}: ${e.message}`;
         this.logger.warn(errorMsg);
         errors.push(errorMsg);
-        
+
         // If it's a critical error (not just missing file), we might want to fail
         if (e.message.includes('Invalid JSON') || e.message.includes('corrupted')) {
           throw new Error(`Critical error in getPreviousState: ${errorMsg}`);
         }
       }
     }
-    
+
     if (errors.length > 0) {
       this.logger.warn(`getPreviousState completed with ${errors.length} errors: ${errors.join('; ')}`);
     }
-    
+
     this.logger.log(`Loaded total of ${prevDescriptors.length} previous descriptors`);
     return prevDescriptors;
   }
@@ -227,7 +227,7 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext, hashes: Record<string, string>) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', this.pluginRegistryService.name!)
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', this.pluginName)
 
     try {
       if (await fs.pathExists(path.join(targetLibDir, 'src'))) {
@@ -254,7 +254,7 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToSource(ctx: GenerateEventContext, tempBuildContext: TempBuildContext) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, this.pluginRegistryService.name!)
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, this.pluginName)
     if (fs.pathExistsSync(targetLibDir)) {
       await fs.remove(targetLibDir);
       this.logger.log(`Removed existing ${targetLibDir}`);
@@ -280,7 +280,7 @@ export class OperationsService {
   @WithStatus((...args) => ({sourceId: '', step: 'generate'}))
   private async generateContent(ctx: GenerateEventContext, sources: IntrigSourceConfig[], descriptors: ResourceDescriptor<any>[]) {
     const _generatorDir = this.generateDir
-    return this.pluginRegistryService.instance?.generate({
+    return this.plugin.generate({
       sources,
       restDescriptors: descriptors.filter(d => d.type === 'rest') as ResourceDescriptor<RestData>[],
       schemaDescriptors: descriptors.filter(d => d.type === 'schema') as ResourceDescriptor<Schema>[],

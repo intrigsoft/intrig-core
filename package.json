@@ -130,6 +130,7 @@
     "ink-cjs": "^4.4.1",
     "inquirer": "^12.6.0",
     "js-yaml": "^4.1.0",
+    "live-plugin-manager": "^1.1.0",
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
     "lowdb": "^7.0.1",

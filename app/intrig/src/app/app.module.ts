@@ -21,7 +21,7 @@ import { PluginModule } from './plugins/plugin.module';
     ...(process?.argv?.[2] === 'mcp' || process?.env?.MCP_ENABLED === '1'
       ? [McpModule]
       : []),
-    PluginModule,
+    PluginModule.forRootAsync(),
   ],
   controllers: [],
   providers: [],

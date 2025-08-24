@@ -1,17 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {Inject, Injectable, Logger} from '@nestjs/common';
 import {Page, ResourceDescriptor, RestData} from "common";
 import {SearchService} from "./search.service";
 import {LastVisitService} from "./last-visit.service";
-import {PluginRegistryService} from "../../plugins/plugin-registry.service";
+import {INTRIG_PLUGIN} from "../../plugins/plugin.module";
 
 @Injectable()
 export class DataSearchService {
   private readonly logger = new Logger(DataSearchService.name);
   constructor(
     private readonly searchService: SearchService,
-    private pluginRegistryService: PluginRegistryService,
     // private generatorBinding: GeneratorBinding,
-    private lastVisitService: LastVisitService
+    private lastVisitService: LastVisitService,
+    @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin,
   ) {}
 
   /**
@@ -87,12 +87,7 @@ export class DataSearchService {
       dataTypes: [result.name],
       type: 'rest'
     });
-    const instance = this.pluginRegistryService.instance;
-    if (!instance) {
-      this.logger.error('No plugin instance found');
-      return;
-    }
-    const schemaDocumentation = await instance.getSchemaDocumentation(result);
+    const schemaDocumentation = await this.plugin.getSchemaDocumentation(result);
     schemaDocumentation.relatedEndpoints = dataTypes.map(d => ({
       id: d.id,
       name: d.name,
@@ -117,11 +112,6 @@ export class DataSearchService {
       names: [restData.requestBody, restData.response, ...restData.variables?.map(a => a.ref.split('/').pop()) ?? []]
         .filter(a => !!a).map(a => a as string)
     });
-    const instance = this.pluginRegistryService.instance;
-    if (!instance) {
-      this.logger.error('No plugin instance found');
-      return;
-    }
-    return await instance.getEndpointDocumentation(result, schemas);
+    return await this.plugin.getEndpointDocumentation(result, schemas);
   }
 }
