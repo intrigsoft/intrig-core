@@ -24,6 +24,15 @@
         ],
         "rollupConfig": "plugins/react/rollup.config.cjs"
       }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/plugins/react"
+      },
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

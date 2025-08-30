@@ -24,6 +24,15 @@
         ],
         "rollupConfig": "lib/plugin-sdk/rollup.config.cjs"
       }
+    },
+    "nx-release-publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "packageRoot": "dist/lib/plugin-sdk"
+      },
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

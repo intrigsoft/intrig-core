@@ -175,6 +175,14 @@
       {
         "packageRoot": "dist/plugins/vite",
         "packageName": "@intrig/vite"
+      },
+      {
+        "packageRoot": "dist/lib/plugin-sdk",
+        "packageName": "@intrig/plugin-sdk"
+      },
+      {
+        "packageRoot": "dist/plugins/react",
+        "packageName": "@intrig/plugin-react"
       }
     ]
   },
