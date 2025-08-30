@@ -97,7 +97,7 @@ export class PluginModule {
       const pluginManager = new PluginManager({
         pluginsPath: path.join(rootDir, 'plugins'),
         npmRegistryUrl: 'https://registry.npmjs.org',
-        ignoredDependencies: ['@intrig/plugin-sdk'], // Skip SDK as it's already available
+        cwd: rootDir,
       });
 
       console.log(`[DEBUG] Attempting to load plugin using PluginManager: ${pluginName}`);

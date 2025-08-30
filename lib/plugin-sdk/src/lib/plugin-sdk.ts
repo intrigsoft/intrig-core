@@ -67,41 +67,9 @@ export interface ResourceDescriptor<T> {
   lastAccessed?: number
 }
 
-
-
-export interface SchemaDocumentation {
-  id: string
-  name: string
-  description: string
-  jsonSchema: any
-  tabs: any[]
-  relatedTypes: any[]
-  relatedEndpoints: any[]
-}
-
-export interface RestDocumentation {
-  id: string;
-  name: string;
-  method: string;
-  path: string;
-  description: string | undefined;
-  requestBody: RelatedType | undefined;
-  contentType: string | undefined;
-  response: RelatedType | undefined;
-  responseType: string | undefined;
-  requestUrl: string;
-  variables: Variable[];
-  responseExamples: Record<string, string>;
-  tabs: Tab[];
-}
-
 export interface CompiledContent {
   path: string;
   content: string;
-}
-
-export interface RestOptions {
-  basePath?: string
 }
 
 export type RestData = {
@@ -153,7 +121,7 @@ export interface IntrigGeneratorPlugin {
   meta(): { name: string; version: string; compat: IntrigVersion; displayName?: string };
   setup?(): Promise<void> | void;
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
-  getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<SchemaDocumentation>;
-  getEndpointDocumentation(result: ResourceDescriptor<RestData>, schemas: ResourceDescriptor<Schema>[]): Promise<RestDocumentation>;
+  getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
+  getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
   dispose?(): Promise<void> | void;
 }

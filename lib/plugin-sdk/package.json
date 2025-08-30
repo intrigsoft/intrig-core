@@ -1,7 +1,6 @@
 {
   "name": "@intrig/plugin-sdk",
   "version": "0.0.1",
-  "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -21,5 +20,8 @@
   ],
   "dependencies": {
     "tslib": "^2.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
