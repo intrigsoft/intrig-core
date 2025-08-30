@@ -30,7 +30,7 @@ import {typeTemplate} from "./templates/source/type/typeTemplate.js";
 
 export async function generateCode(ctx: GeneratorContext): Promise<StatsCounter[]> {
   // Root/project files
-  await ctx.dump(packageJsonTemplate());
+  await ctx.dump(packageJsonTemplate(ctx));
   await ctx.dump(reactTsConfigTemplate());
   await ctx.dump(reactSwcrcTemplate());
 

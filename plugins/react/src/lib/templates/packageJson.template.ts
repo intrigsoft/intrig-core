@@ -1,9 +1,10 @@
-import {jsonLiteral} from "@intrig/plugin-sdk";
+import {GeneratorContext, jsonLiteral} from "@intrig/plugin-sdk";
 import * as path from "path";
 import * as fsx from "fs-extra";
 
-export function packageJsonTemplate() {
-  const packageJson = fsx.readJsonSync(path.resolve('..', '..', 'package.json'));
+export function packageJsonTemplate(ctx: GeneratorContext) {
+  const projectDir = ctx.rootDir ?? process.cwd();
+  const packageJson = fsx.readJsonSync(path.resolve(projectDir, 'package.json'));
   const json = jsonLiteral(path.resolve('package.json'))
   return json`
 {

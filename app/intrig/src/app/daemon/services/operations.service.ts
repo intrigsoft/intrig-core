@@ -290,7 +290,8 @@ export class OperationsService {
           content,
           path: path.resolve(_generatorDir, _path)
         }))
-      }
+      },
+      rootDir: this.config.get('rootDir') ?? process.cwd(),
     });
   }
 

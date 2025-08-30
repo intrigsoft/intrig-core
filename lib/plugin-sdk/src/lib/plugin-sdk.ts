@@ -105,6 +105,7 @@ export interface GeneratorContext {
   restDescriptors: ResourceDescriptor<RestData>[],
   schemaDescriptors: ResourceDescriptor<Schema>[],
   dump(content: Promise<CompiledContent>): Promise<void>
+  rootDir?: string
 }
 
 export class StatsCounter {
@@ -119,9 +120,9 @@ export class StatsCounter {
 
 export interface IntrigGeneratorPlugin {
   meta(): { name: string; version: string; compat: IntrigVersion; displayName?: string };
-  setup?(): Promise<void> | void;
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
-  dispose?(): Promise<void> | void;
+  postBuild?: () => Promise<void>;
+  preBuild?: () => Promise<void>;
 }

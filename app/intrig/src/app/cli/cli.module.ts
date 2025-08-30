@@ -8,18 +8,16 @@ import {SourcesCommand} from "./commands/sources.command";
 import {CommonModule} from "common";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {HttpModule} from "@nestjs/axios";
-import {NextCliModule, NextCliService} from "next-binding";
-import {GENERATORS} from "./tokens";
 import {SearchCommand} from "./commands/search.command";
-import {ReactCliModule, ReactCliService} from "react-binding";
 import {InsightCommand} from "./commands/insight.command";
 import {PrebuildCommand} from "./commands/prebuild.command";
 import {PostbuildCommand} from "./commands/postbuild.command";
 import {ViewCommand} from "./commands/view.command";
 import {DaemonModule} from "../daemon/daemon.module";
+import {PluginModule} from "../plugins/plugin.module";
 
 @Module({
-  imports: [CommonModule, DiscoveryModule, HttpModule, NextCliModule, ReactCliModule, DaemonModule],
+  imports: [CommonModule, DiscoveryModule, HttpModule, DaemonModule, PluginModule.forRootAsync()],
   providers: [
     ProcessManagerService,
     ...DaemonCommand.registerWithSubCommands(),
@@ -32,14 +30,14 @@ import {DaemonModule} from "../daemon/daemon.module";
     HttpModule,
     InsightCommand,
     PrebuildCommand,
-    PostbuildCommand,
-    {
-      provide: GENERATORS,
-      inject: [NextCliService, ReactCliService],
-      useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
-        return [nextCliService, reactCliService]
-      }
-    }
+    PostbuildCommand
+    // {
+    //   provide: GENERATORS,
+    //   inject: [NextCliService, ReactCliService],
+    //   useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
+    //     return [nextCliService, reactCliService]
+    //   }
+    // }
   ],
 })
 export class CliModule {}
