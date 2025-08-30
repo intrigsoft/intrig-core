@@ -1,3 +1,15 @@
+## 0.0.15-8 (2025-08-30)
+
+### 🚀 Features
+
+- **plugins:** refactor plugin architecture and enhance module compatibility ([7e73c92](https://github.com/intrigsoft/intrig-core/commit/7e73c92))
+- **plugins:** simplify plugin architecture and improve dynamic loading ([59824b1](https://github.com/intrigsoft/intrig-core/commit/59824b1))
+- **templates:** add React templates for dynamic hooks and client generation ([7a3a597](https://github.com/intrigsoft/intrig-core/commit/7a3a597))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-7 (2025-08-19)
 
 ### 🚀 Features
