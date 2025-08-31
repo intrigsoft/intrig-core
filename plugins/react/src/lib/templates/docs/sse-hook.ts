@@ -171,7 +171,7 @@ Expose play/pause UI for long streams or admin tools.
 import { use${pascalCase(descriptor.name)} } from '@intrig/react/${descriptor.path}/client';
 import { isPending, isSuccess, isError } from '@intrig/react';
 import { useEffect, useState } from 'react';
-import { flushSync } from 'react-dom';
+import { flushSync } from '../utils/flush-sync';
 
 function MyComponent() {
   const [${respVar}, ${actionName}] = use${pascalCase(descriptor.name)}({ clearOnUnmount: true });

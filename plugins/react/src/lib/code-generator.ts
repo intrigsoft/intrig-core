@@ -11,6 +11,7 @@ import { typeUtilsTemplate } from "./templates/type-utils.template.js";
 import { reactTsConfigTemplate } from "./templates/tsconfig.template.js";
 import { reactSwcrcTemplate } from "./templates/swcrc.template.js";
 import { intrigMiddlewareTemplate } from "./templates/intrigMiddleware.template.js";
+import { flushSyncUtilTemplate } from "./templates/utils/flush-sync.template.js";
 
 // Provider modular templates
 import { providerMainTemplate } from "./templates/provider/main.template.js";
@@ -43,6 +44,7 @@ export async function generateCode(ctx: GeneratorContext): Promise<StatsCounter[
   await ctx.dump(reactMediaTypeUtilsTemplate());
   await ctx.dump(typeUtilsTemplate());
   await ctx.dump(intrigMiddlewareTemplate());
+  await ctx.dump(flushSyncUtilTemplate(ctx));
 
   // Provider modular files (placed under src)
   await ctx.dump(providerMainTemplate(ctx.sources));

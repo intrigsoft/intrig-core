@@ -16,7 +16,7 @@ import {
 } from './network-state';
 import { Axios, AxiosResponse, isAxiosError } from 'axios';
 import { ZodError, ZodSchema } from 'zod';
-import { flushSync } from 'react-dom';
+import { flushSync } from './utils/flush-sync';
 import { createParser } from 'eventsource-parser';
 
 import { Context, RequestType, GlobalState } from './intrig-context';
