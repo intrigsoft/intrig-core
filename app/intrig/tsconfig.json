@@ -4,16 +4,16 @@
   "include": [],
   "references": [
     {
-      "path": "../../lib/plugin-sdk"
-    },
-    {
-      "path": "../../lib/openapi-source"
+      "path": "../../lib/next-binding"
     },
     {
       "path": "../../lib/react-binding"
     },
     {
-      "path": "../../lib/next-binding"
+      "path": "../../lib/openapi-source"
+    },
+    {
+      "path": "../../lib/plugin-sdk"
     },
     {
       "path": "../../lib/common"

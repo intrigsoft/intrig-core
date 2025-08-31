@@ -4,13 +4,13 @@
  */
 import {CommandFactory} from "nest-commander";
 import { AppModule } from './app/app.module';
+import { InitModule } from './app/init-cli/init.module';
 import { NestFactory } from "@nestjs/core";
 import {Logger, ValidationPipe} from "@nestjs/common";
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {AddressInfo} from "node:net";
 import {DiscoveryService} from "./app/discovery/discovery.service";
 import {IntrigConfigService} from "./app/daemon/services/intrig-config.service";
-import * as fs from 'fs';
 
 const logger = new Logger('Main');
 
@@ -82,16 +82,6 @@ async function bootstrap() {
       process.exit(0);
     });
   } else {
-    if (cmd === 'init') {
-      const configPath = './intrig.config.json';
-      if (fs.existsSync(configPath)) {
-        throw new Error('Intrig is already initialized. Configuration file exists.');
-      }
-      fs.writeFileSync(configPath, JSON.stringify({}, null, 2));
-      logger?.log('Initialized new Intrig project');
-
-    }
-
     // Catch truly unhandled errors too
     process.on('uncaughtException', (err) => {
       // Print full stack if possible
@@ -107,7 +97,10 @@ async function bootstrap() {
     });
 
     try {
-      await CommandFactory.run(AppModule, {
+      // Load init module for init command, otherwise use AppModule
+      const moduleToLoad = cmd === 'init' ? InitModule : AppModule;
+      
+      await CommandFactory.run(moduleToLoad, {
         logger: ['error'],
         errorHandler(err: any) {
           console.error('\n[cli error]');
@@ -121,7 +114,7 @@ async function bootstrap() {
         }
       });
       process.exit(0);
-    } catch (e) {
+    } catch (e: any) {
       console.error('\n[catch]');
       console.error(e?.stack || e);
       if (logger) {

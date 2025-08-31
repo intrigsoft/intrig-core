@@ -3,7 +3,7 @@ import { Tool } from "@rekog/mcp-nest";
 import * as z from "zod";
 import { HttpService } from "@nestjs/axios";
 import { lastValueFrom } from "rxjs";
-import { kebabCase, Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation } from "common";
+import { Page, ResourceDescriptor, RestDocumentation, SchemaDocumentation } from "common";
 import { ProcessManagerService } from "../cli/process-manager.service";
 
 /**

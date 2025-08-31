@@ -123,6 +123,7 @@ export interface IntrigGeneratorPlugin {
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
+  init?: () => Promise<void>;
   postBuild?: () => Promise<void>;
   preBuild?: () => Promise<void>;
 }

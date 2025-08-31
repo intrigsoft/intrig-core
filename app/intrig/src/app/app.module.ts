@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { McpModule } from './mcp/mcp.module';
 import { PluginModule } from './plugins/plugin.module';
+import {InitModule} from "./init-cli/init.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PluginModule } from './plugins/plugin.module';
     CliModule,
     DiscoveryModule,
     DaemonModule,
+    InitModule,
     ...(process?.argv?.[2] === 'mcp' || process?.env?.MCP_ENABLED === '1'
       ? [McpModule]
       : []),
