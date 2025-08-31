@@ -1,0 +1,14 @@
+[
+  {
+    "type": "generator",
+    "generator": "react",
+    "name" : "@intrig/plugin-react",
+    "compat": {
+      "latest": {
+        "dependencies": {
+          "react": "18.0.0+"
+        }
+      }
+    }
+  }
+]
