@@ -60,7 +60,7 @@ export class InitCommand extends CommandRunner {
       
       // Create intrig config
       const config: BasicIntrigConfig = {
-        $schema: 'https://raw.githubusercontent.com/intrigsoft/intrig-core/refs/heads/main/docs/schema.json',
+        $schema: 'https://raw.githubusercontent.com/intrigsoft/intrig-registry/refs/heads/main/schema.json',
         sources: [],
         generator: selectedPlugin.generator
       };

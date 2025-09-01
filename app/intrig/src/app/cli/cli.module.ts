@@ -30,14 +30,7 @@ import { PluginModule } from '../plugins/plugin.module';
     HttpModule,
     InsightCommand,
     PrebuildCommand,
-    PostbuildCommand,
-    // {
-    //   provide: GENERATORS,
-    //   inject: [NextCliService, ReactCliService],
-    //   useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
-    //     return [nextCliService, reactCliService]
-    //   }
-    // }
+    PostbuildCommand
   ],
 })
 export class CliModule {}
