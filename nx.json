@@ -157,7 +157,8 @@
       "@intrig/rollup",
       "@intrig/esbuild",
       "@intrig/plugin-sdk",
-      "@intrig/plugin-react"
+      "@intrig/plugin-react",
+      "@intrig/plugin-next"
     ],
     "npmPackages": [
       {
