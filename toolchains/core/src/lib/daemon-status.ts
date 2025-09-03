@@ -47,7 +47,7 @@ export class DaemonManager {
     let projectName = 'intrig-daemon';
     try {
       const pkg = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8')
+        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
       );
       if (pkg.name) projectName = pkg.name;
     } catch {
@@ -65,8 +65,9 @@ export class DaemonManager {
   private getMetadataFilePath(): string {
     const rootDir = process.cwd();
     const abs = path.resolve(rootDir);
-    const metadataFileName = createHash('sha1').update(abs).digest('hex') + '.json';
-    
+    const metadataFileName =
+      createHash('sha1').update(abs).digest('hex') + '.json';
+
     return path.join(this.discoveryDir, metadataFileName);
   }
 
@@ -84,7 +85,9 @@ export class DaemonManager {
     }
 
     try {
-      const metadata = JSON.parse(fs.readFileSync(this.metadataFilePath, 'utf-8')) as DiscoveryMetadata;
+      const metadata = JSON.parse(
+        fs.readFileSync(this.metadataFilePath, 'utf-8'),
+      ) as DiscoveryMetadata;
       return await tcpPortUsed.check(metadata.port);
     } catch {
       return false;
@@ -97,7 +100,9 @@ export class DaemonManager {
     }
 
     try {
-      return JSON.parse(fs.readFileSync(this.metadataFilePath, 'utf-8')) as DiscoveryMetadata;
+      return JSON.parse(
+        fs.readFileSync(this.metadataFilePath, 'utf-8'),
+      ) as DiscoveryMetadata;
     } catch {
       return null;
     }
@@ -106,10 +111,10 @@ export class DaemonManager {
   private async spawnDaemon(): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log('🚀 Starting Intrig daemon...');
-      
+
       const child = spawn('intrig', ['daemon', 'up'], {
         stdio: 'inherit',
-        detached: true
+        detached: true,
       });
 
       child.on('error', (err) => {
@@ -128,7 +133,7 @@ export class DaemonManager {
 
       // Don't wait for the child process to finish
       child.unref();
-      
+
       // Give some time for the daemon to start
       setTimeout(() => {
         resolve();
@@ -145,8 +150,10 @@ export class DaemonManager {
     while (attempts < maxAttempts) {
       if (fs.existsSync(this.metadataFilePath)) {
         try {
-          const metadata = JSON.parse(fs.readFileSync(this.metadataFilePath, 'utf-8')) as DiscoveryMetadata;
-          
+          const metadata = JSON.parse(
+            fs.readFileSync(this.metadataFilePath, 'utf-8'),
+          ) as DiscoveryMetadata;
+
           // Verify port is actually in use
           const isPortInUse = await tcpPortUsed.check(metadata.port);
           if (isPortInUse) {
@@ -158,7 +165,7 @@ export class DaemonManager {
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       attempts++;
     }
 
@@ -169,13 +176,13 @@ export class DaemonManager {
     // Check if daemon file exists
     if (!fs.existsSync(this.metadataFilePath)) {
       console.log('🔄 Daemon not running, starting it...');
-      
+
       // Start the daemon
       await this.spawnDaemon();
-      
+
       // Wait for daemon to be ready
       await this.waitForDaemon();
-      
+
       return;
     }
 
@@ -193,7 +200,7 @@ export class DaemonManager {
     // Check if port is actually in use
     try {
       const isPortInUse = await tcpPortUsed.check(metadata.port);
-      
+
       if (isPortInUse) {
         console.log('✅ Daemon is already running');
       } else {
@@ -222,28 +229,46 @@ export class DaemonManager {
   }
 
   private checkHashesFileExists(generator: string): boolean {
-    const hashesPath = path.join(process.cwd(), 'node_modules', '@intrig', generator, 'hashes.json');
+    const hashesPath = path.join(
+      process.cwd(),
+      'node_modules',
+      '@intrig',
+      generator,
+      'hashes.json',
+    );
     return fs.existsSync(hashesPath);
   }
 
   private readHashesFile(generator: string): Record<string, string> | null {
-    const hashesPath = path.join(process.cwd(), 'node_modules', '@intrig', generator, 'hashes.json');
+    const hashesPath = path.join(
+      process.cwd(),
+      'node_modules',
+      '@intrig',
+      generator,
+      'hashes.json',
+    );
     if (!fs.existsSync(hashesPath)) {
       return null;
     }
 
     try {
-      return JSON.parse(fs.readFileSync(hashesPath, 'utf-8')) as Record<string, string>;
+      return JSON.parse(fs.readFileSync(hashesPath, 'utf-8')) as Record<
+        string,
+        string
+      >;
     } catch {
       return null;
     }
   }
 
-  private async callVerifyEndpoint(metadata: DiscoveryMetadata, hashes: Record<string, string>): Promise<boolean> {
+  private async callVerifyEndpoint(
+    metadata: DiscoveryMetadata,
+    hashes: Record<string, string>,
+  ): Promise<boolean> {
     return new Promise((resolve) => {
       const url = new URL('/api/operations/verify', metadata.url);
       const postData = JSON.stringify(hashes);
-      
+
       const options = {
         hostname: url.hostname,
         port: url.port || (url.protocol === 'https:' ? 443 : 80),
@@ -251,8 +276,8 @@ export class DaemonManager {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
-        }
+          'Content-Length': Buffer.byteLength(postData),
+        },
       };
 
       const client = url.protocol === 'https:' ? https : http;
@@ -272,30 +297,40 @@ export class DaemonManager {
   private async invalidateViteCache(): Promise<void> {
     try {
       console.log('🗑️  Invalidating Vite cache...');
-      
+
       // Remove Vite cache directory
       const viteCacheDir = path.join(process.cwd(), 'node_modules', '.vite');
       if (fs.existsSync(viteCacheDir)) {
         fs.rmSync(viteCacheDir, { recursive: true, force: true });
         console.log('✅ Vite cache directory removed');
       }
-      
+
       // Also clear any potential cache in the insight app
-      const insightCacheDir = path.join(process.cwd(), 'app', 'insight', 'node_modules', '.vite');
+      const insightCacheDir = path.join(
+        process.cwd(),
+        'app',
+        'insight',
+        'node_modules',
+        '.vite',
+      );
       if (fs.existsSync(insightCacheDir)) {
         fs.rmSync(insightCacheDir, { recursive: true, force: true });
         console.log('✅ Insight Vite cache directory removed');
       }
-      
     } catch (err) {
-      console.warn('⚠️  Failed to invalidate Vite cache:', (err as Error).message);
+      console.warn(
+        '⚠️  Failed to invalidate Vite cache:',
+        (err as Error).message,
+      );
     }
   }
 
-  private async callGenerateEndpoint(metadata: DiscoveryMetadata): Promise<void> {
+  private async callGenerateEndpoint(
+    metadata: DiscoveryMetadata,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log('🔄 Starting code generation...');
-      
+
       const url = new URL('/api/operations/generate', metadata.url);
       const options = {
         hostname: url.hostname,
@@ -303,38 +338,44 @@ export class DaemonManager {
         path: url.pathname,
         method: 'GET',
         headers: {
-          'Accept': 'text/event-stream',
-          'Cache-Control': 'no-cache'
-        }
+          Accept: 'text/event-stream',
+          'Cache-Control': 'no-cache',
+        },
       };
 
       const client = url.protocol === 'https:' ? https : http;
       const req = client.request(options, (res) => {
         if (res.statusCode !== 200) {
-          reject(new Error(`Generate endpoint returned status ${res.statusCode}`));
+          reject(
+            new Error(`Generate endpoint returned status ${res.statusCode}`),
+          );
           return;
         }
 
         let buffer = '';
-        
+
         res.on('data', (chunk) => {
           buffer += chunk.toString();
-          
+
           // Process complete SSE messages
           const lines = buffer.split('\n');
           buffer = lines.pop() || ''; // Keep incomplete line in buffer
-          
+
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               try {
                 const eventData = JSON.parse(line.substring(6));
-                
+
                 // Log progress events
                 if (eventData.type === 'status') {
-                  console.log(`📦 ${eventData.step}: ${eventData.sourceId || 'global'}`);
+                  console.log(
+                    `📦 ${eventData.step}: ${eventData.sourceId || 'global'}`,
+                  );
                 } else if (eventData.type === 'done') {
                   console.log('✅ Code generation completed successfully');
-                  this.invalidateViteCache().then(() => resolve()).catch(() => resolve());
+                  this.invalidateViteCache()
+                    .then(() => resolve())
+                    .catch(() => resolve());
                   return;
                 }
               } catch (err) {
@@ -346,8 +387,12 @@ export class DaemonManager {
 
         res.on('end', () => {
           // If we reach here without a 'done' event, consider it successful if no error occurred
-          console.log('✅ Code generation stream ended (assuming successful completion)');
-          this.invalidateViteCache().then(() => resolve()).catch(() => resolve());
+          console.log(
+            '✅ Code generation stream ended (assuming successful completion)',
+          );
+          this.invalidateViteCache()
+            .then(() => resolve())
+            .catch(() => resolve());
         });
 
         res.on('error', (err) => {
@@ -386,7 +431,9 @@ export class DaemonManager {
       if (metadata) {
         await this.callGenerateEndpoint(metadata);
       } else {
-        console.log('⚠️  No daemon metadata available, cannot trigger generation');
+        console.log(
+          '⚠️  No daemon metadata available, cannot trigger generation',
+        );
       }
       return;
     }
@@ -399,20 +446,24 @@ export class DaemonManager {
       if (metadata) {
         await this.callGenerateEndpoint(metadata);
       } else {
-        console.log('⚠️  No daemon metadata available, cannot trigger generation');
+        console.log(
+          '⚠️  No daemon metadata available, cannot trigger generation',
+        );
       }
       return;
     }
 
     const metadata = this.getMetadata();
     if (!metadata) {
-      console.log('⚠️  No daemon metadata available, skipping hash verification');
+      console.log(
+        '⚠️  No daemon metadata available, skipping hash verification',
+      );
       return;
     }
 
     console.log('📡 Verifying hashes with daemon...');
     const isValid = await this.callVerifyEndpoint(metadata, hashes);
-    
+
     if (!isValid) {
       console.log('❌ Hash verification failed, triggering generation...');
       await this.callGenerateEndpoint(metadata);

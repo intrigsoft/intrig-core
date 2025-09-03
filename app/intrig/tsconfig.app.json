@@ -19,12 +19,6 @@
   ],
   "references": [
     {
-      "path": "../../lib/next-binding/tsconfig.lib.json"
-    },
-    {
-      "path": "../../lib/react-binding/tsconfig.lib.json"
-    },
-    {
       "path": "../../lib/openapi-source/tsconfig.lib.json"
     },
     {

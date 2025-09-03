@@ -4,12 +4,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../lib/next-binding"
-    },
-    {
-      "path": "../../lib/react-binding"
-    },
-    {
       "path": "../../lib/openapi-source"
     },
     {

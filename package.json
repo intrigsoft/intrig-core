@@ -97,7 +97,8 @@
     "plugins/webpack",
     "plugins/rollup",
     "plugins/esbuild",
-    "plugins/*"
+    "plugins/*",
+    "toolchains/*"
   ],
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^12.0.1",

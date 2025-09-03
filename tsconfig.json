@@ -28,19 +28,19 @@
       "path": "./app/insight"
     },
     {
-      "path": "./plugins/core"
+      "path": "./toolchains/core"
     },
     {
-      "path": "./plugins/vite"
+      "path": "./toolchains/vite"
     },
     {
-      "path": "./plugins/webpack"
+      "path": "./toolchains/webpack"
     },
     {
-      "path": "./plugins/rollup"
+      "path": "./toolchains/rollup"
     },
     {
-      "path": "./plugins/esbuild"
+      "path": "./toolchains/esbuild"
     },
     {
       "path": "./lib/plugin-sdk"
