@@ -1,7 +1,7 @@
 {
   "name": "@intrig/vite",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "plugins/vite/src",
+  "sourceRoot": "toolchains/vite/src",
   "projectType": "library",
   "tags": [],
   "// targets": "to see all targets run: nx show project @intrig/vite --web",
@@ -10,13 +10,13 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/plugins/vite",
-        "tsConfig": "plugins/vite/tsconfig.lib.json",
-        "packageJson": "plugins/vite/package.json",
-        "main": "plugins/vite/src/index.ts",
+        "outputPath": "dist/toolchains/vite",
+        "tsConfig": "toolchains/vite/tsconfig.lib.json",
+        "packageJson": "toolchains/vite/package.json",
+        "main": "toolchains/vite/src/index.ts",
         "assets": [
           {
-            "input": "plugins/vite",
+            "input": "toolchains/vite",
             "glob": "package.json",
             "output": "."
           }
