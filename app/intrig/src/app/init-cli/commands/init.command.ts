@@ -1,11 +1,12 @@
 import { Command, CommandRunner } from 'nest-commander';
-import { Logger } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fsx from 'fs-extra';
 import inquirer from 'inquirer';
 import { PluginManager } from 'live-plugin-manager';
 import * as semver from 'semver';
+import chalk from 'chalk';
+import ora from 'ora';
 
 interface BasicIntrigConfig {
   $schema: string;
@@ -31,10 +32,9 @@ interface PluginChoice {
 
 @Command({ name: 'init', description: 'Initialize Intrig setup' })
 export class InitCommand extends CommandRunner {
-  private readonly logger = new Logger(InitCommand.name);
 
   override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
-    this.logger.log('Initializing Intrig setup...');
+    console.log(chalk.blue('🚀 Initializing Intrig setup...'));
 
     const rootDir = process.cwd();
     
@@ -43,7 +43,7 @@ export class InitCommand extends CommandRunner {
       const packageJsonPath = path.resolve(rootDir, 'package.json');
       
       if (!fs.existsSync(packageJsonPath)) {
-        this.logger.error('package.json not found in current directory');
+        console.log(chalk.red('❌ package.json not found in current directory'));
         throw new Error('package.json not found');
       }
 
@@ -110,8 +110,8 @@ export class InitCommand extends CommandRunner {
       }
       
       // Write schema file
+      const spinner = ora('Writing configuration files...').start();
       const schemaPath = path.resolve(intrigDir, 'schema.json');
-      this.logger.debug('Writing schema file...');
       fs.writeFileSync(schemaPath, JSON.stringify(baseSchema, null, 2), 'utf-8');
       
       // Create intrig config
@@ -123,7 +123,6 @@ export class InitCommand extends CommandRunner {
 
       // Write config file
       const configPath = path.resolve(rootDir, 'intrig.config.json');
-      this.logger.debug('Writing config file...');
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 
       // Add config file to git
@@ -132,17 +131,18 @@ export class InitCommand extends CommandRunner {
       // Update .gitignore
       this.updateGitIgnore(rootDir);
 
-      this.logger.log('Intrig initialization completed successfully');
+      spinner.succeed('Configuration files created successfully');
+      console.log(chalk.green('✅ Intrig initialization completed successfully'));
       
     } catch (error: any) {
-      this.logger.error('Failed to initialize Intrig:', error?.message);
+      console.log(chalk.red('❌ Failed to initialize Intrig:'), error?.message);
       throw error;
     }
   }
 
   private async fetchApprovedPlugins(): Promise<ApprovedPlugin[]> {
-    this.logger.debug('Fetching approved plugins from GitHub...');
-    const url = 'https://raw.githubusercontent.com/intrigsoft/intrig-core/main/registry/approved.json';
+    const spinner = ora('Fetching approved plugins from registry...').start();
+    const url = 'https://raw.githubusercontent.com/intrigsoft/intrig-registry/refs/heads/main/registry.json';
     
     try {
       const response = await fetch(url);
@@ -151,9 +151,11 @@ export class InitCommand extends CommandRunner {
       }
       
       const plugins = await response.json();
+      spinner.succeed('Successfully fetched approved plugins');
       return plugins as ApprovedPlugin[];
     } catch (error: any) {
-      this.logger.error('Failed to fetch approved plugins:', error?.message);
+      spinner.fail('Failed to fetch approved plugins');
+      console.log(chalk.red('❌ Error:'), error?.message);
       throw error;
     }
   }
@@ -177,7 +179,7 @@ export class InitCommand extends CommandRunner {
       return semver.satisfies(cleanProjectVersion.version, normalizedRequiredVersion);
     } catch (error) {
       // If semver parsing fails, fall back to string comparison
-      this.logger.warn(`Failed to parse version: ${projectVersion} vs ${requiredVersion}`);
+      console.log(chalk.yellow('⚠️  Warning: Failed to parse version:'), `${projectVersion} vs ${requiredVersion}`);
       return projectVersion === requiredVersion;
     }
   }
@@ -266,39 +268,37 @@ export class InitCommand extends CommandRunner {
   }
 
   private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<any> {
-    this.logger.log(`Installing plugin: ${plugin.name}`);
+    const installSpinner = ora(`Installing plugin: ${plugin.name}`).start();
     
     try {
       const rootDir = process.cwd();
       
       // First, install the plugin in the project directory using npm
-      this.logger.debug(`Installing ${plugin.name} using npm...`);
       const { execSync } = await import('child_process');
       
       try {
         // Use npm to install the plugin in the project directory as dev dependency
         execSync(`npm install --save-dev ${plugin.name}`, { 
           cwd: rootDir, 
-          stdio: 'inherit' 
+          stdio: 'pipe' 
         });
-        this.logger.log(`Plugin ${plugin.name} installed successfully`);
+        installSpinner.text = `Installing @intrig/core as dev dependency...`;
         
         // Install @intrig/core as a dev dependency
-        this.logger.debug('Installing @intrig/core as dev dependency...');
         execSync('npm install --save-dev @intrig/core', { 
           cwd: rootDir, 
-          stdio: 'inherit' 
+          stdio: 'pipe' 
         });
-        this.logger.log('@intrig/core installed successfully as dev dependency');
+        installSpinner.succeed(`Plugin ${plugin.name} and @intrig/core installed successfully`);
       } catch (npmError: any) {
-        this.logger.error(`Failed to install plugin ${plugin.name} with npm:`, npmError?.message);
+        installSpinner.fail(`Failed to install plugin ${plugin.name}`);
+        console.log(chalk.red('❌ Error:'), npmError?.message);
         throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
       }
       
       // Now use PluginManager to load the plugin (same mechanism as LazyPluginService)
+      const loadSpinner = ora(`Loading and initializing plugin: ${plugin.name}`).start();
       try {
-        this.logger.debug(`Loading plugin ${plugin.name} using PluginManager...`);
-        
         // Initialize PluginManager with rootDir as the plugin directory
         const pluginManager = new PluginManager({
           pluginsPath: path.join(rootDir, 'plugins'),
@@ -324,7 +324,7 @@ export class InitCommand extends CommandRunner {
         
         // Call init function if it exists on the plugin instance
         if (typeof pluginInstance.init === 'function') {
-          this.logger.debug('Calling plugin init function...');
+          loadSpinner.text = 'Calling plugin init function...';
           await pluginInstance.init({
             options: {}, // generatorOptions would be set here if available
             rootDir: rootDir,
@@ -341,17 +341,18 @@ export class InitCommand extends CommandRunner {
           });
         }
         
-        this.logger.log(`Plugin ${plugin.name} loaded and initialized successfully using PluginManager`);
+        loadSpinner.succeed(`Plugin ${plugin.name} loaded and initialized successfully`);
         return pluginInstance;
       } catch (loadError: any) {
-        this.logger.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized using PluginManager:`, loadError?.message);
+        loadSpinner.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized`);
+        console.log(chalk.yellow('⚠️  Warning:'), loadError?.message);
         // Don't throw here - the plugin is installed which is the main requirement
-        this.logger.log(`Plugin ${plugin.name} installation completed (initialization skipped due to loading issues)`);
+        console.log(chalk.blue('ℹ️  Info: Plugin installation completed (initialization skipped due to loading issues)'));
         return null;
       }
       
     } catch (error: any) {
-      this.logger.error(`Failed to install plugin ${plugin.name}:`, error?.message);
+      console.log(chalk.red('❌ Failed to install plugin'), `${plugin.name}:`, error?.message);
       throw error;
     }
   }
@@ -374,7 +375,6 @@ export class InitCommand extends CommandRunner {
 
   private addConfigToGit(rootDir: string): void {
     try {
-      this.logger.debug('Adding intrig config files to git...');
       const { execSync } = require('child_process');
       
       // Check if git repository exists
@@ -384,7 +384,7 @@ export class InitCommand extends CommandRunner {
           stdio: 'pipe' 
         });
       } catch {
-        this.logger.debug('No git repository found, skipping git add');
+        console.log(chalk.blue('ℹ️  Info: No git repository found, skipping git add'));
         return;
       }
       
@@ -394,9 +394,9 @@ export class InitCommand extends CommandRunner {
         stdio: 'pipe' 
       });
       
-      this.logger.debug('Successfully added intrig.config.json and .intrig/schema.json to git');
+      console.log(chalk.green('✅ Successfully added intrig.config.json and .intrig/schema.json to git'));
     } catch (error: any) {
-      this.logger.warn(`Failed to add config files to git: ${error?.message}`);
+      console.log(chalk.yellow('⚠️  Warning: Failed to add config files to git:'), error?.message);
       // Don't throw - git operations are optional
     }
   }
@@ -418,7 +418,7 @@ export class InitCommand extends CommandRunner {
     }
 
     if (needsUpdate) {
-      this.logger.debug('Updating .gitignore file...');
+      console.log(chalk.green('✅ Updating .gitignore file...'));
       fs.writeFileSync(gitIgnorePath, gitIgnoreContent.join('\n'), 'utf-8');
     }
   }
