@@ -11,7 +11,7 @@ import { DataSearchController } from './controllers/data-search.controller';
 import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
-import { CodeAnalyzer } from '../utils/code-analyzer';
+import { LazyCodeAnalyzerService } from '../utils/lazy-code-analyzer.service';
 import {PluginModule} from "../plugins/plugin.module";
 
 @Module({
@@ -29,7 +29,7 @@ import {PluginModule} from "../plugins/plugin.module";
     DataSearchService,
     SearchService,
     LastVisitService,
-    CodeAnalyzer,
+    LazyCodeAnalyzerService,
   ],
   exports: [OperationsService],
 })

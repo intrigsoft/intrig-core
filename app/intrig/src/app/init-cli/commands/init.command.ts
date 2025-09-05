@@ -70,6 +70,9 @@ export class InitCommand extends CommandRunner {
       this.logger.debug('Writing config file...');
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 
+      // Add config file to git
+      this.addConfigToGit(rootDir);
+
       // Update .gitignore
       this.updateGitIgnore(rootDir);
 
@@ -207,25 +210,120 @@ export class InitCommand extends CommandRunner {
   }
 
   private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<void> {
-    this.logger.log(`Loading plugin: ${plugin.name}`);
+    this.logger.log(`Installing plugin: ${plugin.name}`);
     
     try {
-      const manager = new PluginManager();
+      const rootDir = process.cwd();
       
-      // Install and require the plugin
-      await manager.install(plugin.name);
-      const pluginModule = manager.require(plugin.name);
+      // First, install the plugin in the project directory using npm
+      this.logger.debug(`Installing ${plugin.name} using npm...`);
+      const { execSync } = await import('child_process');
       
-      // Call init function if it exists
-      if (pluginModule && typeof pluginModule.init === 'function') {
-        this.logger.debug('Calling plugin init function...');
-        await pluginModule.init();
+      try {
+        // Use npm to install the plugin in the project directory as dev dependency
+        execSync(`npm install --save-dev ${plugin.name}`, { 
+          cwd: rootDir, 
+          stdio: 'inherit' 
+        });
+        this.logger.log(`Plugin ${plugin.name} installed successfully`);
+      } catch (npmError: any) {
+        this.logger.error(`Failed to install plugin ${plugin.name} with npm:`, npmError?.message);
+        throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
       }
       
-      this.logger.log(`Plugin ${plugin.name} loaded successfully`);
+      // Now use PluginManager to load the plugin (same mechanism as LazyPluginService)
+      try {
+        this.logger.debug(`Loading plugin ${plugin.name} using PluginManager...`);
+        
+        // Initialize PluginManager with rootDir as the plugin directory
+        const pluginManager = new PluginManager({
+          pluginsPath: path.join(rootDir, 'plugins'),
+          npmRegistryUrl: 'https://registry.npmjs.org',
+          cwd: rootDir,
+        });
+
+        // Try to require the plugin (it should be installed by npm already)
+        const pluginModule = pluginManager.require(plugin.name);
+        
+        // Extract the factory function from the module
+        const factory = this.extractFactory(pluginModule, plugin.name);
+        
+        // Create the plugin instance
+        const pluginInstance = await Promise.resolve(factory());
+
+        // Validate plugin instance
+        if (!pluginInstance || typeof pluginInstance.meta !== 'function' || typeof pluginInstance.generate !== 'function') {
+          throw new Error(
+            `Plugin factory from "${plugin.name}" did not return a valid Intrig plugin instance.`
+          );
+        }
+        
+        // Call init function if it exists on the plugin instance
+        if (typeof pluginInstance.init === 'function') {
+          this.logger.debug('Calling plugin init function...');
+          await pluginInstance.init({
+            rootDir: rootDir,
+            config: {
+              generator: plugin.generator
+            }
+          });
+        }
+        
+        this.logger.log(`Plugin ${plugin.name} loaded and initialized successfully using PluginManager`);
+      } catch (loadError: any) {
+        this.logger.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized using PluginManager:`, loadError?.message);
+        // Don't throw here - the plugin is installed which is the main requirement
+        this.logger.log(`Plugin ${plugin.name} installation completed (initialization skipped due to loading issues)`);
+      }
+      
     } catch (error: any) {
-      this.logger.error(`Failed to load plugin ${plugin.name}:`, error?.message);
+      this.logger.error(`Failed to install plugin ${plugin.name}:`, error?.message);
       throw error;
+    }
+  }
+
+  private extractFactory(mod: any, pluginName: string) {
+    if (typeof mod?.createPlugin === 'function') {
+      return mod.createPlugin;
+    } else if (typeof mod?.default === 'function') {
+      return mod.default;
+    } else if (typeof mod?.default?.createPlugin === 'function') {
+      return mod.default.createPlugin;
+    } else {
+      throw new Error(
+        `Plugin "${pluginName}" does not export a factory function. ` +
+        `Expected "createPlugin()" or a default function export. ` +
+        `Available exports: ${Object.keys(mod || {}).join(', ')}`
+      );
+    }
+  }
+
+  private addConfigToGit(rootDir: string): void {
+    try {
+      this.logger.debug('Adding intrig.config.json to git...');
+      const { execSync } = require('child_process');
+      
+      // Check if git repository exists
+      try {
+        execSync('git rev-parse --git-dir', { 
+          cwd: rootDir, 
+          stdio: 'pipe' 
+        });
+      } catch {
+        this.logger.debug('No git repository found, skipping git add');
+        return;
+      }
+      
+      // Add the config file to git
+      execSync('git add intrig.config.json', { 
+        cwd: rootDir, 
+        stdio: 'pipe' 
+      });
+      
+      this.logger.debug('Successfully added intrig.config.json to git');
+    } catch (error: any) {
+      this.logger.warn(`Failed to add config file to git: ${error?.message}`);
+      // Don't throw - git operations are optional
     }
   }
 

@@ -6,7 +6,7 @@ import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";
 import {DataStats} from "../models/data-stats";
 import _ from "lodash";
-import { CodeAnalyzer } from "../../utils/code-analyzer";
+import { LazyCodeAnalyzerService } from "../../utils/lazy-code-analyzer.service";
 
 export interface SearchOptions {
   /** fuzzy tolerance: 0–1 */
@@ -51,7 +51,7 @@ export class SearchService implements OnModuleInit {
   constructor(
     private configService: IntrigConfigService,
     private openApiService: IntrigOpenapiService,
-    private codeAnalyzer: CodeAnalyzer
+    private codeAnalyzer: LazyCodeAnalyzerService
   ) {
     this.mini = new MiniSearch({
       fields: [
@@ -80,7 +80,11 @@ export class SearchService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      for (const source of this.configService.get().sources) {
+      // Try to get config, but don't fail if it doesn't exist
+      const config = this.configService.get();
+      const sources = config?.sources || [];
+      
+      for (const source of sources) {
         const {descriptors} = await this.openApiService.getResourceDescriptors(source.id);
         descriptors.forEach(descriptor => this.addDescriptor(descriptor));
       }
@@ -90,7 +94,10 @@ export class SearchService implements OnModuleInit {
       
       // Perform initial code analysis
       this.reindexCodebase();
-    } catch (e) { /* empty */ }
+    } catch (e) { 
+      // Silently ignore config loading errors during startup
+      // Services will work with empty state until config is available
+    }
   }
   
   /**

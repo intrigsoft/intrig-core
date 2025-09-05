@@ -20,14 +20,7 @@ export class IntrigConfigService {
   }
 
   private readConfig(): IntrigConfig {
-    let content: string | undefined;
-    try {
-      content = readFileSync(this.configPath, 'utf-8');
-    } catch (e) {
-      this.logger.error(`Failed to read config file: ${this.configPath}`, e);
-      console.error(e);
-      throw e
-    }
+    const content = readFileSync(this.configPath, 'utf-8');
     return JSON.parse(content) as IntrigConfig;
   }
 
@@ -66,6 +59,16 @@ export class IntrigConfigService {
   }
 
   get(): IntrigConfig {
-    return this.readConfig();
+    try {
+      return this.readConfig();
+    } catch (error) {
+      // Return a default empty config when file doesn't exist
+      // This allows the CLI to start in non-project directories
+      this.logger.warn(`Config file not found, using default empty config: ${(error as Error).message}`);
+      return {
+        sources: [],
+        restOptions: {}
+      } as IntrigConfig;
+    }
   }
 }
