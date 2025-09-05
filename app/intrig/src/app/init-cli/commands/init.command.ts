@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as fsx from 'fs-extra';
 import inquirer from 'inquirer';
-import { PluginManager } from 'live-plugin-manager';
 import * as semver from 'semver';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -296,18 +295,14 @@ export class InitCommand extends CommandRunner {
         throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
       }
       
-      // Now use PluginManager to load the plugin (same mechanism as LazyPluginService)
+      // Now use createRequire to load the plugin
       const loadSpinner = ora(`Loading and initializing plugin: ${plugin.name}`).start();
       try {
-        // Initialize PluginManager with rootDir as the plugin directory
-        const pluginManager = new PluginManager({
-          pluginsPath: path.join(rootDir, 'plugins'),
-          npmRegistryUrl: 'https://registry.npmjs.org',
-          cwd: rootDir,
-        });
-
+        const { createRequire: nodeCreateRequire } = await import('node:module');
+        const projectRequire = nodeCreateRequire(path.resolve(rootDir, 'package.json'));
         // Try to require the plugin (it should be installed by npm already)
-        const pluginModule = pluginManager.require(plugin.name);
+
+        const pluginModule = projectRequire(plugin.name);
         
         // Extract the factory function from the module
         const factory = this.extractFactory(pluginModule, plugin.name);

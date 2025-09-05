@@ -2,19 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'node:path';
-import { PluginManager } from 'live-plugin-manager';
 import type { IntrigGeneratorPlugin } from '@intrig/plugin-sdk';
 
 @Injectable()
 export class LazyPluginService {
-  private pluginInstance: IntrigGeneratorPlugin | null = null;
+  private pluginInstance: IntrigGeneratorPlugin<any> | null = null;
   private pluginName: string | null = null;
   private isLoading = false;
   private loadingPromise: Promise<void> | null = null;
 
   constructor(private configService: ConfigService) {}
 
-  async getPlugin(): Promise<IntrigGeneratorPlugin> {
+  async getPlugin(): Promise<IntrigGeneratorPlugin<any>> {
     if (this.pluginInstance) {
       return this.pluginInstance;
     }
@@ -98,38 +97,26 @@ export class LazyPluginService {
     console.log(`[DEBUG] Plugin is file-based: ${isFileDependency}`);
 
     try {
-      // Initialize PluginManager with rootDir as the plugin directory
-      const pluginManager = new PluginManager({
-        pluginsPath: path.join(rootDir, 'plugins'),
-        npmRegistryUrl: 'https://registry.npmjs.org',
-        cwd: rootDir,
-      });
+      // Create a require function from the current module
+      const { createRequire: nodeCreateRequire } = await import('node:module');
+      const projectRequire = nodeCreateRequire(path.resolve(rootDir, 'package.json'));
 
-      console.log(`[DEBUG] Attempting to load plugin using PluginManager: ${this.pluginName}`);
+      console.log(`[DEBUG] Attempting to load plugin using createRequire: ${this.pluginName}`);
       
       let mod: any;
       
-      try {
-        // First try to require the plugin if it's already installed
-        mod = pluginManager.require(this.pluginName);
-        console.log(`[DEBUG] PluginManager require succeeded`);
-      } catch (requireErr) {
-        console.log(`[DEBUG] PluginManager require failed, attempting install: ${(requireErr as Error).message}`);
-        
-        if (isFileDependency) {
-          // For file-based dependencies, resolve the path and use installFromPath
-          const pluginPath = this.resolvePluginPath(rootDir, pluginVersion);
-          console.log(`[DEBUG] Installing from path: ${pluginPath}`);
-          await pluginManager.installFromPath(pluginPath);
-        } else {
-          // For npm-based dependencies, use regular install
-          console.log(`[DEBUG] Installing from npm: ${this.pluginName}`);
-          await pluginManager.install(this.pluginName);
-        }
-        
-        mod = pluginManager.require(this.pluginName);
-        console.log(`[DEBUG] PluginManager install and require succeeded`);
+      if (isFileDependency) {
+        // For file-based dependencies, require from the resolved path
+        const pluginPath = this.resolvePluginPath(rootDir, pluginVersion);
+        console.log(`[DEBUG] Requiring from file path: ${pluginPath}`);
+        mod = projectRequire(pluginPath);
+      } else {
+        // For npm-based dependencies, require by name (assumes already installed)
+        console.log(`[DEBUG] Requiring npm package: ${this.pluginName}`);
+        mod = projectRequire(this.pluginName);
       }
+      
+      console.log(`[DEBUG] Module require succeeded`);
 
       const factory = this.extractFactory(mod, this.pluginName);
       this.pluginInstance = await Promise.resolve(factory());
@@ -142,7 +129,7 @@ export class LazyPluginService {
       }
     } catch (err) {
       throw new Error(
-        `Failed to load Intrig plugin "${this.pluginName}" using PluginManager: ${(err as Error).message}`
+        `Failed to load Intrig plugin "${this.pluginName}": ${(err as Error).message}`
       );
     }
   }
