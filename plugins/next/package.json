@@ -2,47 +2,27 @@
   "name": "@intrig/plugin-next",
   "version": "0.0.1",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "development": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "default": "./dist/index.js"
     }
   },
+  "dependencies": {
+    "@intrig/plugin-sdk": "^0.0.2-2",
+    "@swc/helpers": "~0.5.11"
+  },
   "files": [
     "dist",
-    "!**/*.tsbuildinfo"
+    "package.json"
   ],
-  "nx": {
-    "sourceRoot": "plugins/next/src",
-    "targets": {
-      "build": {
-        "executor": "@nx/js:swc",
-        "outputs": [
-          "{options.outputPath}"
-        ],
-        "options": {
-          "outputPath": "plugins/next/dist",
-          "main": "plugins/next/src/index.ts",
-          "tsConfig": "plugins/next/tsconfig.lib.json",
-          "skipTypeCheck": true,
-          "stripLeadingPaths": true
-        }
-      }
-    },
-    "tags": [
-      "intrig-plugin",
-      "next",
-      "intrig",
-      "generator"
-    ]
-  },
-  "dependencies": {
-    "@swc/helpers": "~0.5.11"
+  "publishConfig": {
+    "access": "public"
   }
 }
