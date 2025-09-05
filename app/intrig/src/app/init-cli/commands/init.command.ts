@@ -56,11 +56,67 @@ export class InitCommand extends CommandRunner {
       const selectedPlugin = await this.promptUserForPlugin(approvedPlugins, packageJson);
       
       // Load and initialize the selected plugin
-      await this.loadAndInitializePlugin(selectedPlugin);
+      const pluginInstance = await this.loadAndInitializePlugin(selectedPlugin);
+      
+      // Create .intrig directory if it doesn't exist
+      const intrigDir = path.resolve(rootDir, '.intrig');
+      if (!fs.existsSync(intrigDir)) {
+        fs.mkdirSync(intrigDir, { recursive: true });
+      }
+      
+      // Create the base schema
+      const baseSchema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "$schema": "./.intrig/schema.json",
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "specUrl": { "type": "string", "format": "uri" }
+              },
+              "required": ["id", "name", "specUrl"],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "generator": {
+            "type": "string",
+            "enum": ["react", "vue", "angular", "svelte"]
+          },
+          "codeAnalyzer": {
+            "type": "object",
+            "properties": {
+              "tsConfigPath": { "type": "string" }
+            },
+            "required": ["tsConfigPath"],
+            "additionalProperties": false
+          },
+          "generatorOptions": {
+            "type": "object"
+          }
+        },
+        "required": ["sources", "generator"],
+        "additionalProperties": false
+      };
+      
+      // Add generatorOptions if plugin has $generatorSchema
+      if (pluginInstance && pluginInstance.$generatorSchema) {
+        baseSchema.properties.generatorOptions = pluginInstance.$generatorSchema;
+      }
+      
+      // Write schema file
+      const schemaPath = path.resolve(intrigDir, 'schema.json');
+      this.logger.debug('Writing schema file...');
+      fs.writeFileSync(schemaPath, JSON.stringify(baseSchema, null, 2), 'utf-8');
       
       // Create intrig config
       const config: BasicIntrigConfig = {
-        $schema: 'https://raw.githubusercontent.com/intrigsoft/intrig-registry/refs/heads/main/schema.json',
+        $schema: './.intrig/schema.json',
         sources: [],
         generator: selectedPlugin.generator
       };
@@ -209,7 +265,7 @@ export class InitCommand extends CommandRunner {
     return selectedPlugin;
   }
 
-  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<void> {
+  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<any> {
     this.logger.log(`Installing plugin: ${plugin.name}`);
     
     try {
@@ -262,18 +318,28 @@ export class InitCommand extends CommandRunner {
         if (typeof pluginInstance.init === 'function') {
           this.logger.debug('Calling plugin init function...');
           await pluginInstance.init({
+            options: {}, // generatorOptions would be set here if available
             rootDir: rootDir,
-            config: {
-              generator: plugin.generator
+            buildDir: path.resolve(rootDir, '.intrig', 'generated'),
+            dump: async (content: any) => {
+              const resolved = await content;
+              const fullPath = path.resolve(rootDir, resolved.path);
+              const dir = path.dirname(fullPath);
+              if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+              }
+              fs.writeFileSync(fullPath, resolved.content, 'utf-8');
             }
           });
         }
         
         this.logger.log(`Plugin ${plugin.name} loaded and initialized successfully using PluginManager`);
+        return pluginInstance;
       } catch (loadError: any) {
         this.logger.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized using PluginManager:`, loadError?.message);
         // Don't throw here - the plugin is installed which is the main requirement
         this.logger.log(`Plugin ${plugin.name} installation completed (initialization skipped due to loading issues)`);
+        return null;
       }
       
     } catch (error: any) {
@@ -300,7 +366,7 @@ export class InitCommand extends CommandRunner {
 
   private addConfigToGit(rootDir: string): void {
     try {
-      this.logger.debug('Adding intrig.config.json to git...');
+      this.logger.debug('Adding intrig config files to git...');
       const { execSync } = require('child_process');
       
       // Check if git repository exists
@@ -314,15 +380,15 @@ export class InitCommand extends CommandRunner {
         return;
       }
       
-      // Add the config file to git
-      execSync('git add intrig.config.json', { 
+      // Add the config files to git
+      execSync('git add intrig.config.json .intrig/schema.json', { 
         cwd: rootDir, 
         stdio: 'pipe' 
       });
       
-      this.logger.debug('Successfully added intrig.config.json to git');
+      this.logger.debug('Successfully added intrig.config.json and .intrig/schema.json to git');
     } catch (error: any) {
-      this.logger.warn(`Failed to add config file to git: ${error?.message}`);
+      this.logger.warn(`Failed to add config files to git: ${error?.message}`);
       // Don't throw - git operations are optional
     }
   }
@@ -333,9 +399,18 @@ export class InitCommand extends CommandRunner {
       ? fs.readFileSync(gitIgnorePath, 'utf-8').split('\n')
       : [];
 
-    if (!gitIgnoreContent.includes('.intrig/generated')) {
+    const entriesToAdd = ['.intrig/generated', '.intrig/.config'];
+    let needsUpdate = false;
+
+    for (const entry of entriesToAdd) {
+      if (!gitIgnoreContent.includes(entry)) {
+        gitIgnoreContent.push(entry);
+        needsUpdate = true;
+      }
+    }
+
+    if (needsUpdate) {
       this.logger.debug('Updating .gitignore file...');
-      gitIgnoreContent.push('.intrig/generated');
       fs.writeFileSync(gitIgnorePath, gitIgnoreContent.join('\n'), 'utf-8');
     }
   }

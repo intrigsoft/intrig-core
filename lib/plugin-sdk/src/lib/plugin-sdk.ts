@@ -1,4 +1,5 @@
 import type {OpenAPIV3_1} from "openapi-types";
+import type {JSONSchema7} from "json-schema";
 
 export type IntrigVersion = `^${number}.${number}.${number}`;
 
@@ -108,18 +109,21 @@ export interface GeneratorContext {
   rootDir?: string
 }
 
-export interface InitContext {
+export interface InitContext<GeneratorOptions> {
+  options: GeneratorOptions;
   rootDir: string;
   buildDir: string;
   dump(content: Promise<CompiledContent>): Promise<void>;
 }
 
-export interface PostBuildContext {
+export interface PostBuildContext<GeneratorOptions> {
+  options: GeneratorOptions;
   buildDir: string;
   rootDir: string;
 }
 
-export interface PreBuildContext {
+export interface PreBuildContext<GeneratorOptions> {
+  options: GeneratorOptions;
   buildDir: string;
   rootDir: string;
 }
@@ -134,12 +138,13 @@ export class StatsCounter {
   }
 }
 
-export interface IntrigGeneratorPlugin {
+export interface IntrigGeneratorPlugin<GeneratorOptions> {
+  $generatorSchema?: JSONSchema7;
   meta(): { name: string; version: string; compat: IntrigVersion; displayName?: string };
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
-  init?: (ctx: InitContext) => Promise<void>;
-  postBuild?: (ctx: PostBuildContext) => Promise<void>;
-  preBuild?: (ctx: PreBuildContext) => Promise<void>;
+  init?: (ctx: InitContext<GeneratorOptions>) => Promise<void>;
+  postBuild?: (ctx: PostBuildContext<GeneratorOptions>) => Promise<void>;
+  preBuild?: (ctx: PreBuildContext<GeneratorOptions>) => Promise<void>;
 }

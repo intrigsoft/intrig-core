@@ -1,6 +1,7 @@
 import {Command, CommandRunner} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
 import {LazyPluginService} from "../../plugins/lazy-plugin.service";
+import {IntrigConfigService} from "../../daemon/services/intrig-config.service";
 import path from "path";
 import {ConfigService} from "@nestjs/config";
 
@@ -9,7 +10,8 @@ export class PrebuildCommand extends CommandRunner {
 
   constructor(private pm: ProcessManagerService,
               private config: ConfigService,
-              private lazyPluginService: LazyPluginService
+              private lazyPluginService: LazyPluginService,
+              private intrigConfigService: IntrigConfigService
               ) {
     super();
   }
@@ -22,7 +24,9 @@ export class PrebuildCommand extends CommandRunner {
     }
 
     const plugin = await this.lazyPluginService.getPlugin();
+    const intrigConfig = this.intrigConfigService.get();
     await plugin.preBuild?.({
+      options: intrigConfig.generatorOptions || {},
       rootDir: this.config.get('rootDir') ?? process.cwd(),
       buildDir: this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated")
     })
