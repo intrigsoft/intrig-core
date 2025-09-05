@@ -1,9 +1,8 @@
-import {Inject, Injectable, Logger} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {Page, ResourceDescriptor, RestData, RestDocumentation, Schema, SchemaDocumentation} from "common";
 import {SearchService} from "./search.service";
 import {LastVisitService} from "./last-visit.service";
-import {INTRIG_PLUGIN} from "../../plugins/plugin.module";
-import type { IntrigGeneratorPlugin } from "@intrig/plugin-sdk";
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
 
 @Injectable()
 export class DataSearchService {
@@ -12,7 +11,7 @@ export class DataSearchService {
     private readonly searchService: SearchService,
     // private generatorBinding: GeneratorBinding,
     private lastVisitService: LastVisitService,
-    @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin,
+    private lazyPluginService: LazyPluginService,
   ) {}
 
   /**
@@ -88,7 +87,8 @@ export class DataSearchService {
       dataTypes: [result.name],
       type: 'rest'
     });
-    const tabs = await this.plugin.getSchemaDocumentation(result);
+    const plugin = await this.lazyPluginService.getPlugin();
+    const tabs = await plugin.getSchemaDocumentation(result);
 
     return SchemaDocumentation.from({
       id: result.id,
@@ -122,7 +122,8 @@ export class DataSearchService {
         .filter(a => !!a).map(a => a as string)
     });
     const mapping = Object.fromEntries(schemas.map(a => ([a.name, {name: a.name, id: a.id}])));
-    const tabs = await this.plugin.getEndpointDocumentation(result);
+    const plugin = await this.lazyPluginService.getPlugin();
+    const tabs = await plugin.getEndpointDocumentation(result);
     return RestDocumentation.from({
       id: result.id,
       name: result.name,

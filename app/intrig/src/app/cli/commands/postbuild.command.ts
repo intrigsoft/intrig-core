@@ -1,14 +1,15 @@
 import {Command, CommandRunner} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
-import {Inject} from "@nestjs/common";
-import {INTRIG_PLUGIN} from "../../plugins/plugin.module";
-import type { IntrigGeneratorPlugin } from "@intrig/plugin-sdk";
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
+import {ConfigService} from "@nestjs/config";
+import path from "path";
 
 @Command({name: "postbuild", description: "Postbuild."})
 export class PostbuildCommand extends CommandRunner {
 
   constructor(private pm: ProcessManagerService,
-              @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin) {
+              private config: ConfigService,
+              private lazyPluginService: LazyPluginService) {
     super();
   }
 
@@ -18,6 +19,10 @@ export class PostbuildCommand extends CommandRunner {
       throw new Error("No metadata found");
     }
 
-    await this.plugin.postBuild?.()
+    const plugin = await this.lazyPluginService.getPlugin();
+    await plugin.postBuild?.({
+      rootDir: this.config.get('rootDir') ?? process.cwd(),
+      buildDir: this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated")
+    })
   }
 }

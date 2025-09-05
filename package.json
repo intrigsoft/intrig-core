@@ -106,6 +106,7 @@
     "@docusaurus/preset-classic": "3.8.1",
     "@intrig/react": "^0.0.15-6",
     "@mdx-js/react": "^3.0.0",
+    "@modelcontextprotocol/sdk": "^1.17.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^4.0.2",

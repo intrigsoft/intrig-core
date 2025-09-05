@@ -108,6 +108,22 @@ export interface GeneratorContext {
   rootDir?: string
 }
 
+export interface InitContext {
+  rootDir: string;
+  buildDir: string;
+  dump(content: Promise<CompiledContent>): Promise<void>;
+}
+
+export interface PostBuildContext {
+  buildDir: string;
+  rootDir: string;
+}
+
+export interface PreBuildContext {
+  buildDir: string;
+  rootDir: string;
+}
+
 export class StatsCounter {
   public counters: Record<string, number> = {};
   constructor(public readonly sourceId: string) {
@@ -123,7 +139,7 @@ export interface IntrigGeneratorPlugin {
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
-  init?: () => Promise<void>;
-  postBuild?: () => Promise<void>;
-  preBuild?: () => Promise<void>;
+  init?: (ctx: InitContext) => Promise<void>;
+  postBuild?: (ctx: PostBuildContext) => Promise<void>;
+  preBuild?: (ctx: PreBuildContext) => Promise<void>;
 }

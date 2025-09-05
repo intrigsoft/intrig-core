@@ -1,14 +1,15 @@
 import {Command, CommandRunner} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
-import {Inject} from "@nestjs/common";
-import {INTRIG_PLUGIN} from "../../plugins/plugin.module";
-import type { IntrigGeneratorPlugin } from "@intrig/plugin-sdk";
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
+import path from "path";
+import {ConfigService} from "@nestjs/config";
 
 @Command({name: "prebuild", description: "Prebuild."})
 export class PrebuildCommand extends CommandRunner {
 
   constructor(private pm: ProcessManagerService,
-              @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin
+              private config: ConfigService,
+              private lazyPluginService: LazyPluginService
               ) {
     super();
   }
@@ -20,6 +21,10 @@ export class PrebuildCommand extends CommandRunner {
       throw new Error("No metadata found");
     }
 
-    await this.plugin.preBuild?.()
+    const plugin = await this.lazyPluginService.getPlugin();
+    await plugin.preBuild?.({
+      rootDir: this.config.get('rootDir') ?? process.cwd(),
+      buildDir: this.config.get("generatedDir") ?? path.resolve(process.cwd(), ".intrig", "generated")
+    })
   }
 }

@@ -17,7 +17,7 @@ import {ConfigService} from '@nestjs/config';
 import {IntrigOpenapiService} from "openapi-source";
 import {SearchService} from "./search.service";
 import type {CompiledContent, IntrigGeneratorPlugin} from "@intrig/plugin-sdk";
-import {INTRIG_PLUGIN, INTRIG_PLUGIN_NAME} from "../../plugins/plugin.module";
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
 
 interface TempBuildContext {
   srcDir: string;
@@ -37,8 +37,7 @@ export class OperationsService {
               private packageManagerService: PackageManagerService,
               private config: ConfigService,
               private searchService: SearchService,
-              @Inject(INTRIG_PLUGIN) private plugin: IntrigGeneratorPlugin,
-              @Inject(INTRIG_PLUGIN_NAME) private pluginName: string,
+              private lazyPluginService: LazyPluginService,
   ) {
   }
 
@@ -227,7 +226,8 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext, hashes: Record<string, string>) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', this.pluginName)
+    const pluginName = await this.lazyPluginService.getPluginName();
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', pluginName)
 
     try {
       if (await fs.pathExists(path.join(targetLibDir, 'src'))) {
@@ -254,7 +254,8 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToSource(ctx: GenerateEventContext, tempBuildContext: TempBuildContext) {
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, this.pluginName)
+    const pluginName = await this.lazyPluginService.getPluginName();
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), tempBuildContext.srcDir, pluginName)
     if (fs.pathExistsSync(targetLibDir)) {
       await fs.remove(targetLibDir);
       this.logger.log(`Removed existing ${targetLibDir}`);
@@ -280,7 +281,8 @@ export class OperationsService {
   @WithStatus((...args) => ({sourceId: '', step: 'generate'}))
   private async generateContent(ctx: GenerateEventContext, sources: IntrigSourceConfig[], descriptors: ResourceDescriptor<any>[]) {
     const _generatorDir = this.generateDir
-    return this.plugin.generate({
+    const plugin = await this.lazyPluginService.getPlugin();
+    return plugin.generate({
       sources,
       restDescriptors: descriptors.filter(d => d.type === 'rest') as ResourceDescriptor<RestData>[],
       schemaDescriptors: descriptors.filter(d => d.type === 'schema') as ResourceDescriptor<Schema>[],
