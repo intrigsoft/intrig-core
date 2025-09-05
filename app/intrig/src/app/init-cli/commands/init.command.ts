@@ -282,6 +282,14 @@ export class InitCommand extends CommandRunner {
           stdio: 'inherit' 
         });
         this.logger.log(`Plugin ${plugin.name} installed successfully`);
+        
+        // Install @intrig/core as a dev dependency
+        this.logger.debug('Installing @intrig/core as dev dependency...');
+        execSync('npm install --save-dev @intrig/core', { 
+          cwd: rootDir, 
+          stdio: 'inherit' 
+        });
+        this.logger.log('@intrig/core installed successfully as dev dependency');
       } catch (npmError: any) {
         this.logger.error(`Failed to install plugin ${plugin.name} with npm:`, npmError?.message);
         throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
