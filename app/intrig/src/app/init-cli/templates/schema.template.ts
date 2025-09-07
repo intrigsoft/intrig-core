@@ -25,8 +25,7 @@ export function schemaTemplate(pluginInstance?: IntrigGeneratorPlugin<any>) {
       "minItems": 1
     },
     "generator": {
-      "type": "string",
-      "enum": ["react", "vue", "angular", "svelte"]
+      "type": "string"
     },
     "codeAnalyzer": {
       "type": "object",

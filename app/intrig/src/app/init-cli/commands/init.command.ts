@@ -6,13 +6,14 @@ import inquirer from 'inquirer';
 import * as semver from 'semver';
 import chalk from 'chalk';
 import ora from 'ora';
-import { createInquirer } from 'schinquirer';
+import * as schinquirer from 'schinquirer';
 import { schemaTemplate } from '../templates/schema.template';
 
 interface BasicIntrigConfig {
   $schema: string;
   sources: string[];
   generator: string;
+  generatorOptions?: any;
 }
 
 interface ApprovedPlugin {
@@ -66,7 +67,7 @@ export class InitCommand extends CommandRunner {
       }
       
       // Load and initialize the selected plugin
-      const pluginInstance = await this.loadAndInitializePlugin(selectedPlugin);
+      const { pluginInstance, generatorOptions } = await this.loadAndInitializePlugin(selectedPlugin);
       
       // Check if plugin loading failed
       if (!pluginInstance) {
@@ -102,6 +103,11 @@ export class InitCommand extends CommandRunner {
         sources: [],
         generator: pluginInstance.meta().generator
       };
+
+      // Add generator options if they exist
+      if (generatorOptions && Object.keys(generatorOptions).length > 0) {
+        config.generatorOptions = generatorOptions;
+      }
 
       // Write config file
       const configPath = path.resolve(rootDir, 'intrig.config.json');
@@ -285,7 +291,7 @@ export class InitCommand extends CommandRunner {
     return selectedPlugin;
   }
 
-  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<any> {
+  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<{pluginInstance: any, generatorOptions: any}> {
     const installSpinner = ora(`Installing plugin: ${plugin.name}`).start();
     
     try {
@@ -340,7 +346,16 @@ export class InitCommand extends CommandRunner {
         let generatorOptions = {};
         if (pluginInstance.$generatorSchema) {
           loadSpinner.text = 'Collecting generator configuration...';
+          
+          // Stop the spinner before collecting interactive input to prevent interference
+          loadSpinner.stop();
+          
           generatorOptions = await this.collectGeneratorOptions(pluginInstance.$generatorSchema, plugin.name);
+
+          console.log("Generator options", generatorOptions)
+
+          // Restart the spinner if we have more work to do
+          loadSpinner.start();
         }
 
         // Call init function if it exists on the plugin instance
@@ -362,19 +377,14 @@ export class InitCommand extends CommandRunner {
           });
         }
 
-        // Save generator options to intrig.config.json
-        if (Object.keys(generatorOptions).length > 0) {
-          await this.saveGeneratorOptions(generatorOptions);
-        }
-        
         loadSpinner.succeed(`Plugin ${plugin.name} loaded and initialized successfully`);
-        return pluginInstance;
+        return { pluginInstance, generatorOptions };
       } catch (loadError: any) {
         loadSpinner.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized`);
         console.log(chalk.yellow('⚠️  Warning:'), loadError?.message);
         // Don't throw here - the plugin is installed which is the main requirement
         console.log(chalk.blue('ℹ️  Info: Plugin installation completed (initialization skipped due to loading issues)'));
-        return null;
+        return { pluginInstance: null, generatorOptions: {} };
       }
       
     } catch (error: any) {
@@ -408,27 +418,35 @@ export class InitCommand extends CommandRunner {
 
     // Use schinquirer to generate questions from schema
     if (generatorSchema.properties && Object.keys(generatorSchema.properties).length > 0) {
-      const schemaInquirer = createInquirer(generatorSchema);
-      const answers = await schemaInquirer.prompt();
-      Object.assign(options, answers);
+      try {
+        // Check if we're in a non-interactive environment
+        if (!process.stdin.isTTY) {
+          console.log(chalk.yellow(`⚠️  Non-interactive environment detected. Skipping generator configuration for plugin ${pluginName}.`));
+          console.log(chalk.blue(`ℹ️  You can configure generator options later in intrig.config.json`));
+          return options;
+        }
+
+        // Create a timeout promise to prevent hanging
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Generator configuration timeout after 30 seconds')), 30000);
+        });
+
+        // Race between the prompt and timeout
+        const answers = await Promise.race([
+          schinquirer.prompt(generatorSchema.properties),
+          timeoutPromise
+        ]);
+        
+        Object.assign(options, answers);
+      } catch (error: any) {
+        console.log(chalk.yellow(`⚠️  Failed to collect generator configuration for plugin ${pluginName}: ${error.message}`));
+        console.log(chalk.blue(`ℹ️  Continuing with default configuration. You can configure generator options later in intrig.config.json`));
+      }
     }
 
     return options;
   }
 
-  private async saveGeneratorOptions(generatorOptions: any): Promise<void> {
-    const configPath = path.resolve(process.cwd(), 'intrig.config.json');
-    let config = {};
-    
-    if (fs.existsSync(configPath)) {
-      const configContent = fs.readFileSync(configPath, 'utf-8');
-      config = JSON.parse(configContent);
-    }
-    
-    (config as any).generatorOptions = { ...(config as any).generatorOptions, ...generatorOptions };
-    
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
-  }
 
   private addConfigToGit(rootDir: string): void {
     try {
