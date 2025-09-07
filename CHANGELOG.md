@@ -1,3 +1,21 @@
+## 0.0.15-12 (2025-09-07)
+
+### 🚀 Features
+
+- **cli:** refactor `init` command and streamline module structure ([6da5bf4](https://github.com/intrigsoft/intrig-core/commit/6da5bf4))
+- **cli, plugins-next:** implement source lifecycle methods and enhance source handling ([f977c62](https://github.com/intrigsoft/intrig-core/commit/f977c62))
+- **plugins:** add and configure `plugin-next` package ([08847e3](https://github.com/intrigsoft/intrig-core/commit/08847e3))
+- **plugins, cli:** enhance plugin handling and initialization workflow ([44b05f7](https://github.com/intrigsoft/intrig-core/commit/44b05f7))
+- **plugins, utils:** introduce Lazy services and enhance dynamic plugin handling ([5109773](https://github.com/intrigsoft/intrig-core/commit/5109773))
+- **plugins-next:** enhance build process with Rollup, SWC, and module resolution updates ([80dee5d](https://github.com/intrigsoft/intrig-core/commit/80dee5d))
+- **plugins-next, cli:** implement `init` and `postBuild` hooks with generator options support ([281e73d](https://github.com/intrigsoft/intrig-core/commit/281e73d))
+- **templates:** add cross-platform flushSync utility and integrate into React templates ([f0877e0](https://github.com/intrigsoft/intrig-core/commit/f0877e0))
+- **templates:** add comprehensive templates for context, network state, and React utilities ([defe18f](https://github.com/intrigsoft/intrig-core/commit/defe18f))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-10 (2025-08-30)
 
 This was a version bump only, there were no code changes.

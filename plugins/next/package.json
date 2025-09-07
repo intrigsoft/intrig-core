@@ -1,6 +1,6 @@
 {
   "name": "@intrig/plugin-next",
-  "version": "0.0.2-0",
+  "version": "0.0.2-1",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -15,7 +15,7 @@
     }
   },
   "dependencies": {
-    "@intrig/plugin-sdk": "^0.0.2-3",
+    "@intrig/plugin-sdk": "^0.0.2-4",
     "@swc/helpers": "~0.5.11",
     "inquirer": "^9.0.0"
   },

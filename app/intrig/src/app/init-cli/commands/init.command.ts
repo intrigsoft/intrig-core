@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import * as semver from 'semver';
 import chalk from 'chalk';
 import ora from 'ora';
+import { schemaTemplate } from '../templates/schema.template';
 
 interface BasicIntrigConfig {
   $schema: string;
@@ -72,55 +73,22 @@ export class InitCommand extends CommandRunner {
         fs.mkdirSync(intrigDir, { recursive: true });
       }
       
-      // Create the base schema
-      const baseSchema = {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "properties": {
-          "$schema": "./.intrig/schema.json",
-          "sources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": { "type": "string" },
-                "name": { "type": "string" },
-                "specUrl": { "type": "string", "format": "uri" }
-              },
-              "required": ["id", "name", "specUrl"],
-              "additionalProperties": false
-            },
-            "minItems": 1
-          },
-          "generator": {
-            "type": "string",
-            "enum": ["react", "vue", "angular", "svelte"]
-          },
-          "codeAnalyzer": {
-            "type": "object",
-            "properties": {
-              "tsConfigPath": { "type": "string" }
-            },
-            "required": ["tsConfigPath"],
-            "additionalProperties": false
-          },
-          "generatorOptions": {
-            "type": "object"
-          }
-        },
-        "required": ["sources", "generator"],
-        "additionalProperties": false
+      // Write schema file using template
+      const spinner = ora('Writing configuration files...').start();
+      
+      // Create dump function for schema writing
+      const dumpSchema = async (content: any) => {
+        const resolved = await content;
+        const fullPath = path.resolve(rootDir, resolved.path);
+        const dir = path.dirname(fullPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(fullPath, resolved.content, 'utf-8');
       };
       
-      // Add generatorOptions if plugin has $generatorSchema
-      if (pluginInstance && pluginInstance.$generatorSchema) {
-        baseSchema.properties.generatorOptions = pluginInstance.$generatorSchema;
-      }
-      
-      // Write schema file
-      const spinner = ora('Writing configuration files...').start();
-      const schemaPath = path.resolve(intrigDir, 'schema.json');
-      fs.writeFileSync(schemaPath, JSON.stringify(baseSchema, null, 2), 'utf-8');
+      // Use template to create schema
+      await dumpSchema(schemaTemplate(pluginInstance));
       
       // Create intrig config
       const config: BasicIntrigConfig = {
