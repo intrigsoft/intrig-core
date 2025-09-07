@@ -12,14 +12,12 @@ import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
 import { LazyCodeAnalyzerService } from '../utils/lazy-code-analyzer.service';
-import {PluginModule} from "../plugins/plugin.module";
 
 @Module({
   imports: [
     CommonModule,
     OpenapiSourceModule,
     HttpModule,
-    PluginModule
   ],
   controllers: [SourcesController, OperationsController, DataSearchController],
   providers: [
@@ -31,6 +29,6 @@ import {PluginModule} from "../plugins/plugin.module";
     LastVisitService,
     LazyCodeAnalyzerService,
   ],
-  exports: [OperationsService],
+  exports: [OperationsService, IntrigConfigService],
 })
 export class DaemonModule {}

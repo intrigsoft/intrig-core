@@ -14,11 +14,13 @@ import { PostbuildCommand } from './commands/postbuild.command';
 import { ViewCommand } from './commands/view.command';
 import { DaemonModule } from '../daemon/daemon.module';
 import { PluginModule } from '../plugins/plugin.module';
+import { IntrigConfigService } from '../daemon/services/intrig-config.service';
 
 @Module({
   imports: [CommonModule, DiscoveryModule, HttpModule, DaemonModule, PluginModule.forRootAsync()],
   providers: [
     ProcessManagerService,
+    IntrigConfigService,
     ...DaemonCommand.registerWithSubCommands(),
     GenerateCommand,
     ...SourcesCommand.registerWithSubCommands(),

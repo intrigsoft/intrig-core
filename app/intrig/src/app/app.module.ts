@@ -16,6 +16,7 @@ import {InitModule} from "./init-cli/init.module";
       load: [configuration],
     }),
     CommonModule,
+    PluginModule.forRootAsync(),
     CliModule,
     DiscoveryModule,
     DaemonModule,
@@ -23,7 +24,6 @@ import {InitModule} from "./init-cli/init.module";
     ...(process?.argv?.[2] === 'mcp' || process?.env?.MCP_ENABLED === '1'
       ? [McpModule]
       : []),
-    PluginModule.forRootAsync(),
   ],
   controllers: [],
   providers: [],
