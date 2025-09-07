@@ -72,6 +72,48 @@ const sidebars: SidebarsConfig = {
         }
       ]
     },
+    {
+      type: 'category',
+      label: "Next.js",
+      link: { type: "doc", id: 'next/index'},
+      collapsed: true,
+      collapsible: true,
+      items: [
+        'next/initialization',
+        {
+          type: 'category',
+          label: 'Core Concepts',
+          link: { type: 'doc', id: 'next/core-concepts/index' },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'next/core-concepts/server-client-architecture',
+            'next/core-concepts/app-router-vs-pages-router',
+            'next/core-concepts/server-side-functions',
+            'next/core-concepts/client-side-hooks',
+            'next/core-concepts/hydration-ssr-patterns',
+            'next/core-concepts/middleware-integration',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'API Reference',
+          link: { type: 'doc', id: 'next/api/index'},
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'next/api/server-functions',
+            'next/api/execute-functions',
+            'next/api/client-hooks',
+            'next/api/stateless-hooks',
+            'next/api/sse-hooks',
+            'next/api/intrig-provider',
+            'next/api/network-state',
+            'next/api/middleware-utils'
+          ]
+        }
+      ]
+    },
   ],
 };
 
