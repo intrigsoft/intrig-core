@@ -1,6 +1,6 @@
 {
   "name": "@intrig/vite",
-  "version": "0.0.2-6",
+  "version": "0.0.2-7",
   "main": "./src/index.js",
   "module": "./src/index.js",
   "types": "./src/index.d.ts",

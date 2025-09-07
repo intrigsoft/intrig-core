@@ -1,3 +1,13 @@
+## 0.0.15-13 (2025-09-07)
+
+### 🚀 Features
+
+- **app, plugins:** refactor `PluginModule` initialization and export `IntrigConfigService` ([97ef9ce](https://github.com/intrigsoft/intrig-core/commit/97ef9ce))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-12 (2025-09-07)
 
 ### 🚀 Features
