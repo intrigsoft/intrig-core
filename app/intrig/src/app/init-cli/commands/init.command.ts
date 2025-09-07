@@ -48,11 +48,20 @@ export class InitCommand extends CommandRunner {
 
       const packageJson = fsx.readJsonSync(packageJsonPath);
       
-      // Fetch approved plugins from GitHub
-      const approvedPlugins = await this.fetchApprovedPlugins();
+      // Check for existing plugin dependency matching the plugin regex format
+      const existingPlugin = this.checkForExistingPlugin(packageJson);
       
-      // Prompt user to select plugin (show all plugins with best match as default)
-      const selectedPlugin = await this.promptUserForPlugin(approvedPlugins, packageJson);
+      let selectedPlugin: ApprovedPlugin;
+      if (existingPlugin) {
+        console.log(chalk.green(`✅ Found existing plugin dependency: ${existingPlugin.name}`));
+        selectedPlugin = existingPlugin;
+      } else {
+        // Fetch approved plugins from GitHub
+        const approvedPlugins = await this.fetchApprovedPlugins();
+        
+        // Prompt user to select plugin (show all plugins with best match as default)
+        selectedPlugin = await this.promptUserForPlugin(approvedPlugins, packageJson);
+      }
       
       // Load and initialize the selected plugin
       const pluginInstance = await this.loadAndInitializePlugin(selectedPlugin);
@@ -117,7 +126,7 @@ export class InitCommand extends CommandRunner {
       const config: BasicIntrigConfig = {
         $schema: './.intrig/schema.json',
         sources: [],
-        generator: selectedPlugin.generator
+        generator: pluginInstance.meta().generator
       };
 
       // Write config file
@@ -137,6 +146,42 @@ export class InitCommand extends CommandRunner {
       console.log(chalk.red('❌ Failed to initialize Intrig:'), error?.message);
       throw error;
     }
+  }
+
+  private checkForExistingPlugin(packageJson: any): ApprovedPlugin | null {
+    const allDeps = {
+      ...(packageJson?.dependencies ?? {}),
+      ...(packageJson?.devDependencies ?? {}),
+      ...(packageJson?.peerDependencies ?? {}),
+      ...(packageJson?.optionalDependencies ?? {}),
+    };
+
+    const pluginPatterns: RegExp[] = [
+      /^@intrig\/plugin-.+/,
+      /^@[^/]+\/intrig-plugin-.+/,
+      /^intrig-plugin-.+/,
+    ];
+
+    const matchedPlugins = Object.keys(allDeps).filter((name) =>
+      pluginPatterns.some((pattern) => pattern.test(name))
+    );
+
+    if (matchedPlugins.length > 0) {
+      const pluginName = matchedPlugins[0];
+
+      return {
+        type: 'generator',
+        generator: 'custom', // This will be overridden by the actual plugin meta
+        name: pluginName,
+        compat: {
+          latest: {
+            dependencies: {}
+          }
+        }
+      };
+    }
+
+    return null;
   }
 
   private async fetchApprovedPlugins(): Promise<ApprovedPlugin[]> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'node:path';
@@ -6,6 +6,7 @@ import type { IntrigGeneratorPlugin } from '@intrig/plugin-sdk';
 
 @Injectable()
 export class LazyPluginService {
+  private readonly logger = new Logger(LazyPluginService.name);
   private pluginInstance: IntrigGeneratorPlugin<any> | null = null;
   private pluginName: string | null = null;
   private isLoading = false;
@@ -46,7 +47,7 @@ export class LazyPluginService {
 
   private async loadPlugin(): Promise<void> {
     const rootDir = this.configService.get<string>('rootDir') ?? process.cwd();
-    console.log(`[DEBUG] Loading plugin from rootDir: ${rootDir}`);
+    this.logger.debug(`Loading plugin from rootDir: ${rootDir}`);
 
     const pkgPath = path.resolve(rootDir, 'package.json');
     let packageJson: any;
@@ -90,33 +91,33 @@ export class LazyPluginService {
 
     this.pluginName = matchedPlugins[0];
     const pluginVersion = allDeps[this.pluginName];
-    console.log(`[DEBUG] Found plugin: ${this.pluginName} with version/path: ${pluginVersion}`);
+    this.logger.debug(`Found plugin: ${this.pluginName} with version/path: ${pluginVersion}`);
 
     // Check if plugin is a file-based dependency
     const isFileDependency = this.isFileBasedDependency(pluginVersion);
-    console.log(`[DEBUG] Plugin is file-based: ${isFileDependency}`);
+    this.logger.debug(`Plugin is file-based: ${isFileDependency}`);
 
     try {
       // Create a require function from the current module
       const { createRequire: nodeCreateRequire } = await import('node:module');
       const projectRequire = nodeCreateRequire(path.resolve(rootDir, 'package.json'));
 
-      console.log(`[DEBUG] Attempting to load plugin using createRequire: ${this.pluginName}`);
+      this.logger.debug(`Attempting to load plugin using createRequire: ${this.pluginName}`);
       
       let mod: any;
       
       if (isFileDependency) {
         // For file-based dependencies, require from the resolved path
         const pluginPath = this.resolvePluginPath(rootDir, pluginVersion);
-        console.log(`[DEBUG] Requiring from file path: ${pluginPath}`);
+        this.logger.debug(`Requiring from file path: ${pluginPath}`);
         mod = projectRequire(pluginPath);
       } else {
         // For npm-based dependencies, require by name (assumes already installed)
-        console.log(`[DEBUG] Requiring npm package: ${this.pluginName}`);
+        this.logger.debug(`Requiring npm package: ${this.pluginName}`);
         mod = projectRequire(this.pluginName);
       }
       
-      console.log(`[DEBUG] Module require succeeded`);
+      this.logger.debug(`Module require succeeded`);
 
       const factory = this.extractFactory(mod, this.pluginName);
       this.pluginInstance = await Promise.resolve(factory());

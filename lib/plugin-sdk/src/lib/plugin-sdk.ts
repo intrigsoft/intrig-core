@@ -154,7 +154,7 @@ export class StatsCounter {
 
 export interface IntrigGeneratorPlugin<GeneratorOptions> {
   $generatorSchema?: JSONSchema7;
-  meta(): { name: string; version: string; compat: IntrigVersion; displayName?: string };
+  meta(): { name: string; version: string; compat: IntrigVersion; displayName?: string; generator: string };
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;

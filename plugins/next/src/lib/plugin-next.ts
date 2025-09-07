@@ -26,7 +26,8 @@ function createPlugin(): IntrigGeneratorPlugin<NextPluginOptions> {
       return {
         name: 'intrig-binding',
         version: '0.0.1',
-        compat: '^0.0.15'
+        compat: '^0.0.15',
+        generator: 'next'
       }
     },
     generate: generateCode,
