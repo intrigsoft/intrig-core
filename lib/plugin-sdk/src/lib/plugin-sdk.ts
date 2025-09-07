@@ -128,6 +128,20 @@ export interface PreBuildContext<GeneratorOptions> {
   rootDir: string;
 }
 
+export interface AddSourceContext<GeneratorOptions> {
+  options: GeneratorOptions;
+  rootDir: string;
+  source: IntrigSourceConfig;
+  serverUrl?: string;
+}
+
+export interface RemoveSourceContext<GeneratorOptions> {
+  options: GeneratorOptions;
+  rootDir: string;
+  source: IntrigSourceConfig;
+  serverUrl?: string;
+}
+
 export class StatsCounter {
   public counters: Record<string, number> = {};
   constructor(public readonly sourceId: string) {
@@ -147,4 +161,6 @@ export interface IntrigGeneratorPlugin<GeneratorOptions> {
   init?: (ctx: InitContext<GeneratorOptions>) => Promise<void>;
   postBuild?: (ctx: PostBuildContext<GeneratorOptions>) => Promise<void>;
   preBuild?: (ctx: PreBuildContext<GeneratorOptions>) => Promise<void>;
+  addSource?: (ctx: AddSourceContext<GeneratorOptions>) => Promise<void>;
+  removeSource?: (ctx: RemoveSourceContext<GeneratorOptions>) => Promise<void>;
 }

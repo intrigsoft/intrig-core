@@ -4,6 +4,8 @@ import {getSchemaDocumentation} from "./get-schema-documentation.js";
 import {getEndpointDocumentation} from "./get-endpoint-documentation.js";
 import {initPlugin, NextPluginOptions} from "./init-plugin.js";
 import {postBuild} from "./post-build.js";
+import {addSource} from "./add-source.js";
+import {removeSource} from "./remove-source.js";
 import type {JSONSchema7} from "json-schema";
 
 const $generatorSchema: JSONSchema7 = {
@@ -31,7 +33,9 @@ function createPlugin(): IntrigGeneratorPlugin<NextPluginOptions> {
     getSchemaDocumentation,
     getEndpointDocumentation,
     init: initPlugin,
-    postBuild: postBuild
+    postBuild: postBuild,
+    addSource: addSource,
+    removeSource: removeSource
   }
 }
 

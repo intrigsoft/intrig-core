@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@intrig/plugin-sdk": "^0.0.2-3",
-    "@swc/helpers": "~0.5.11"
+    "@swc/helpers": "~0.5.11",
+    "inquirer": "^9.0.0"
   },
   "files": [
     "dist",

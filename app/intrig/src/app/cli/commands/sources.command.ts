@@ -4,6 +4,8 @@ import inquirer from 'inquirer';
 import {HttpService} from '@nestjs/axios'
 import {lastValueFrom} from "rxjs";
 import chalk from 'chalk';
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
+import {ConfigService} from '@nestjs/config';
 
 @SubCommand({
   name: 'add',
@@ -11,7 +13,12 @@ import chalk from 'chalk';
 })
 export class SourcesAddCommand extends CommandRunner {
 
-  constructor(private pm: ProcessManagerService, private httpService: HttpService) {
+  constructor(
+    private pm: ProcessManagerService, 
+    private httpService: HttpService,
+    private lazyPluginService: LazyPluginService,
+    private configService: ConfigService
+  ) {
     super();
   }
 
@@ -86,6 +93,24 @@ export class SourcesAddCommand extends CommandRunner {
     // 8) Final output
     console.log(chalk.green.bold(`\n${spinner} Source "${id}" added!`));
     console.log(chalk.whiteBright('Response:'), chalk.white(JSON.stringify(addRes)));
+
+    // 9) Call plugin addSource lifecycle method if available
+    try {
+      const plugin = await this.lazyPluginService.getPlugin();
+      if (plugin.addSource && typeof plugin.addSource === 'function') {
+        const rootDir = this.configService.get<string>('rootDir') ?? process.cwd();
+        await plugin.addSource({
+          options: {}, // generatorOptions would be set here if available
+          rootDir: rootDir,
+          source: source,
+          serverUrl: source.serverUrl
+        });
+        console.log(chalk.gray('✔ Plugin addSource lifecycle method executed'));
+      }
+    } catch (error: any) {
+      console.log(chalk.yellow('⚠️  Warning: Failed to execute plugin addSource lifecycle method:'), error?.message);
+      // Don't fail the command - lifecycle methods are optional
+    }
   }
 }
 
@@ -137,7 +162,12 @@ export class SourceListCommand extends CommandRunner {
 })
 export class SourceRemoveCommand extends CommandRunner {
 
-  constructor(private pm: ProcessManagerService, private httpService: HttpService) {
+  constructor(
+    private pm: ProcessManagerService, 
+    private httpService: HttpService,
+    private lazyPluginService: LazyPluginService,
+    private configService: ConfigService
+  ) {
     super();
   }
 
@@ -174,6 +204,9 @@ export class SourceRemoveCommand extends CommandRunner {
       },
     ]);
 
+    // Store the source details before deletion for lifecycle method
+    const selectedSource = sources.find((src: any) => src.id === id);
+
     // 4) confirm deletion
     const { confirm } = await inquirer.prompt<{ confirm: boolean }>([
       {
@@ -195,6 +228,24 @@ export class SourceRemoveCommand extends CommandRunner {
 
     // 6) success
     console.log(chalk.green.bold(`\n✔ Source "${id}" removed!`));
+
+    // 7) Call plugin removeSource lifecycle method if available
+    try {
+      const plugin = await this.lazyPluginService.getPlugin();
+      if (plugin.removeSource && typeof plugin.removeSource === 'function' && selectedSource) {
+        const rootDir = this.configService.get<string>('rootDir') ?? process.cwd();
+        await plugin.removeSource({
+          options: {}, // generatorOptions would be set here if available
+          rootDir: rootDir,
+          source: selectedSource,
+          serverUrl: selectedSource.serverUrl
+        });
+        console.log(chalk.gray('✔ Plugin removeSource lifecycle method executed'));
+      }
+    } catch (error: any) {
+      console.log(chalk.yellow('⚠️  Warning: Failed to execute plugin removeSource lifecycle method:'), error?.message);
+      // Don't fail the command - lifecycle methods are optional
+    }
   }
 }
 
