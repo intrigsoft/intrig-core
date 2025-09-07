@@ -142,6 +142,12 @@ export interface RemoveSourceContext<GeneratorOptions> {
   serverUrl?: string;
 }
 
+export type PostInitFunction = () => Promise<void> | void;
+
+export interface InitReturnValue {
+  postInit?: PostInitFunction;
+}
+
 export class StatsCounter {
   public counters: Record<string, number> = {};
   constructor(public readonly sourceId: string) {
@@ -158,7 +164,7 @@ export interface IntrigGeneratorPlugin<GeneratorOptions> {
   generate(ctx: GeneratorContext): Promise<StatsCounter[]>;
   getSchemaDocumentation(result: ResourceDescriptor<Schema>): Promise<Tab[]>;
   getEndpointDocumentation(result: ResourceDescriptor<RestData>): Promise<Tab[]>;
-  init?: (ctx: InitContext<GeneratorOptions>) => Promise<void>;
+  init?: (ctx: InitContext<GeneratorOptions>) => Promise<InitReturnValue | void>;
   postBuild?: (ctx: PostBuildContext<GeneratorOptions>) => Promise<void>;
   preBuild?: (ctx: PreBuildContext<GeneratorOptions>) => Promise<void>;
   addSource?: (ctx: AddSourceContext<GeneratorOptions>) => Promise<void>;

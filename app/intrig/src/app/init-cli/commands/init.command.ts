@@ -67,7 +67,7 @@ export class InitCommand extends CommandRunner {
       }
       
       // Load and initialize the selected plugin
-      const { pluginInstance, generatorOptions } = await this.loadAndInitializePlugin(selectedPlugin);
+      const { pluginInstance, generatorOptions, postInitFunction } = await this.loadAndInitializePlugin(selectedPlugin);
       
       // Check if plugin loading failed
       if (!pluginInstance) {
@@ -120,6 +120,17 @@ export class InitCommand extends CommandRunner {
       this.updateGitIgnore(rootDir);
 
       spinner.succeed('Configuration files created successfully');
+
+      // Execute postInit function if it exists
+      if (postInitFunction) {
+        try {
+          await Promise.resolve(postInitFunction());
+        } catch (error: any) {
+          console.log(chalk.yellow('⚠️  Warning: Post-initialization failed:'), error?.message);
+          // Don't throw - post-init failure shouldn't break the main initialization
+        }
+      }
+
       console.log(chalk.green('✅ Intrig initialization completed successfully'));
       
     } catch (error: any) {
@@ -291,7 +302,7 @@ export class InitCommand extends CommandRunner {
     return selectedPlugin;
   }
 
-  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<{pluginInstance: any, generatorOptions: any}> {
+  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<{pluginInstance: any, generatorOptions: any, postInitFunction?: () => Promise<void> | void}> {
     const installSpinner = ora(`Installing plugin: ${plugin.name}`).start();
     
     try {
@@ -359,9 +370,10 @@ export class InitCommand extends CommandRunner {
         }
 
         // Call init function if it exists on the plugin instance
+        let postInitFunction: (() => Promise<void> | void) | undefined;
         if (typeof pluginInstance.init === 'function') {
           loadSpinner.text = 'Calling plugin init function...';
-          await pluginInstance.init({
+          const initResult = await pluginInstance.init({
             options: generatorOptions,
             rootDir: rootDir,
             buildDir: path.resolve(rootDir, '.intrig', 'generated'),
@@ -375,16 +387,21 @@ export class InitCommand extends CommandRunner {
               fs.writeFileSync(fullPath, resolved.content, 'utf-8');
             }
           });
+          
+          // Extract postInit function if it exists in the result
+          if (initResult && typeof initResult === 'object' && typeof initResult.postInit === 'function') {
+            postInitFunction = initResult.postInit;
+          }
         }
 
         loadSpinner.succeed(`Plugin ${plugin.name} loaded and initialized successfully`);
-        return { pluginInstance, generatorOptions };
+        return { pluginInstance, generatorOptions, postInitFunction };
       } catch (loadError: any) {
         loadSpinner.warn(`Plugin ${plugin.name} was installed but could not be loaded/initialized`);
         console.log(chalk.yellow('⚠️  Warning:'), loadError?.message);
         // Don't throw here - the plugin is installed which is the main requirement
         console.log(chalk.blue('ℹ️  Info: Plugin installation completed (initialization skipped due to loading issues)'));
-        return { pluginInstance: null, generatorOptions: {} };
+        return { pluginInstance: null, generatorOptions: {}, postInitFunction: undefined };
       }
       
     } catch (error: any) {

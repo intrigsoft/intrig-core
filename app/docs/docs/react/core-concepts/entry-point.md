@@ -1,4 +1,4 @@
-# Entry Point (Core Concept)
+# Entry Point
 
 The **IntrigProvider** is the foundational entry point for integrating Intrig into a React application. It is the single, global configuration location that provides storage and network communication capabilities to all downstream components. By wrapping your application with `IntrigProvider` at the root level, you establish a consistent environment where every generated hook and utility can access shared configuration and infrastructure.
 

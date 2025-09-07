@@ -36,6 +36,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       collapsible: true,
       items: [
+        'react/initialization',
         {
           type: 'category',
           label: 'Core Concepts',

@@ -2,8 +2,9 @@ import {IntrigGeneratorPlugin} from '@intrig/plugin-sdk'
 import {generateCode} from "./code-generator.js";
 import {getSchemaDocumentation} from "./get-schema-documentation.js";
 import {getEndpointDocumentation} from "./get-endpoint-documentation.js";
+import {initPlugin, ReactPluginOptions} from "./init-plugin.js";
 
-function createPlugin(): IntrigGeneratorPlugin<undefined> {
+function createPlugin(): IntrigGeneratorPlugin<ReactPluginOptions> {
   return {
     meta() {
       return {
@@ -15,7 +16,8 @@ function createPlugin(): IntrigGeneratorPlugin<undefined> {
     },
     generate: generateCode,
     getSchemaDocumentation,
-    getEndpointDocumentation
+    getEndpointDocumentation,
+    init: initPlugin
   }
 }
 

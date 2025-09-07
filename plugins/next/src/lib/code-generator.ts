@@ -29,9 +29,12 @@ import {asyncFunctionHookTemplate} from "./templates/source/controller/method/as
 import {clientIndexTemplate} from "./templates/source/controller/method/clientIndex.template.js";
 import {downloadHookTemplate} from "./templates/source/controller/method/download.template.js";
 import {nextRequestMethodTemplate} from "./templates/source/controller/method/requestMethod.template.js";
-import {nextRequestRouteTemplate} from "./templates/source/controller/method/requestRouteTemplate.js";
+import {nextRequestRouteTemplate} from "./templates/source/controller/method/requestRoute.template.js";
 import {serverIndexTemplate} from "./templates/source/controller/method/serverIndex.template.js";
 import {typeTemplate} from "./templates/source/type/typeTemplate.js";
+
+// Documentation templates
+import { serverFunctionDocs } from "./templates/docs/server-function.js";
 
 export async function generateCode(ctx: GeneratorContext): Promise<StatsCounter[]> {
   // Root/project files
@@ -74,6 +77,7 @@ export async function generateCode(ctx: GeneratorContext): Promise<StatsCounter[
     await ctx.dump(paramsTemplate(restDescriptor, internalGeneratorContext));
     await ctx.dump(asyncFunctionHookTemplate(restDescriptor, internalGeneratorContext));
     await ctx.dump(nextRequestMethodTemplate(restDescriptor, internalGeneratorContext));
+    await ctx.dump(serverFunctionDocs(restDescriptor));
     if (restDescriptor.data.isDownloadable) {
       await ctx.dump(downloadHookTemplate(restDescriptor, internalGeneratorContext))
     }
