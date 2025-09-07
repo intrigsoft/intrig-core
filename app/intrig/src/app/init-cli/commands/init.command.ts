@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import * as semver from 'semver';
 import chalk from 'chalk';
 import ora from 'ora';
+import { createInquirer } from 'schinquirer';
 import { schemaTemplate } from '../templates/schema.template';
 
 interface BasicIntrigConfig {
@@ -66,6 +67,11 @@ export class InitCommand extends CommandRunner {
       
       // Load and initialize the selected plugin
       const pluginInstance = await this.loadAndInitializePlugin(selectedPlugin);
+      
+      // Check if plugin loading failed
+      if (!pluginInstance) {
+        throw new Error(`Failed to load and initialize plugin ${selectedPlugin.name}. Please check the plugin installation and try again.`);
+      }
       
       // Create .intrig directory if it doesn't exist
       const intrigDir = path.resolve(rootDir, '.intrig');
@@ -330,11 +336,18 @@ export class InitCommand extends CommandRunner {
           );
         }
         
+        // Collect generatorSchema information if plugin has one
+        let generatorOptions = {};
+        if (pluginInstance.$generatorSchema) {
+          loadSpinner.text = 'Collecting generator configuration...';
+          generatorOptions = await this.collectGeneratorOptions(pluginInstance.$generatorSchema, plugin.name);
+        }
+
         // Call init function if it exists on the plugin instance
         if (typeof pluginInstance.init === 'function') {
           loadSpinner.text = 'Calling plugin init function...';
           await pluginInstance.init({
-            options: {}, // generatorOptions would be set here if available
+            options: generatorOptions,
             rootDir: rootDir,
             buildDir: path.resolve(rootDir, '.intrig', 'generated'),
             dump: async (content: any) => {
@@ -347,6 +360,11 @@ export class InitCommand extends CommandRunner {
               fs.writeFileSync(fullPath, resolved.content, 'utf-8');
             }
           });
+        }
+
+        // Save generator options to intrig.config.json
+        if (Object.keys(generatorOptions).length > 0) {
+          await this.saveGeneratorOptions(generatorOptions);
         }
         
         loadSpinner.succeed(`Plugin ${plugin.name} loaded and initialized successfully`);
@@ -379,6 +397,37 @@ export class InitCommand extends CommandRunner {
         `Available exports: ${Object.keys(mod || {}).join(', ')}`
       );
     }
+  }
+
+  private async collectGeneratorOptions(generatorSchema: any, pluginName: string): Promise<any> {
+    const options: any = {};
+    
+    if (!generatorSchema.properties) {
+      return options;
+    }
+
+    // Use schinquirer to generate questions from schema
+    if (generatorSchema.properties && Object.keys(generatorSchema.properties).length > 0) {
+      const schemaInquirer = createInquirer(generatorSchema);
+      const answers = await schemaInquirer.prompt();
+      Object.assign(options, answers);
+    }
+
+    return options;
+  }
+
+  private async saveGeneratorOptions(generatorOptions: any): Promise<void> {
+    const configPath = path.resolve(process.cwd(), 'intrig.config.json');
+    let config = {};
+    
+    if (fs.existsSync(configPath)) {
+      const configContent = fs.readFileSync(configPath, 'utf-8');
+      config = JSON.parse(configContent);
+    }
+    
+    (config as any).generatorOptions = { ...(config as any).generatorOptions, ...generatorOptions };
+    
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
   }
 
   private addConfigToGit(rootDir: string): void {

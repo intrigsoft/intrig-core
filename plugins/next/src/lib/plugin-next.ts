@@ -13,7 +13,8 @@ const $generatorSchema: JSONSchema7 = {
   properties: {
     "apiRoutesDir": {
       type: 'string',
-      description: 'The directory where the API routes are stored.'
+      description: 'The directory where the API routes are stored.',
+      default: 'src/app/api'
     }
   }
 }

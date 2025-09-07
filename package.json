@@ -159,6 +159,7 @@
     "remark-gfm": "^4.0.1",
     "resolve": "^1.22.10",
     "rxjs": "^7.8.0",
+    "schinquirer": "^0.3.2",
     "swc-loader": "^0.2.6",
     "tailwindcss": "^4.1.11",
     "tcp-port-used": "^1.0.2",
