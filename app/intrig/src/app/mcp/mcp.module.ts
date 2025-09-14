@@ -5,9 +5,6 @@ import {PostbuildCommand} from "../cli/commands/postbuild.command";
 import {ProcessManagerService} from "../cli/process-manager.service";
 import {DiscoveryModule} from "../discovery/discovery.module";
 import {CommonModule} from "common";
-import {NextCliModule, NextCliService} from "next-binding";
-import {ReactCliModule, ReactCliService} from "react-binding";
-import {GENERATORS} from "../cli/tokens";
 import {GenerateCommand} from "../cli/commands/generate.command";
 import {ConfigModule} from "@nestjs/config";
 import {HttpModule} from "@nestjs/axios";
@@ -43,8 +40,6 @@ This MCP server only provides documentation and structure. It does not execute h
     DiscoveryModule,
     CommonModule,
     HttpModule,
-    NextCliModule,
-    ReactCliModule,
     ConfigModule,
   ],
   providers: [
@@ -52,13 +47,6 @@ This MCP server only provides documentation and structure. It does not execute h
     PostbuildCommand,
     ProcessManagerService,
     GenerateCommand,
-    {
-      provide: GENERATORS,
-      inject: [NextCliService, ReactCliService],
-      useFactory(nextCliService: NextCliService, reactCliService: ReactCliService) {
-        return [nextCliService, reactCliService]
-      }
-    },
     AiResource
   ]
 })

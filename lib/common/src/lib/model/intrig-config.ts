@@ -14,6 +14,7 @@ export interface IntrigConfig {
   generator: string;
   restOptions?: RestOptions;
   codeAnalyzer?: CodeAnalyzerConfig;
+  generatorOptions?: any;
 }
 
 export class IntrigConfigImpl implements IntrigConfig {
@@ -22,6 +23,7 @@ export class IntrigConfigImpl implements IntrigConfig {
   generator: string;
   restOptions?: RestOptions;
   codeAnalyzer?: CodeAnalyzerConfig;
+  generatorOptions?: any;
 
   constructor(config: IntrigConfig) {
     this.$schema = config.$schema;
@@ -29,5 +31,6 @@ export class IntrigConfigImpl implements IntrigConfig {
     this.generator = config.generator;
     this.restOptions = config.restOptions;
     this.codeAnalyzer = config.codeAnalyzer;
+    this.generatorOptions = config.generatorOptions;
   }
 }

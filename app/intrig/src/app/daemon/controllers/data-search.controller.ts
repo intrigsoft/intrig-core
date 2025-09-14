@@ -9,7 +9,7 @@ import {LastVisitService} from "../services/last-visit.service";
 import {EntityView} from "../models/entity-view.model";
 import {PinItemDto} from "../models/pin-item.dto";
 import {FileListResponseDto} from "../models/file-list-response.dto";
-import { CodeAnalyzer } from "../../utils/code-analyzer";
+import { LazyCodeAnalyzerService } from "../../utils/lazy-code-analyzer.service";
 
 @Controller('data')
 @ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, EntityView, PinItemDto, FileListResponseDto)
@@ -18,7 +18,7 @@ export class DataSearchController {
   constructor(
     private dataSearchService: DataSearchService,
     private lastVisitService: LastVisitService,
-    private codeAnalyzer: CodeAnalyzer
+    private codeAnalyzer: LazyCodeAnalyzerService
   ) {
   }
 

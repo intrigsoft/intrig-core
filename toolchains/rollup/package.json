@@ -1,0 +1,25 @@
+{
+  "name": "@intrig/rollup",
+  "version": "0.0.2-7",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "private": true,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@intrig/plugin-core": "^0.0.1",
+    "tslib": "^2.3.0"
+  }
+}

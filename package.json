@@ -12,6 +12,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@angular-devkit/core": "^20.2.0",
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
     "@docusaurus/module-type-aliases": "3.8.1",
@@ -95,7 +96,9 @@
     "plugins/vite",
     "plugins/webpack",
     "plugins/rollup",
-    "plugins/esbuild"
+    "plugins/esbuild",
+    "plugins/*",
+    "toolchains/*"
   ],
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^12.0.1",
@@ -103,6 +106,7 @@
     "@docusaurus/preset-classic": "3.8.1",
     "@intrig/react": "^0.0.15-6",
     "@mdx-js/react": "^3.0.0",
+    "@modelcontextprotocol/sdk": "^1.17.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^4.0.2",
@@ -131,6 +135,7 @@
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
     "lowdb": "^7.0.1",
+    "mime-types": "^3.0.1",
     "minisearch": "^7.1.2",
     "nest-commander": "^3.17.0",
     "next": "~15.2.4",
@@ -152,7 +157,9 @@
     "rehype-prism-plus": "^2.0.1",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "resolve": "^1.22.10",
     "rxjs": "^7.8.0",
+    "schinquirer": "^0.3.2",
     "swc-loader": "^0.2.6",
     "tailwindcss": "^4.1.11",
     "tcp-port-used": "^1.0.2",

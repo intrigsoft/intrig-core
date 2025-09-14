@@ -14,6 +14,7 @@ export * from './lib/model/content-types';
 export * from './lib/model/generate-event';
 export * from './lib/model/intrig-config';
 export * from './lib/model/intrig-source-config';
+export * from './lib/model/intrig-source-transform-response';
 export * from './lib/model/resource-descriptor';
 export * from './lib/model/rest-resource-data';
 export * from './lib/model/schema';

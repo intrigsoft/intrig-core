@@ -1,6 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {HttpService} from "@nestjs/axios";
-import {IntrigSourceConfig} from "common";
+import {IntrigSourceConfig, IntrigSourceTransformResponse} from "common";
 import {lastValueFrom} from "rxjs";
 import {load as yamlLoad} from "js-yaml";
 
@@ -11,7 +11,7 @@ export class OpenapiService {
   constructor(private httpService: HttpService) {
   }
 
-  async resolveSource(url: string): Promise<IntrigSourceConfig> {
+  async resolveSource(url: string): Promise<IntrigSourceTransformResponse> {
     this.logger.debug(`Resolving OpenAPI spec from URL: ${url}`);
     const response = await lastValueFrom(
       this.httpService.get<string>(url, {responseType: 'text'}),
@@ -33,13 +33,14 @@ export class OpenapiService {
       ? spec.servers
       : [];
 
-    const regex = servers.length > 0 ? servers[0].url : undefined;
-    this.logger.debug(`Resolved spec title: ${title}, server regex: ${regex}`);
+    const serverUrl = servers.length > 0 ? servers[0].url : undefined;
+    this.logger.debug(`Resolved spec title: ${title}, server URL: ${serverUrl}`);
 
-    return IntrigSourceConfig.from({
+    return IntrigSourceTransformResponse.from({
       id: '',
       name: title,
       specUrl: url,
+      serverUrl: serverUrl,
     })
   }
 }

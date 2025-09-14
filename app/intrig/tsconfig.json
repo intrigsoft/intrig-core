@@ -7,10 +7,7 @@
       "path": "../../lib/openapi-source"
     },
     {
-      "path": "../../lib/react-binding"
-    },
-    {
-      "path": "../../lib/next-binding"
+      "path": "../../lib/plugin-sdk"
     },
     {
       "path": "../../lib/common"

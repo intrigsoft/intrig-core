@@ -1,6 +1,6 @@
 import {Body, Controller, Delete, Get, Logger, NotFoundException, Param, Post, Res} from '@nestjs/common';
 import {OpenapiService} from "../services/openapi.service";
-import {IntrigSourceConfig} from "common";
+import {IntrigSourceConfig, IntrigSourceTransformResponse} from "common";
 import type {IIntrigSourceConfig} from "common";
 import {IntrigConfigService} from "../services/intrig-config.service";
 import {ApiBody, ApiExtraModels, ApiResponse, ApiTags} from "@nestjs/swagger";
@@ -17,7 +17,7 @@ class CreateSourceDto implements ICreateSourceDto {
 }
 
 @ApiTags('Sources')
-@ApiExtraModels(IntrigSourceConfig)
+@ApiExtraModels(IntrigSourceConfig, IntrigSourceTransformResponse)
 @Controller('config/sources')
 export class SourcesController {
   private readonly logger = new Logger(SourcesController.name);
@@ -32,10 +32,10 @@ export class SourcesController {
   })
   @ApiResponse({
     status: 201,
-    type: IntrigSourceConfig
+    type: IntrigSourceTransformResponse
   })
   @Post("transform")
-  async createFromUrl(@Body() dto: ICreateSourceDto): Promise<IntrigSourceConfig> {
+  async createFromUrl(@Body() dto: ICreateSourceDto): Promise<IntrigSourceTransformResponse> {
     this.logger.log(`Creating source from URL: ${dto.specUrl}`);
     return this.openApiService.resolveSource(dto.specUrl);
   }

@@ -1,15 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
-import {GeneratorBinding, Page, ResourceDescriptor, RestData} from "common";
+import {Injectable, Logger} from '@nestjs/common';
+import {Page, ResourceDescriptor, RestData, RestDocumentation, Schema, SchemaDocumentation} from "common";
 import {SearchService} from "./search.service";
 import {LastVisitService} from "./last-visit.service";
+import {LazyPluginService} from "../../plugins/lazy-plugin.service";
 
 @Injectable()
 export class DataSearchService {
   private readonly logger = new Logger(DataSearchService.name);
   constructor(
-    private readonly searchService: SearchService, 
-    private generatorBinding: GeneratorBinding,
-    private lastVisitService: LastVisitService
+    private readonly searchService: SearchService,
+    // private generatorBinding: GeneratorBinding,
+    private lastVisitService: LastVisitService,
+    private lazyPluginService: LazyPluginService,
   ) {}
 
   /**
@@ -72,9 +74,9 @@ export class DataSearchService {
     return this.searchService.getDataStats(source);
   }
 
-  async getSchemaDocsById(id: string) {
+  async getSchemaDocsById(id: string): Promise<SchemaDocumentation | undefined> {
     this.logger.debug(`Getting resource by id: ${id}`);
-    const result = this.searchService.getById(id);
+    const result: ResourceDescriptor<Schema> | undefined = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
     
@@ -85,19 +87,28 @@ export class DataSearchService {
       dataTypes: [result.name],
       type: 'rest'
     });
-    const schemaDocumentation = await this.generatorBinding.getSchemaDocumentation(result);
-    schemaDocumentation.relatedEndpoints = dataTypes.map(d => ({
-      id: d.id,
-      name: d.name,
-      method: d.data.method,
-      path: d.data.requestUrl,
-    }));
-    return schemaDocumentation;
+    const plugin = await this.lazyPluginService.getPlugin();
+    const tabs = await plugin.getSchemaDocumentation(result);
+
+    return SchemaDocumentation.from({
+      id: result.id,
+      name: result.data.name,
+      description: result.data.schema?.description ?? '',
+      jsonSchema: result.data.schema,
+      tabs: tabs,
+      relatedTypes: [],
+      relatedEndpoints: dataTypes.map(d => ({
+        id: d.id,
+        name: d.name,
+        method: d.data.method,
+        path: d.data.requestUrl,
+      })),
+    });
   }
 
-  async getEndpointDocById(id: string) {
+  async getEndpointDocById(id: string): Promise<RestDocumentation | undefined> {
     this.logger.debug(`Getting resource by id: ${id}`);
-    const result = this.searchService.getById(id);
+    const result: ResourceDescriptor<RestData> | undefined = this.searchService.getById(id);
     this.logger.debug(`Resource ${id} ${result ? 'found' : 'not found'}`);
     if (!result) return;
     
@@ -110,6 +121,26 @@ export class DataSearchService {
       names: [restData.requestBody, restData.response, ...restData.variables?.map(a => a.ref.split('/').pop()) ?? []]
         .filter(a => !!a).map(a => a as string)
     });
-    return await this.generatorBinding.getEndpointDocumentation(result, schemas);
+    const mapping = Object.fromEntries(schemas.map(a => ([a.name, {name: a.name, id: a.id}])));
+    const plugin = await this.lazyPluginService.getPlugin();
+    const tabs = await plugin.getEndpointDocumentation(result);
+    return RestDocumentation.from({
+      id: result.id,
+      name: result.name,
+      method: result.data.method,
+      path: result.data.requestUrl!,
+      description: result.data.description,
+      requestBody: result.data.requestBody ? mapping[result.data.requestBody] : undefined,
+      contentType: result.data.contentType,
+      response: result.data.response ? mapping[result.data.response] : undefined,
+      responseType: result.data.responseType,
+      requestUrl: result.data.requestUrl!,
+      variables: result.data.variables?.map(a => ({
+        ...a,
+        relatedType: mapping[a.ref.split('/').pop()!],
+      })) ?? [],
+      responseExamples: result.data.responseExamples ?? {},
+      tabs
+    });
   }
 }

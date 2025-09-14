@@ -16,7 +16,20 @@ const sidebars: SidebarsConfig = {
   docs: [
     'intro',
     'getting-started',
-    'thinking-in-intrig',
+    {
+      type: 'category',
+      label: 'Thinking in Intrig',
+      link: { type: 'doc', id: 'thinking-in-intrig' },
+      collapsible: true,
+      collapsed: false,
+      items: [
+        'patterns/storage-behavior',
+        'patterns/keyed-calls',
+        'patterns/stateful-vs-stateless',
+        'patterns/lifecycle-vs-passive',
+        'patterns/hierarchical-thinking',
+      ],
+    },
     {
       type: 'category',
       label: 'How Intrig Works',
@@ -36,6 +49,7 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       collapsible: true,
       items: [
+        'react/initialization',
         {
           type: 'category',
           label: 'Core Concepts',
@@ -67,6 +81,48 @@ const sidebars: SidebarsConfig = {
             'react/api/stateful-hook',
             'react/api/stateless-hook',
             'react/api/download-hook'
+          ]
+        }
+      ]
+    },
+    {
+      type: 'category',
+      label: "Next.js",
+      link: { type: "doc", id: 'next/index'},
+      collapsed: true,
+      collapsible: true,
+      items: [
+        'next/initialization',
+        {
+          type: 'category',
+          label: 'Core Concepts',
+          link: { type: 'doc', id: 'next/core-concepts/index' },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'next/core-concepts/server-client-architecture',
+            'next/core-concepts/app-router-vs-pages-router',
+            'next/core-concepts/server-side-functions',
+            'next/core-concepts/client-side-hooks',
+            'next/core-concepts/hydration-ssr-patterns',
+            'next/core-concepts/middleware-integration',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'API Reference',
+          link: { type: 'doc', id: 'next/api/index'},
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'next/api/server-functions',
+            'next/api/execute-functions',
+            'next/api/client-hooks',
+            'next/api/stateless-hooks',
+            'next/api/sse-hooks',
+            'next/api/intrig-provider',
+            'next/api/network-state',
+            'next/api/middleware-utils'
           ]
         }
       ]

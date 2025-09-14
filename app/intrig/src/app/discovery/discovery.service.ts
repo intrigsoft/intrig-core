@@ -25,14 +25,15 @@ export class DiscoveryService implements OnModuleInit, OnApplicationShutdown {
   onModuleInit() {
     // determine projectName
     let name = 'intrig-daemon';
+    const rootDir = this.config.get<string>('rootDir') ?? process.cwd();
     try {
       const pkg = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
+        fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'),
       ) as { name?: string };
       if (pkg.name) name = pkg.name;
     } catch {
       this.logger.warn(
-        `Could not read package.json in ${process.cwd()}, using "${name}"`,
+        `Could not read package.json in ${rootDir}, using "${name}"`,
       );
     }
     this.projectName = this.sanitizeName(name);

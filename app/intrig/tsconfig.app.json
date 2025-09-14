@@ -22,10 +22,7 @@
       "path": "../../lib/openapi-source/tsconfig.lib.json"
     },
     {
-      "path": "../../lib/react-binding/tsconfig.lib.json"
-    },
-    {
-      "path": "../../lib/next-binding/tsconfig.lib.json"
+      "path": "../../lib/plugin-sdk/tsconfig.lib.json"
     },
     {
       "path": "../../lib/common/tsconfig.lib.json"

@@ -1,0 +1,27 @@
+{
+  "name": "@intrig/plugin-sdk",
+  "version": "0.0.2-5",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
