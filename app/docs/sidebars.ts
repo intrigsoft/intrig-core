@@ -101,11 +101,10 @@ const sidebars: SidebarsConfig = {
           collapsed: true,
           items: [
             'next/core-concepts/server-client-architecture',
-            'next/core-concepts/app-router-vs-pages-router',
+            'next/core-concepts/configuration-management',
             'next/core-concepts/server-side-functions',
             'next/core-concepts/client-side-hooks',
-            'next/core-concepts/hydration-ssr-patterns',
-            'next/core-concepts/middleware-integration',
+            'next/core-concepts/middleware-integration'
           ],
         },
         {
@@ -116,13 +115,16 @@ const sidebars: SidebarsConfig = {
           collapsed: true,
           items: [
             'next/api/server-functions',
-            'next/api/execute-functions',
-            'next/api/client-hooks',
-            'next/api/stateless-hooks',
-            'next/api/sse-hooks',
-            'next/api/intrig-provider',
+            'next/api/intrig-layout',
             'next/api/network-state',
-            'next/api/middleware-utils'
+            'next/api/middleware',
+            'next/api/stateful-hook',
+            'next/api/stateless-hook',
+            'next/api/download-hook',
+            'next/api/is-success',
+            'next/api/is-error',
+            'next/api/is-pending',
+            'next/api/is-init'
           ]
         }
       ]

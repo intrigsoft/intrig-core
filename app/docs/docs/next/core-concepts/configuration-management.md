@@ -90,24 +90,24 @@ import IntrigLayout from '@intrig/next/intrig-layout';
 // Or: import { IntrigLayout } from '@intrig/next';
 
 export default function RootLayout({
-                                     children,
-                                   }: {
+  children,
+}: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-    <body>
-    <IntrigLayout
-      configs={{
-        timeout: 10000,
-        headers: {
-          'X-Client-Version': '1.0.0',
-        }
-      }}
-    >
-      {children}
-    </IntrigLayout>
-    </body>
+      <body>
+        <IntrigLayout
+          configs={{
+            timeout: 10000,
+            headers: {
+              'X-Client-Version': '1.0.0',
+            }
+          }}
+        >
+          {children}
+        </IntrigLayout>
+      </body>
     </html>
   );
 }
@@ -143,8 +143,8 @@ import IntrigLayout from '@intrig/next/intrig-layout';
 import type { DefaultConfigs } from '@intrig/next/interfaces';
 
 export default function RootLayout({
-                                     children,
-                                   }: {
+  children,
+}: {
   children: React.ReactNode;
 }) {
   const configs: DefaultConfigs = {
@@ -165,11 +165,11 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-    <body>
-    <IntrigLayout configs={configs}>
-      {children}
-    </IntrigLayout>
-    </body>
+      <body>
+        <IntrigLayout configs={configs}>
+          {children}
+        </IntrigLayout>
+      </body>
     </html>
   );
 }
@@ -210,7 +210,7 @@ The middleware automatically:
 export async function getHeaders() {
   const _headers = await headers();
   const intrigHeaders: Record<string, string> = {};
-
+  
   // Extract headers with 'intrig-' prefix
   _headers.forEach((value, key) => {
     if (key.startsWith('intrig-')) {
@@ -218,7 +218,7 @@ export async function getHeaders() {
       intrigHeaders[originalKey] = value;
     }
   });
-
+  
   return intrigHeaders;
 }
 ```
@@ -300,7 +300,7 @@ import type { DefaultConfigs } from '@intrig/next/interfaces';
 
 export function getClientConfigs(): DefaultConfigs {
   const isDevelopment = process.env.NODE_ENV === 'development';
-
+  
   return {
     timeout: isDevelopment ? 30000 : 10000,
     headers: {
@@ -318,11 +318,11 @@ import { getClientConfigs } from '@/lib/config';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-    <body>
-    <IntrigLayout configs={getClientConfigs()}>
-      {children}
-    </IntrigLayout>
-    </body>
+      <body>
+        <IntrigLayout configs={getClientConfigs()}>
+          {children}
+        </IntrigLayout>
+      </body>
     </html>
   );
 }
@@ -359,11 +359,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-    <body>
-    <IntrigLayout configs={config}>
-      {children}
-    </IntrigLayout>
-    </body>
+      <body>
+        <IntrigLayout configs={config}>
+          {children}
+        </IntrigLayout>
+      </body>
     </html>
   );
 }
@@ -422,7 +422,7 @@ export async function getAxiosInstance(key: string) {
   if (clients.has(key)) {
     return clients.get(key)!;
   }
-
+  
   const baseURL = process.env[`${key.toUpperCase()}_API_URL`];
   if (!baseURL) {
     throw new Error(

@@ -9,17 +9,17 @@ The Intrig Next.js SDK provides a comprehensive set of building blocks for integ
 At a high level, you'll work with:
 
 * **Server-Side Functions** – Async functions that run in API routes and server components:
-    * **Action functions** perform direct backend calls with automatic error handling and type safety. See: [Server Functions](/docs/next/api/server-functions)
-    * **Execute functions** provide lower-level access with raw response data and headers. See: [Execute Functions](/docs/next/api/execute-functions)
+    * Learn how to use both high-level action functions and lower-level execute functions in one place: [Server Functions](/docs/next/api/server-functions)
 
 * **Client-Side Hooks** – React hooks for client-side state management:
-    * **Stateful hooks** cache results and handle hydration seamlessly. See: [Client Hooks](/docs/next/api/client-hooks)
-    * **Stateless hooks** perform one-off operations without caching. See: [Stateless Hooks](/docs/next/api/stateless-hooks)
-    * **Streaming hooks** handle Server-Sent Events with automatic reconnection. See: [SSE Hooks](/docs/next/api/sse-hooks)
+    * **Stateful Hook** caches results and handles hydration seamlessly. See: [Stateful Hook](/docs/next/api/stateful-hook)
+    * **Stateless Hook** performs one-off operations without caching. See: [Stateless Hook](/docs/next/api/stateless-hook)
+    * **Download Hook** simplifies file downloads with progress tracking. See: [Download Hook](/docs/next/api/download-hook)
 
 * **Providers and State** – Configuration and state management:
-    * **IntrigProvider** sets up global configuration for both server and client contexts. See: [IntrigProvider](/docs/next/api/intrig-provider)
+    * **IntrigLayout** sets up global configuration and automatic hydration for Next.js apps. See: [IntrigLayout](/docs/next/api/intrig-layout)
     * **NetworkState** manages the lifecycle of async requests with hydration support. See: [Network State](/docs/next/api/network-state)
-    * **Middleware utilities** enhance Next.js middleware with Intrig capabilities. See: [Middleware Utils](/docs/next/api/middleware-utils)
+    * **Middleware** enhances Next.js middleware with Intrig capabilities. See: [Middleware](/docs/next/api/middleware)
+    * **Status Helpers** quick helpers to check request state: [isSuccess](/docs/next/api/is-success), [isError](/docs/next/api/is-error), [isPending](/docs/next/api/is-pending), [isInit](/docs/next/api/is-init)
 
 Together, these components let you build full-stack Next.js applications with minimal boilerplate while maintaining type safety and consistency between server and client environments.
