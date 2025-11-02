@@ -248,11 +248,11 @@ export function EndpointDetailPage() {
                     </CardContent>
                   </Card>
 
-                  <UsageFilesList
-                    sourceId={sourceId || ''}
-                    id={data.id || endpointId || ''}
-                    type="endpoint"
-                  />
+                  {/*<UsageFilesList*/}
+                  {/*  sourceId={sourceId || ''}*/}
+                  {/*  id={data.id || endpointId || ''}*/}
+                  {/*  type="endpoint"*/}
+                  {/*/>*/}
                 </div>
               </div>
             )

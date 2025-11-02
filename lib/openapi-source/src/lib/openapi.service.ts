@@ -1,6 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
 import type {IIntrigSourceConfig, RestOptions} from 'common'
-import * as crypto from 'crypto';
 import {
   camelCase,
   IntrigConfig,
@@ -11,26 +10,49 @@ import {
   SyncEventContext,
   WithStatus
 } from 'common'
+import * as crypto from 'crypto';
 import {lastValueFrom} from "rxjs";
 import {HttpService} from "@nestjs/axios";
 import {load as yamlLoad} from "js-yaml";
 import RefParser from '@apidevtools/json-schema-ref-parser';
 import type {OpenAPIV3_1} from "openapi-types";
-import {normalize} from "./util/normalize";
+import {NormalizationStep, normalize} from "./util/normalize";
 import {ExtractRequestsService} from "./util/extract-requests.service";
 import {extractSchemas} from "./util/extractSchemas";
 import * as path from 'path'
+import * as fs from 'fs';
 import set from "lodash/set";
+import {ConfigService} from "@nestjs/config";
 
 @Injectable()
 export class IntrigOpenapiService {
   private readonly logger = new Logger(IntrigOpenapiService.name);
+  private readonly normalizationPath: string;
 
   constructor(
     private httpService: HttpService, 
     private specManagementService: SpecManagementService,
-    private extractRequestsService: ExtractRequestsService
+    private extractRequestsService: ExtractRequestsService,
+    config: ConfigService
   ) {
+    const jsPath = path.join(config.get('rootDir')!, 'intrig-normalization.js');
+    const tsPath = path.join(config.get('rootDir')!, 'intrig-normalization.ts');
+    let selectedPath: string | undefined;
+
+    if (fs.existsSync(jsPath)) {
+      selectedPath = jsPath;
+    } else if (fs.existsSync(tsPath)) {
+      // Try to enable ts support if available
+      try {
+        // Dynamically register ts-node if present in the environment
+
+        require('ts-node/register/transpile-only');
+      } catch (e) {
+        this.logger.warn(`intrig-normalization.ts found but ts-node is not available. Attempting to load may fail. Error: ${(e as any)?.message}`);
+      }
+      selectedPath = tsPath;
+    }
+    this.normalizationPath = selectedPath;
   }
 
   async sync(config: IntrigConfig, id: string | undefined, ctx: SyncEventContext) {
@@ -109,7 +131,31 @@ export class IntrigOpenapiService {
   @WithStatus((source, spec) => ({step: 'normalize', sourceId: source.id}))
   private async normalize(ctx: SyncEventContext, source: IIntrigSourceConfig, spec: any) {
     const document = await RefParser.bundle(await spec) as OpenAPIV3_1.Document;
-    return normalize(document);
+
+    // Attempt to load optional project-level normalization function
+    let customStep: NormalizationStep | undefined;
+    try {
+      if (this.normalizationPath) {
+         
+        const mod = require(this.normalizationPath);
+        const exported = mod?.default ?? mod;
+        if (exported && typeof exported === 'object') {
+          const candidate = (exported as Record<string, unknown>)[source.id];
+          if (typeof candidate === 'function') {
+            customStep = candidate as NormalizationStep;
+            this.logger.log(`Using custom normalization function for source '${source.id}' from ${path.basename(this.normalizationPath)}`);
+          } else {
+            this.logger.debug(`No custom normalization function found for source '${source.id}' in ${path.basename(this.normalizationPath)}`);
+          }
+        } else {
+          this.logger.warn(`intrig-normalization file does not export an object (default). Skipping custom normalization.`);
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Failed to load custom normalization: ${e?.message}`);
+    }
+
+    return normalize(document, customStep);
   }
 
   @WithStatus((source, row) => ({step: 'decode', sourceId: source.id}))

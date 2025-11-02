@@ -11,7 +11,7 @@ import { DataSearchController } from './controllers/data-search.controller';
 import { DataSearchService } from './services/data-search.service';
 import { SearchService } from './services/search.service';
 import { LastVisitService } from './services/last-visit.service';
-import { LazyCodeAnalyzerService } from '../utils/lazy-code-analyzer.service';
+import {SourceManagementService} from "./services/source-management.service";
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { LazyCodeAnalyzerService } from '../utils/lazy-code-analyzer.service';
     DataSearchService,
     SearchService,
     LastVisitService,
-    LazyCodeAnalyzerService,
+    SourceManagementService
   ],
   exports: [OperationsService, IntrigConfigService],
 })

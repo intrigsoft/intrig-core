@@ -30,12 +30,12 @@ Use this TypeScript type anywhere you need static typing for this object shape i
 
 ## Import
 ${'```ts'}
-${importContent}
+${importContent.content}
 ${'```'}
 
 ## Definition
 ${'```ts'}
-${codeContent}
+${codeContent.content}
 ${'```'}
   `
 }
@@ -61,12 +61,12 @@ Use this JSON Schema with tools that consume JSON Schema: UI form builders (e.g.
 
 ## Import
 ${'```ts'}
-${importContent}
+${importContent.content}
 ${'```'}
 
 ## Definition
 ${'```ts'}
-${codeContent}
+${codeContent.content}
 ${'```'}
   `
 }
@@ -94,12 +94,12 @@ Use this Zod schema for runtime validation and parsing: form validation, client/
 
 ## Import
 ${'```ts'}
-${importContent}
+${importContent.content}
 ${'```'}
 
 ## Definition
 ${'```ts'}
-${codeContent}
+${codeContent.content}
 ${'```'}
   `
 }

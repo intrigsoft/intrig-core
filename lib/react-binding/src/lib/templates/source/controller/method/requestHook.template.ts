@@ -109,7 +109,7 @@ export async function reactRequestHookTemplate({source,
 
   const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback, useEffect } from 'react'`)
+  imports.add(`import { useCallback, useEffect, useRef } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, error, successfulDispatch, validationError, encode, requestValidationError} from "@intrig/react"`)
 
   const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
@@ -167,6 +167,11 @@ export async function reactRequestHookTemplate({source,
         schema,
         errorSchema
       });
+      
+      const optionsRef = useRef(options);
+      useEffect(() => {
+        optionsRef.current = options;
+      });
 
       const doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
         const { ${paramExplode}} = p
@@ -192,19 +197,19 @@ export async function reactRequestHookTemplate({source,
             ${(responseTypePart())}
           })
           return successfulDispatch();
-      }, [dispatch])
+      }, [dispatch, dispatchState]) 
 
       useEffect(() => {
-        if (options.fetchOnMount) {
-          doExecute(${[requestBody ? `options.body!` : undefined, "options.params!"].filter(a => a).join(",")});
+        if (optionsRef.current.fetchOnMount) {
+          doExecute(${[requestBody ? `optionsRef.current.body!` : undefined, "optionsRef.current.params!"].filter(a => a).join(",")});
         }
 
         return () => {
-          if (options.clearOnUnmount) {
+          if (optionsRef.current.clearOnUnmount) {
             clear();
           }
         }
-      }, [])
+      }, [doExecute, clear])
 
       return [
         state,

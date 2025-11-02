@@ -390,7 +390,7 @@ NetworkState provides several TypeScript advantages:
 - [`isError`](./is-error.md) - Type guard for error state
 - [`isPending`](./is-pending.md) - Type guard for pending state
 - [`isInit`](./is-init.md) - Type guard for initial state
-- [`IntrigProvider`](./intrig-provider.md) - Context provider for network state management
+- [`IntrigLayout`](./intrig-layout.md) - Context provider for network state management
 
 ## Troubleshooting
 

@@ -16,20 +16,7 @@ const sidebars: SidebarsConfig = {
   docs: [
     'intro',
     'getting-started',
-    {
-      type: 'category',
-      label: 'Thinking in Intrig',
-      link: { type: 'doc', id: 'thinking-in-intrig' },
-      collapsible: true,
-      collapsed: false,
-      items: [
-        'patterns/storage-behavior',
-        'patterns/keyed-calls',
-        'patterns/stateful-vs-stateless',
-        'patterns/lifecycle-vs-passive',
-        'patterns/hierarchical-thinking',
-      ],
-    },
+    'thinking-in-intrig',
     {
       type: 'category',
       label: 'How Intrig Works',

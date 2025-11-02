@@ -255,11 +255,11 @@ export function DatatypeDetailPage() {
           </CardContent>
         </Card>
         
-        <UsageFilesList 
-          sourceId={sourceId || ''} 
-          id={data.id || datatypeId || ''} 
-          type="datatype" 
-        />
+        {/*<UsageFilesList */}
+        {/*  sourceId={sourceId || ''} */}
+        {/*  id={data.id || datatypeId || ''} */}
+        {/*  type="datatype" */}
+        {/*/>*/}
       </div>
     </div>
   );
