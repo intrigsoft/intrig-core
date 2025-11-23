@@ -83,59 +83,6 @@ export const config = {
 };
 ```
 
-### Dynamic Header Injection
-
-```tsx
-// middleware.ts
-import { createIntrigMiddleware } from '@intrig/next';
-
-export const middleware = createIntrigMiddleware(async (request) => {
-  const userAgent = request.headers.get('user-agent') || '';
-  const userId = request.headers.get('x-user-id') || '';
-  
-  return {
-    'Authorization': `Bearer ${await getAuthToken(userId)}`,
-    'X-User-ID': userId,
-    'X-Client-Type': userAgent.includes('Mobile') ? 'mobile' : 'desktop',
-    'X-Request-ID': crypto.randomUUID(),
-  };
-});
-
-export const config = {
-  matcher: ['/api/:path*', '/server-actions/:path*'],
-};
-```
-
-### Conditional Header Injection
-
-```tsx
-// middleware.ts
-import { createIntrigMiddleware } from '@intrig/next';
-
-export const middleware = createIntrigMiddleware(async (request) => {
-  const isAuthRequired = request.nextUrl.pathname.startsWith('/api/protected');
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  const headers: Record<string, string> = {
-    'X-Environment': process.env.NODE_ENV || 'production',
-  };
-  
-  if (isAuthRequired) {
-    const token = await getAuthTokenFromRequest(request);
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-  
-  if (isDevelopment) {
-    headers['X-Debug'] = 'true';
-    headers['X-Timestamp'] = Date.now().toString();
-  }
-  
-  return headers;
-});
-```
-
 ## Server-Side Integration
 
 ### Using Headers in API Routes
@@ -160,49 +107,6 @@ export async function GET() {
   });
   
   return Response.json(await response.json());
-}
-```
-
-### Using Axios Instances in Server Functions
-
-```tsx
-// app/api/products/route.ts
-import { getAxiosInstance } from '@intrig/next';
-
-export async function GET() {
-  try {
-    // Environment variable: PRODUCTS_API_URL=https://products.api.com
-    const productsApi = await getAxiosInstance('products');
-    
-    // Automatically includes headers from middleware
-    const response = await productsApi.get('/products');
-    
-    return Response.json(response.data);
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
-}
-```
-
-### Server Component Integration
-
-```tsx
-// app/dashboard/page.tsx
-import { getHeaders, getAxiosInstance } from '@intrig/next';
-
-export default async function DashboardPage() {
-  const headers = await getHeaders();
-  const userApi = await getAxiosInstance('users');
-  
-  // Server-side data fetching with injected headers
-  const userData = await userApi.get(`/users/${headers['X-User-ID']}`);
-  
-  return (
-    <div>
-      <h1>Dashboard for {userData.data.name}</h1>
-      {/* Render user data */}
-    </div>
-  );
 }
 ```
 
@@ -235,49 +139,6 @@ export const middleware = createIntrigMiddleware(async (request) => {
 });
 ```
 
-### Cookie-Based Authentication
-
-```tsx
-// middleware.ts
-import { createIntrigMiddleware } from '@intrig/next';
-
-export const middleware = createIntrigMiddleware(async (request) => {
-  const authCookie = request.cookies.get('auth-token');
-  const sessionCookie = request.cookies.get('session-id');
-  
-  const headers: Record<string, string> = {};
-  
-  if (authCookie) {
-    headers['Authorization'] = `Bearer ${authCookie.value}`;
-  }
-  
-  if (sessionCookie) {
-    headers['X-Session-ID'] = sessionCookie.value;
-  }
-  
-  return headers;
-});
-```
-
-### Multi-Tenant Configuration
-
-```tsx
-// middleware.ts
-export const middleware = createIntrigMiddleware(async (request) => {
-  const host = request.headers.get('host') || '';
-  const subdomain = host.split('.')[0];
-  
-  // Tenant-specific configuration
-  const tenantConfig = await getTenantConfig(subdomain);
-  
-  return {
-    'Authorization': `Bearer ${tenantConfig.apiToken}`,
-    'X-Tenant-ID': tenantConfig.tenantId,
-    'X-API-Version': tenantConfig.apiVersion || 'v1',
-  };
-});
-```
-
 ## Header Processing
 
 ### Automatic Prefix Management
@@ -300,25 +161,6 @@ return {
   'Authorization': 'Bearer token123',
   'X-User-ID': 'user456'
 }
-```
-
-### Header Validation and Sanitization
-
-```tsx
-// middleware.ts
-export const middleware = createIntrigMiddleware(async (request) => {
-  const rawUserId = request.headers.get('x-user-id');
-  
-  // Validate and sanitize headers
-  const userId = rawUserId && /^[a-zA-Z0-9-]+$/.test(rawUserId) 
-    ? rawUserId 
-    : 'anonymous';
-  
-  return {
-    'X-User-ID': userId,
-    'X-Validated': 'true',
-  };
-});
 ```
 
 ## Error Handling
@@ -346,72 +188,16 @@ export const middleware = createIntrigMiddleware(async (request) => {
 });
 ```
 
-### Development vs Production Behavior
-
-```tsx
-// middleware.ts
-export const middleware = createIntrigMiddleware(async (request) => {
-  const isDev = process.env.NODE_ENV === 'development';
-  
-  try {
-    const headers = await getProductionHeaders(request);
-    return headers;
-  } catch (error) {
-    if (isDev) {
-      // In development, provide detailed error info
-      return {
-        'X-Error': error.message,
-        'X-Stack': error.stack?.slice(0, 500) || '',
-        'X-Status': 'dev-error',
-      };
-    } else {
-      // In production, fail silently with minimal info
-      return {
-        'X-Status': 'error',
-      };
-    }
-  }
-});
-```
-
 ## Performance Considerations
 
-### Axios Instance Caching
-
 ```tsx
-// The getAxiosInstance function automatically caches instances
+// Axios instances are automatically cached
 const userApi = await getAxiosInstance('users');     // Creates new instance
 const userApi2 = await getAxiosInstance('users');    // Returns cached instance
-const productApi = await getAxiosInstance('products'); // Creates new instance for different key
-```
 
-### Middleware Optimization
-
-```tsx
-// middleware.ts - Optimize for performance
-export const middleware = createIntrigMiddleware(async (request) => {
-  // Cache expensive operations
-  const cachedToken = await getCachedAuthToken();
-  
-  // Avoid heavy computations on every request
-  if (cachedToken) {
-    return {
-      'Authorization': `Bearer ${cachedToken}`,
-      'X-Cache': 'hit',
-    };
-  }
-  
-  // Fallback to fresh token
-  const freshToken = await getFreshAuthToken();
-  return {
-    'Authorization': `Bearer ${freshToken}`,
-    'X-Cache': 'miss',
-  };
-});
-
-// Only run on API routes to reduce overhead
+// middleware.ts - Minimize overhead with specific matchers
 export const config = {
-  matcher: '/api/:path*',
+  matcher: '/api/:path*',  // Only run on API routes
 };
 ```
 
@@ -442,36 +228,6 @@ export default function RootLayout({ children }) {
       {children}
     </IntrigLayout>
   );
-}
-```
-
-### With Server Actions
-
-```tsx
-// middleware.ts - applies to server actions too
-export const middleware = createIntrigMiddleware(async (request) => {
-  return {
-    'Authorization': await getAuthHeader(request),
-  };
-});
-
-export const config = {
-  matcher: ['/api/:path*', '/_actions/:path*'],
-};
-
-// Server action automatically gets headers
-async function createUser(formData: FormData) {
-  'use server';
-  
-  const headers = await getHeaders();
-  const userApi = await getAxiosInstance('users');
-  
-  // Headers from middleware are available
-  const result = await userApi.post('/users', {
-    name: formData.get('name'),
-  });
-  
-  return result.data;
 }
 ```
 

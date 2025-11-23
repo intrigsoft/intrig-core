@@ -1,51 +1,152 @@
-# Next.js Overview
+# Next.js Integration
 
-The **Next.js** section of the Intrig documentation covers everything you need to know to use the SDK effectively within a Next.js application. It's organized into five key areas that build on each other, from core concepts to advanced usage patterns specific to Next.js full-stack development.
+Intrig's Next.js integration provides type-safe server functions and client hooks for full-stack API integration. This section documents the framework-specific implementation, server-client architecture, and Next.js App Router patterns.
 
----
-
-## 1) Core Concepts
-
-Understand the foundational ideas that power Intrig's Next.js integration. This includes server-side functions, client-side hooks, App Router patterns, Pages Router patterns, API route integration, and how to structure your Next.js application for optimal data flow between server and client components.
-
-Read more → [Core Concepts](/docs/next/core-concepts)
+## Documentation Structure
 
 ---
 
-## 2) API
+### Core Concepts
 
-Dive into the specific building blocks provided by the SDK — from server-side functions for API routes and server components, to client-side hooks, streaming with Server-Sent Events, file uploads/downloads, and middleware integration patterns.
+Framework-specific architectural patterns for Next.js integration.
 
-Read more → [API](/docs/next/api)
+**Topics covered:**
+- Server-client architecture and separation of concerns
+- Server-side functions for API routes and Server Actions
+- Client-side hooks for interactive components
+- Middleware integration for request preprocessing
+- Configuration management across environments
 
----
-
-## 3) Tutorial
-
-Follow guided, practical examples that walk you through setting up and using Intrig in real-world Next.js scenarios. Tutorials cover App Router setup, Pages Router setup, server-side data fetching, client-side state management, authentication flows, and hybrid server/client patterns.
-
-Read more → [Tutorial](/docs/next/tutorial/basic-application)
-
----
-
-## 4) Cookbook
-
-Learn practical patterns, shortcuts, and tips for working efficiently with Intrig in Next.js. The cookbook addresses common scenarios such as server/client data synchronization, caching strategies, middleware patterns, authentication flows, and performance optimization techniques.
-
-Read more → [Cookbook](/docs/next/cookbook/server-client-data-flow)
+[View Core Concepts →](./core-concepts)
 
 ---
 
-## 5) Known Pitfalls and How to Avoid Them
+### API Reference
 
-Avoid common mistakes when using Intrig's Next.js SDK. This section explains how to prevent issues like hydration mismatches, server/client state desynchronization, memory leaks in server components, and performance bottlenecks in full-stack applications.
+Complete technical specification for Next.js-specific components, functions, and utilities.
 
-Read more → [Known Pitfalls](/docs/next/known-pitfalls/hydration-mismatch)
+**Server-side:**
+- IntrigLayout configuration
+- Server functions and actions
+- Middleware utilities
+
+**Client-side:**
+- Stateful and stateless hooks
+- NetworkState and type guards
+- Download hooks for file operations
+
+[View API Reference →](./api)
 
 ---
 
-**Next Steps:**
+### Tutorial
 
-* Start with [Core Concepts](/docs/next/core-concepts/server-client-architecture) to understand the mental model.
-* Explore [API](/docs/next/api/server-functions) for detailed usage of each component.
-* Use the [Tutorial](/docs/next/tutorial/basic-application) to practice hands-on integration.
+Step-by-step implementation guide for Next.js integration scenarios.
+
+**Tutorial topics:**
+- App Router setup and configuration
+- Server-side data fetching patterns
+- Client-side state management
+- Authentication and middleware
+
+[View Tutorial →](./tutorial/basic-application)
+
+---
+
+### Cookbook
+
+Practical patterns and implementation strategies for common Next.js scenarios.
+
+**Patterns covered:**
+- Server/client data synchronization
+- Caching strategies
+- Middleware patterns
+- Performance optimization
+
+[View Cookbook →](./cookbook/server-client-data-flow)
+
+---
+
+### Known Pitfalls
+
+Common issues and prevention strategies specific to Next.js.
+
+**Pitfalls documented:**
+- Hydration mismatches
+- Server/client state synchronization
+- Memory leaks in server components
+- Performance bottlenecks
+
+[View Known Pitfalls →](./known-pitfalls/hydration-mismatch)
+
+---
+
+## Integration Overview
+
+Next.js integration consists of server and client components:
+
+**Server-Side**: Server functions for API routes, Server Actions, and server components. Environment variable configuration with automatic request preprocessing through middleware.
+
+**Client-Side**: React hooks with NetworkState management, integrated with Next.js hydration patterns for seamless server-to-client transitions.
+
+**Middleware Layer**: Edge middleware for authentication, header injection, and request preprocessing before server functions execute.
+
+---
+
+## Quick Reference
+
+### Server Function Usage
+
+```tsx
+// app/api/users/route.ts
+import { getUserAction } from '@intrig/next/userApi/users/getUser/action';
+
+export async function GET() {
+  const user = await getUserAction({ id: '123' });
+  return Response.json(user);
+}
+```
+
+### Client Hook Usage
+
+```tsx
+'use client';
+import { useGetUser } from '@intrig/next/userApi/users/getUser/client';
+import { isSuccess, isPending } from '@intrig/next';
+
+function UserProfile({ userId }: { userId: string }) {
+  const [userState, getUser] = useGetUser({
+    fetchOnMount: true,
+    params: { id: userId }
+  });
+
+  if (isPending(userState)) return <Loading />;
+  if (isSuccess(userState)) return <Profile user={userState.data} />;
+  return null;
+}
+```
+
+### Middleware Configuration
+
+```tsx
+// middleware.ts
+import { createIntrigMiddleware } from '@intrig/next';
+
+export const middleware = createIntrigMiddleware(async (request) => {
+  return {
+    'Authorization': `Bearer ${process.env.API_TOKEN}`
+  };
+});
+
+export const config = { matcher: '/api/:path*' };
+```
+
+---
+
+## Next Steps
+
+**New to Intrig**: Start with [Core Concepts](./core-concepts/server-client-architecture) to understand the architecture.
+
+**Implementing Integration**: Reference [API Documentation](./api/intrig-layout) for configuration details.
+
+**Building Features**: Follow the [Tutorial](./tutorial/basic-application) for practical examples.
