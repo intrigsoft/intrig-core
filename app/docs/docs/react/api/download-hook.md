@@ -71,7 +71,9 @@ Source of truth: generated code in `@intrig/react` → `provider-hooks.ts`, `net
     * Save the file with a custom filename.
     * Post-process binary data.
 
-⚠️ Remember to clean up URLs with `URL.revokeObjectURL`.
+:::warning URL Cleanup
+Remember to clean up URLs with `URL.revokeObjectURL` to prevent memory leaks.
+:::
 
 ---
 

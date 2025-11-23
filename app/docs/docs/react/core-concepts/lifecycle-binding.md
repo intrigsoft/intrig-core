@@ -68,12 +68,12 @@ Here, `ProductSidebar` never triggers a request itself. It only shows the data i
 
 ## Choosing Between the Two
 
-Think of it this way:
+The distinction between active and passive usage:
 
-* **Active binding** = *“I call fetch/clear or enable options — I own this data’s lifecycle.”*
-* **Passive observation** = *“I just need to see if this data is available — I don’t fetch or clear it myself.”*
+* **Active binding**: Hook invokes fetch/clear or enables lifecycle options. The component owns the data lifecycle.
+* **Passive observation**: Hook reads existing state without triggering fetch/clear operations.
 
-A common pattern is to **load data in a page/root component (active)** and let **child components observe it (passive)**. This reduces redundant network calls and keeps ownership clear.
+A common pattern is to load data in a page or root component (active) and let child components observe it (passive). This reduces redundant network calls and keeps ownership clear.
 
 ---
 

@@ -23,9 +23,11 @@ Intrig avoids these problems by encouraging you to think hierarchically:
 2. **Place active hooks high** in the tree (e.g., page or feature root).
 3. **Let children passively observe** the global store by calling the same hook **without** triggering fetch.
 
-> ⚠️ **Global Store, One Active Owner per Key**
-> Remember: only lifecycle methods are bound to components, the data itself lives in the **global store**. Each `key` is a single shared channel. If you mount multiple active owners with the same key, you may see last-write-wins, unexpected `clearOnUnmount` resets, or duplicate requests.
-> **Best practice:** choose one active owner per key; all others should remain passive. If you need parallel views, mint distinct keys (e.g., `product:${id}:panelA`, `product:${id}:panelB`).
+:::warning Global Store, One Active Owner per Key
+Only lifecycle methods are bound to components; the data itself lives in the global store. Each `key` is a single shared channel. If you mount multiple active owners with the same key, you may see last-write-wins, unexpected `clearOnUnmount` resets, or duplicate requests.
+
+**Best practice:** Choose one active owner per key; all others should remain passive. If you need parallel views, mint distinct keys (e.g., `product:${id}:panelA`, `product:${id}:panelB`).
+:::
 
 ---
 
@@ -92,7 +94,9 @@ function ProductDetails() {
 
 **Why `useMemo`?** It lets each child derive a stable `product` reference from the `NetworkState` without recomputing on every render and without relying on an experimental selector helper.
 
-> ⚠️ **Note on keys:** If the parent used a `key` (e.g., for multiple concurrent product views), **children must pass the same `key`** when calling the hook to read the correct slice of state.
+:::note Key Consistency
+If the parent used a `key` (e.g., for multiple concurrent product views), children must pass the same `key` when calling the hook to read the correct slice of state.
+:::
 
 ---
 
