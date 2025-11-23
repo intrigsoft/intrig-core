@@ -1,211 +1,324 @@
 # Stateful vs Stateless Hooks
 
-This page explains the two fundamental hook styles Intrig generates for REST endpoints and when to choose each. If you’re building with Intrig, you’ll use one of these for every call.
+Intrig generates two hook variants for each REST endpoint: stateful hooks that integrate with global NetworkState storage, and stateless hooks that return promises without persistent state. Selection between variants depends on state management requirements and component lifecycle patterns.
 
 ---
 
-## TL;DR
+## Stateful Hooks
 
-* **Stateful hooks** keep a **`NetworkState`** in Intrig’s global store, keyed by endpoint and an optional `key`. They’re ideal for UI that needs loading/error/data to be **observable and persistent** across renders or components.
-* **Stateless hooks** return `[call, clear]` and **don’t store** anything in Intrig. Invoke `call(body?, params?) → Promise<T>`; use `clear()` to drop any per‑hook transient state. Ideal for one‑off actions, form submits, and flows where you manage state yourself.
+Stateful hooks bind endpoints to Intrig's global state store, maintaining NetworkState throughout the component lifecycle and enabling state observation across multiple components.
 
-Use **stateful** for screens and widgets. Use **stateless** for actions.
+### Signature
 
----
-
-## What exactly is a Stateful Hook?
-
-A stateful hook wires an endpoint to Intrig’s global store. It exposes:
-
-1. a **`NetworkState<T, E>`** value (init → pending → success/error),
-2. a **`fetch`** function to execute the call, and
-3. a **`clear`** function to reset the state back to `init`.
-
-**Signature (conceptual):**
-
-```ts
-// P = params type, B = body type, T = response type
-export type StatelessHook<P, B, T> = (requestOpts?: RequestOpts) => [
-  (body?: B, params?: P) => Promise<T>,
-  () => void
-];
+```typescript
+function useOperation<P, B, T>(
+  options?: HookOptions<P, B>
+): [
+  NetworkState<T>,      // Current state
+  (body?: B, params?: P) => void,  // Execute function
+  () => void            // Clear function
+]
 ```
 
-**Example:**
+### State Lifecycle
 
-```tsx
-const [saveProduct, clearSaveProduct] = useSaveProduct();
+NetworkState transitions through four states:
 
-async function onSubmit(form: ProductForm) {
-  try {
-    const saved = await saveProduct(form);
-    toast.success(`Saved #${saved.id}`);
-  } catch (e) {
-    toast.error("Couldn’t save product");
-  }
-}
+```
+init → pending → success | error
 ```
 
-**Example:**
+State persists in the global store indexed by `(sourceId, operationId, key)` until explicitly cleared or component unmounts with `clearOnUnmount` enabled.
+
+### Hook Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `key` | `string` | `'default'` | State isolation key for managing independent instances |
+| `clearOnUnmount` | `boolean` | `false` | Reset state to init on component unmount |
+| `fetchOnMount` | `boolean` | `false` | Execute request on component mount |
+| `params` | `P` | — | Parameters for fetchOnMount execution |
+| `body` | `B` | — | Request body for fetchOnMount execution |
+
+### Example Implementation
 
 ```tsx
-const [product, fetchProduct, clearProduct] = useGetProduct({
-  key: `product:${id}`,
+const [productState, fetchProduct, clearProduct] = useGetProduct({
+  key: `product:${productId}`,
   fetchOnMount: true,
-  params: { id },
+  clearOnUnmount: true,
+  params: { id: productId }
 });
-```
 
-The `product` value transitions through `init → pending → success/error`. Since it lives in a keyed global store, **other components can read the same state** (using the same hook + `key`).
-
-### Hook Options (Stateful)
-
-| Option           | Type      | Required  | Default     | What it does                                                                                                        |
-| ---------------- | --------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| `key`            | `string`  | No        | `'default'` | Namespaces the state for this endpoint. Use different keys to keep independent states (e.g., compare two products). |
-| `clearOnUnmount` | `boolean` | No        | `false`     | If `true`, resets state to `init` when the component unmounts. Useful for temporary screens.                        |
-| `fetchOnMount`   | `boolean` | No        | `false`     | If `true`, runs `fetch` once after mount using the provided `params`/`body`.                                        |
-| `params`         | `P`       | **Yes**\* | —           | Required if `fetchOnMount` is `true`. Path/query parameters for the request.                                        |
-| `body`           | `B`       | **Yes**\* | —           | Required if `fetchOnMount` is `true` **and** the endpoint accepts a body.                                           |
-
-> \*Required only when you opt into `fetchOnMount`.
->
-> See the **Lifecycle Binding** chapter for a deeper discussion of how `fetchOnMount` and `clearOnUnmount` relate to component lifecycles.
-
-### When to use Stateful
-
-* You need **loading** and **error** feedback visible in the UI.
-* The same state should be **shared/reused** across components via `key`.
-* You want **caching-like** behavior within the view’s lifetime (stay on screen → state sticks).
-* You want to **reset** or **refetch** easily via `clear` / `fetch`.
-
-### Patterns that shine
-
-* **Detail pages** where data should remain visible across re-renders.
-* **Master-detail** or **compare** views (use different `key`s per entity).
-* **Polling / live-updating** widgets (fire `fetch` on an interval; state transitions are handled for you).
-
----
-
-## What exactly is a Stateless Hook?
-
-A stateless hook returns a **tuple** `[call, clear]`. `call` performs the request and resolves with the parsed result; nothing is stored in Intrig’s state store. You handle any local UI state yourself. `clear` lets you reset any per‑hook transient state or cancel in‑flight work.
-
-**Signature (conceptual):**
-
-```ts
-// P = params type, B = body type, T = response type
-export type StatelessHook<P, B, T> = (requestOpts?: RequestOpts) => [
-  (body?: B, params?: P) => Promise<T>,
-  () => void
-]; // returns a function
-
-async function onSubmit(form: ProductForm) {
-  try {
-    const saved = await saveProduct(undefined, { body: form });
-    toast.success(`Saved #${saved.id}`);
-  } catch (e) {
-    toast.error("Couldn’t save product");
-  }
-}
-```
-
-### When to use Stateless
-
-* **One-off actions** (create/update/delete) where you don’t need to display a persistent `NetworkState`.
-* **Forms and wizards** where you control pending/success/error with your own local state.
-* **Batch jobs / background actions** triggered by buttons or effects.
-* **Asynchronous form validations** where you want to check values (like username availability) without persisting state.
-
-### Why stateless can be safer for actions
-
-* Work seamlessly with \*\*React’s \*\***`useTransition`** to mark async requests as non-blocking transitions, improving UX in forms and interactive flows.
-* Avoids accidental **stale UI coupling**—there’s no global state to inadvertently read.
-* Encourages **explicit success flows** (use the resolved value right away).
-* Plays nice with **transactions** (fire multiple calls, gather results, then commit UI changes).
-
----
-
-## Choosing Between Them
-
-| Situation                                      | Pick                             | Rationale                                                                    |
-| ---------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
-| Render a list with spinners, errors, and retry | **Stateful**                     | UI binds to `NetworkState`; easy retries and shared state across components. |
-| Submit a form and navigate away                | **Stateless**                    | No need to persist state; handle success/error inline.                       |
-| Two panels need the same data instance         | **Stateful** with a shared `key` | Both panels observe the same `NetworkState`.                                 |
-| Trigger multiple back-to-back mutations        | **Stateless**                    | Compose promises; avoid polluting global state.                              |
-| Long-lived dashboard widgets                   | **Stateful**                     | Persistent data + easy refresh.                                              |
-
----
-
-## Interop with `NetworkState` and Type Guards
-
-Stateful hooks expose `NetworkState<T, E>`. For safe reads, use the **type guards** (see **Reading State Safely (Type Guards)**). Example:
-
-```tsx
-const [orders, fetchOrders] = useGetOrders({ fetchOnMount: true });
-
-if (isPending(orders)) return <Spinner/>;
-if (isError(orders))   return <ErrorView error={orders.error}/>;
-if (isSuccess(orders)) return <OrdersTable rows={orders.data}/>;
+if (isPending(productState)) return <Loading />;
+if (isError(productState)) return <Error error={productState.error} />;
+if (isSuccess(productState)) return <ProductView product={productState.data} />;
 return null;
 ```
 
-Stateless hooks **don’t** expose `NetworkState`; you control the UI state yourself:
+### State Sharing
+
+Multiple components using identical `key` values observe the same NetworkState:
 
 ```tsx
-const [getOrders] = useGetOrders();
-const [rows, setRows] = useState<Order[]>([]);
-const [err, setErr] = useState<unknown>(null);
+// Component A - initiates request
+const [product] = useGetProduct({
+  key: 'product:123',
+  fetchOnMount: true,
+  params: { id: '123' }
+});
+
+// Component B - observes same state
+const [product] = useGetProduct({ key: 'product:123' });
+```
+
+No duplicate network requests occur. Both components receive state updates.
+
+### Use Cases
+
+Stateful hooks are appropriate for:
+
+**Data Display**: Components rendering API responses with loading and error states
+
+**State Sharing**: Multiple components requiring access to identical data
+
+**Caching Behavior**: Data that should persist across re-renders within view lifetime
+
+**Refresh Operations**: Scenarios requiring manual refetch or clear operations
+
+---
+
+## Stateless Hooks
+
+Stateless hooks return promise-based functions without persistent state storage. State management responsibility transfers to the calling component.
+
+### Signature
+
+```typescript
+function useOperationAsync<P, B, T>(
+  options?: HookOptions<P, B>
+): [
+  (body?: B, params?: P) => Promise<T>,  // Async function
+  () => void                              // Cancel function
+]
+```
+
+### Execution Model
+
+Function invocation returns a promise resolving to the response or rejecting with an error. No state persists in Intrig's store.
+
+### Example Implementation
+
+```tsx
+const [createProduct] = useCreateProductAsync();
+
+const handleSubmit = async (formData: ProductFormData) => {
+  try {
+    const product = await createProduct(formData);
+    toast.success(`Created product ${product.id}`);
+    navigate(`/products/${product.id}`);
+  } catch (error) {
+    toast.error('Product creation failed');
+  }
+};
+```
+
+### React 18 Integration
+
+Stateless hooks integrate with React 18 concurrent features:
+
+```tsx
+const [createProduct] = useCreateProductAsync();
 const [isPending, startTransition] = useTransition();
 
-useEffect(() => {
-  startTransition(() => {
-    (async () => {
-      try {
-        setRows(await getOrders());
-      } catch (e) {
-        setErr(e);
-      }
-    })();
+const handleSubmit = (formData: ProductFormData) => {
+  startTransition(async () => {
+    try {
+      const product = await createProduct(formData);
+      navigate(`/products/${product.id}`);
+    } catch (error) {
+      setError(error);
+    }
   });
+};
+```
+
+### Use Cases
+
+Stateless hooks are appropriate for:
+
+**Mutation Operations**: Create, update, delete operations without persistent state requirements
+
+**Form Submissions**: One-time operations triggered by user actions
+
+**Batch Operations**: Multiple sequential requests managed as a transaction
+
+**Custom State Management**: Scenarios requiring application-specific state handling
+
+---
+
+## Selection Criteria
+
+| Requirement | Stateful | Stateless |
+|-------------|----------|-----------|
+| Display loading/error states in UI | ✓ | Manual implementation required |
+| Share state across components | ✓ | Not supported |
+| Persist data during view lifetime | ✓ | Not applicable |
+| Manual retry/refresh operations | ✓ | Re-invoke function |
+| Form submission workflows | — | ✓ |
+| Sequential mutation operations | — | ✓ |
+| React 18 useTransition integration | — | ✓ |
+| Minimal state management overhead | — | ✓ |
+
+---
+
+## NetworkState Integration
+
+Stateful hooks expose `NetworkState<T>` requiring type guards for safe access:
+
+```tsx
+import { isPending, isError, isSuccess } from '@intrig/react';
+
+const [ordersState, fetchOrders] = useGetOrders({ fetchOnMount: true });
+
+if (isPending(ordersState)) return <Spinner />;
+if (isError(ordersState)) return <ErrorView error={ordersState.error} />;
+if (isSuccess(ordersState)) return <OrdersTable orders={ordersState.data} />;
+return null;
+```
+
+Stateless hooks bypass NetworkState, returning promises directly:
+
+```tsx
+const [fetchOrders] = useGetOrdersAsync();
+const [orders, setOrders] = useState<Order[]>([]);
+const [error, setError] = useState<Error | null>(null);
+const [loading, setLoading] = useState(false);
+
+useEffect(() => {
+  setLoading(true);
+  fetchOrders()
+    .then(setOrders)
+    .catch(setError)
+    .finally(() => setLoading(false));
 }, []);
 ```
 
 ---
 
-## Lifecycle Binding Tips
+## Lifecycle Patterns
 
-* Prefer **stateful** when the data’s **lifetime matches the view**. Use `fetchOnMount` for first load and UI-driven `fetch` for refresh.
-* Prefer **stateless** for button-driven actions and flows you’ll **navigate away** from after success.
-* Pair `clearOnUnmount` with modals/drawers to leave no residues.
+### Stateful with fetchOnMount
+
+Automatic data loading on component mount:
+
+```tsx
+const [userData] = useGetUser({
+  fetchOnMount: true,
+  clearOnUnmount: true,
+  params: { id: userId }
+});
+```
+
+State automatically loads and clears with component lifecycle.
+
+### Stateless with useEffect
+
+Manual lifecycle management:
+
+```tsx
+const [fetchUser] = useGetUserAsync();
+
+useEffect(() => {
+  const abortController = new AbortController();
+
+  fetchUser({ id: userId }, { signal: abortController.signal })
+    .then(handleSuccess)
+    .catch(handleError);
+
+  return () => abortController.abort();
+}, [userId]);
+```
 
 ---
 
-## Common Pitfalls & How to Avoid Them
+## Common Issues
 
-* **Mixing keys inadvertently (stateful):** If you see “ghost” data, ensure the same `key` is used consistently. Different keys create isolated states.
-* **Forgetting cleanup (stateful):** Use `clearOnUnmount` or call `clear` in `useEffect` cleanup when the state should not persist.
-* **Overusing stateful for mutations:** For create/update/delete, stateless often yields simpler, safer code.
-* **Reinventing NetworkState locally:** If your UI is state heavy (spinners, inline errors), use **stateful** instead of manual loading flags.
+### Key Collision (Stateful)
+
+**Symptom**: Unexpected data appears in components
+
+**Cause**: Multiple components using identical keys unintentionally
+
+**Resolution**: Use unique keys based on component-specific identifiers:
+
+```tsx
+// Correct - unique per product
+const [product] = useGetProduct({ key: `product:${productId}` });
+
+// Incorrect - shared across all instances
+const [product] = useGetProduct({ key: 'product' });
+```
+
+### Missing Cleanup (Stateful)
+
+**Symptom**: Stale data persists after component unmounts
+
+**Cause**: State not cleared on unmount
+
+**Resolution**: Enable `clearOnUnmount` or call `clear` in cleanup:
+
+```tsx
+const [productState, fetchProduct, clearProduct] = useGetProduct();
+
+useEffect(() => {
+  return () => clearProduct();
+}, []);
+```
+
+### Overusing Stateful for Mutations
+
+**Symptom**: Unnecessary state management complexity
+
+**Cause**: Using stateful hooks for one-time operations
+
+**Resolution**: Use stateless hooks for mutations:
+
+```tsx
+// Prefer stateless for mutations
+const [deleteProduct] = useDeleteProductAsync();
+
+await deleteProduct({ id: productId });
+```
 
 ---
 
-## FAQ
+## Interoperability
 
-**Q: Can I mix both for the same endpoint?**
-Yes. Use **stateful** for rendering, and call a **stateless** mutation to update data. After a successful mutation, call the stateful hook’s `fetch` to refresh.
+Both hook types can coexist for the same endpoint:
 
-**Q: How is deduplication handled?**
-Within a stateful hook, Intrig tracks in-flight requests per `key`. If you call `fetch` again, implementations may **cancel** the previous request or queue—see your generator’s specifics.
+```tsx
+// Display with stateful
+const [productsState, fetchProducts] = useGetProducts({
+  fetchOnMount: true
+});
 
-**Q: Where do auth headers/base URLs come from?**
-All hooks (both kinds) execute via the **`IntrigProvider`** configuration, which centralizes base URLs, headers (e.g., JWT), and cross-cutting concerns like interceptors.
+// Mutate with stateless
+const [createProduct] = useCreateProductAsync();
+const [deleteProduct] = useDeleteProductAsync();
+
+const handleCreate = async (data: ProductData) => {
+  await createProduct(data);
+  fetchProducts(); // Refresh list after creation
+};
+```
+
+This pattern separates concerns: stateful for display, stateless for actions.
 
 ---
 
-## See Also
+## Related Documentation
 
-* **NetworkState (ADT)** – rationale and anatomy of the four states.
-* **Reading State Safely (Type Guards)** – how to narrow `NetworkState` without runtime errors.
-* **IntrigProvider** – how requests are executed and configured.
+- [NetworkState Specification](../api/network-state.md) - State machine and type definitions
+- [Hook Conventions](./hook-conventions.md) - Generated hook patterns
+- [Lifecycle Binding](./lifecycle-binding.md) - Component lifecycle integration patterns

@@ -1,51 +1,164 @@
-# React Overview
+# React Integration
 
-The **React** section of the Intrig documentation covers everything you need to know to use the SDK effectively within a React application. It’s organized into five key areas that build on each other, from core concepts to advanced usage.
-
----
-
-## 1) Core Concepts
-
-Understand the foundational ideas that power Intrig’s React integration. This includes how network state is managed, the differences between stateful and stateless hooks, binding hooks to the component lifecycle, and structuring components hierarchically for optimal data reuse.
-
-Read more → [Core Concepts](/docs/react/core-concepts)
+Intrig's React integration provides type-safe hooks and state management for OpenAPI-based API integration. This section documents the framework-specific implementation, generated hook patterns, and integration architecture.
 
 ---
 
-## 2) API
+## Documentation Structure
 
-Dive into the specific building blocks provided by the SDK — from the `IntrigProvider` for global configuration, to the various hook types (stateful, stateless, SSE, download) and the `Network State` utilities for safe and predictable rendering.
+### Core Concepts
 
-Read more → [API](/docs/react/api)
+Framework-specific architectural patterns and mental models for React integration.
 
----
+**Topics covered:**
+- IntrigProvider as the application entry point
+- Generated hook conventions and naming
+- Global state management architecture
+- Stateful vs stateless hook patterns
+- Component lifecycle integration
+- Hierarchical component organization
 
-## 3) Tutorial
-
-Follow guided, practical examples that walk you through setting up and using Intrig in real-world scenarios. Tutorials cover basic setup, authentication, error handling, different update strategies, handling duplicate requests, file operations, and server-sent events.
-
-Read more → [Tutorial](/docs/react/tutorial/basic-application)
-
----
-
-## 4) Cookbook
-
-Learn practical patterns, shortcuts, and tips for working efficiently with Intrig in React. The cookbook addresses common scenarios such as binding hooks to the component lifecycle, using shorthand syntax, caching previous state, and managing duplicate state.
-
-Read more → [Cookbook](/docs/react/cookbook/binding-to-component-lifecycle)
+[View Core Concepts →](./core-concepts)
 
 ---
 
-## 5) Known Pitfalls and How to Avoid Them
+### API Reference
 
-Avoid common mistakes when using Intrig’s React SDK. This section explains how to prevent issues like state leaks, memory leaks, and unnecessary re-renders, ensuring your application stays performant and maintainable.
+Complete technical specification for React-specific components, hooks, and utilities.
 
-Read more → [Known Pitfalls](/docs/react/known-pitfalls/state-leak)
+**Components and utilities:**
+- IntrigProvider configuration and setup
+- Stateful hook patterns and options
+- Stateless hook patterns
+- NetworkState type definitions
+- Type guard functions (isSuccess, isError, isPending, isInit)
+- Download hook for file operations
+
+[View API Reference →](./api)
 
 ---
 
-**Next Steps:**
+### Tutorial
 
-* Start with [Core Concepts](/docs/react/core-concepts/state-management) to understand the mental model.
-* Explore [API](/docs/react/api/intrig-provider) for detailed usage of each component.
-* Use the [Tutorial](/docs/react/tutorial/basic-application) to practice hands-on integration.
+Step-by-step implementation guide for common integration scenarios.
+
+**Tutorial topics:**
+- Basic application setup with authentication
+- Error handling patterns
+- File upload and download operations
+- Server-sent events integration
+
+[View Tutorial →](./tutorial/basic-application)
+
+---
+
+### Cookbook
+
+Practical patterns and implementation strategies for common scenarios.
+
+**Patterns covered:**
+- Lifecycle binding techniques
+- Shorthand syntax usage
+- State caching strategies
+- Duplicate state management
+
+[View Cookbook →](./cookbook/binding-to-component-lifecycle)
+
+---
+
+### Known Pitfalls
+
+Common issues and their prevention strategies.
+
+**Pitfalls documented:**
+- State leak prevention
+- Memory leak avoidance
+- Unnecessary re-render prevention
+- Performance optimization patterns
+
+[View Known Pitfalls →](./known-pitfalls/state-leak)
+
+---
+
+## Integration Overview
+
+React integration consists of three primary components:
+
+**IntrigProvider**: Context provider managing global state and Axios instance configuration for all API sources.
+
+**Generated Hooks**: Type-safe hooks generated from OpenAPI operations, available in stateful and stateless variants.
+
+**NetworkState System**: Algebraic data type representing request lifecycle states (init, pending, success, error) with type-safe access patterns.
+
+---
+
+## Quick Reference
+
+### Setup
+
+```tsx
+import { IntrigProvider } from '@intrig/react';
+
+function Root() {
+  return (
+    <IntrigProvider configs={{
+      userApi: {
+        baseURL: 'https://api.example.com',
+        timeout: 5000
+      }
+    }}>
+      <App />
+    </IntrigProvider>
+  );
+}
+```
+
+### Stateful Hook Usage
+
+```tsx
+import { useGetUser } from '@intrig/react/userApi/users/getUser/useGetUser';
+import { isSuccess, isError, isPending } from '@intrig/react';
+
+function UserProfile({ userId }: { userId: string }) {
+  const [userState, getUser] = useGetUser({
+    fetchOnMount: true,
+    params: { id: userId }
+  });
+
+  if (isPending(userState)) return <Loading />;
+  if (isError(userState)) return <Error error={userState.error} />;
+  if (isSuccess(userState)) return <Profile user={userState.data} />;
+  return null;
+}
+```
+
+### Stateless Hook Usage
+
+```tsx
+import { useCreateUserAsync } from '@intrig/react/userApi/users/createUser/useCreateUserAsync';
+
+function CreateUserForm() {
+  const [createUser] = useCreateUserAsync();
+
+  const handleSubmit = async (formData: UserFormData) => {
+    try {
+      const user = await createUser(formData);
+      navigate(`/users/${user.id}`);
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  return <form onSubmit={handleSubmit}>...</form>;
+}
+```
+
+---
+
+## Next Steps
+
+**New to Intrig**: Start with [Core Concepts](./core-concepts) to understand the architecture and mental model.
+
+**Implementing Integration**: Reference [API Documentation](./api/intrig-provider) for detailed configuration options.
+
+**Building Features**: Follow the [Tutorial](./tutorial/basic-application) for practical implementation examples.
