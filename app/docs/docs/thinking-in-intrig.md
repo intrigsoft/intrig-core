@@ -1,80 +1,123 @@
-## Thinking in Intrig
+# Thinking in Intrig
 
-Working with Intrig isn’t just about using a new tool — it’s about adopting a different mindset.
-Traditional frontend–backend integration often grows ad-hoc and leads to gaps, rework, and miscommunication. Intrig changes that by making your development **API-first** and **generation-driven**.
+Frontend-backend integration in traditional development workflows introduces coordination overhead and integration failures that manifest as runtime errors or delayed compilation feedback. Manual type synchronization and parallel development tracks create opportunities for drift between API contracts and client implementations.
 
----
+## Traditional Integration Model
 
-### 1. From Ad-Hoc to API-First
+Frontend and backend development typically proceed in parallel with integration occurring late in the development cycle. This pattern creates several technical challenges:
 
-In a regular setup without code generation, developers write data types and functions manually to call backend endpoints. This often happens in parallel with backend development — sometimes under the assumption it saves time.
-In reality, these parallel tracks can drift apart. Data types might not match, endpoints may differ, and integration becomes a guessing game, followed by costly rework.
+**Manual Type Maintenance**: Frontend developers manually define request and response types based on API documentation or verbal agreements, requiring continuous synchronization when contracts change.
 
-**Intrig flips this workflow:**
+**Parallel Development Assumptions**: Teams work simultaneously on frontend and backend under assumptions about API structure. Changes to these assumptions require rework and coordination.
 
-* **Get requirements clarified first.**
-* If backend isn’t ready, create **mock endpoints** directly in the backend application — for example, temporary mock implementations inside your controllers. If your Swagger setup is correct, these mocks will automatically be reflected in the generated API documentation.
-* Once the mock API is ready, **generate the Intrig code**.
-* Frontend developers can wire up their components using generated code while backend developers work on real implementations.
+**Late Integration Discovery**: Type mismatches and contract violations surface during integration testing or production rather than at compile time.
 
-It’s slightly more sequential, but it removes the integration guesswork and prevents expensive back-and-forth later.
+**Ad-hoc Synchronization**: Teams rely on communication channels (documentation, meetings, messages) to coordinate API changes rather than automated contract validation.
 
----
+## API-First Development Model
 
-### 2. Changes Flow Through Swagger
+Intrig establishes the OpenAPI specification as the authoritative contract between frontend and backend systems. This architectural approach shifts integration validation from runtime to compile time.
 
-In Intrig, changes happen when the **API definition changes** — not through verbal agreements or Slack messages.
-Once Swagger reflects the change:
+### Development Workflow
 
-1. Regenerate your Intrig code.
-2. The updated hooks, types, and async functions are ready to use.
+**Specification-First Design**: API contracts are defined in OpenAPI specifications before implementation begins. Changes to these specifications trigger deterministic updates across the system.
 
-This keeps everyone working from the same truth. The generated code is reliable **unless the Swagger documentation is wrong**.
-It does mean backend teams must keep their Swagger output accurate and up to date — and it’s always a best practice to document your APIs thoroughly — but the payoff is fewer broken integrations.
+**Mock Implementation Pattern**: Backend teams can provide mock endpoint implementations that match the OpenAPI contract. These mocks enable frontend development to proceed while backend implementation continues, eliminating parallel development coordination overhead.
 
----
+**Automated Contract Synchronization**: Running `intrig sync` fetches the latest OpenAPI specification. Running `intrig generate` produces updated type-safe code. Breaking changes in the API surface as TypeScript compilation errors.
 
-### 2.5 Instant Synchronization & Type Safety
+**Compile-Time Validation**: Changes to endpoint signatures, request parameters, or response schemas trigger immediate TypeScript errors rather than runtime failures.
 
-In traditional development, keeping frontend code in sync with backend changes is a manual, error-prone process. Developers often find out about a breaking change **only after** runtime errors occur — sometimes long after the change was made.
+**Example workflow**:
 
-With Intrig, synchronization is **instantaneous**:
+1. Backend team updates OpenAPI specification
+2. Frontend team runs `intrig sync --all && intrig generate`
+3. TypeScript compiler validates all integration points
+4. Breaking changes surface as compilation errors with precise locations
 
-1. Run `sync` to pull the latest API definition.
-2. Run `generate` to update all hooks, types, and async functions.
+```typescript
+// OpenAPI specification removes 'phoneNumber' field from User schema
+const user = await getUser({ id: '123' });
+console.log(user.phoneNumber);
+// Compilation error: Property 'phoneNumber' does not exist on type 'User'
+```
 
-The moment you regenerate, your typechecker works as a safety net:
+Contract violations are detected during the build phase rather than discovered in production.
 
-* Parameter changes, type mismatches, and missing fields are caught immediately.
-* Most integration issues are spotted before you even run the app.
+## Synchronization and Type Safety
 
-**Trade-off:**
+Traditional development discovers API changes through manual testing or production failures. Intrig provides instantaneous feedback through the compilation process.
 
-* Hook names are tied to the **operationId** in the Swagger spec — if this changes, your code will break and need updating.
-* Path changes are usually transparent unless they involve **path variables**, in which case parameters may change and type errors will appear.
+**Synchronization Process**:
 
-This means fewer silent integration errors and faster feedback when backend changes occur.
+```bash
+# Fetch latest API definitions
+intrig sync --all
 
----
+# Regenerate type-safe code
+intrig generate
+```
 
-### 3. Search and Integrate Quickly
+**Type-Checking Feedback**:
 
-With Intrig, frontend developers don’t have to dig through backend code or long API docs to find what they need.
-If you know:
+- Parameter signature changes trigger compilation errors at call sites
+- Schema modifications update generated types, highlighting mismatches
+- `operationId` changes modify hook names, causing import failures until updated
 
-* The **method name**, or
-* The **operationId**, or
-* The **endpoint path**
+**Trade-off**: Generated hook names derive from OpenAPI `operationId` fields. Changes to these identifiers require updating import statements. Path changes remain transparent unless path parameters change, which alters function signatures and triggers type errors.
 
-…you can search for it in your generated SDK and copy-paste the ready-to-use hook or async method directly into your component.
-No boilerplate, no manual type definitions — just instant integration.
+This approach shifts integration error detection from runtime to compile time, providing immediate feedback on contract violations.
 
----
+## Resource Discovery and Integration
 
-### 4. Framework-Specific Patterns
+Generated SDKs provide discoverable interfaces through standard import mechanisms. Developers locate endpoints using:
 
-Intrig promotes patterns that optimize integration depending on your target framework (e.g., React, Next.js). Each framework has its own best practices for state management, hook usage, and lifecycle behavior. Refer to the framework-specific documentation for these patterns to learn how to apply them effectively.
+- Operation identifiers from OpenAPI specifications
+- Endpoint paths and HTTP methods
+- Generated hook names and function signatures
 
----
+```bash
+# Search for endpoints by name or path
+intrig search "getUser"
 
-**In short:** Thinking in Intrig is about designing APIs first, letting the code generation handle the repetitive work, and adopting patterns that keep frontend and backend in sync. Once you internalize this workflow, you’ll find development faster, cleaner, and less error-prone.
+# View endpoint details
+intrig view <endpoint-id> --type endpoint
+```
+
+The generated SDK provides immediate integration without manual type definition:
+
+```typescript
+// Generated hook with complete type information
+import { useGetUser } from '@intrig/react/userApi/users/getUser/useGetUser';
+
+const [userState, getUser] = useGetUser();
+// Full type safety with no manual type definitions required
+```
+
+## Framework-Specific Patterns
+
+Intrig generates framework-specific code that follows established patterns for state management, lifecycle handling, and data fetching. React generators produce hooks with NetworkState management. Next.js generators include server-side function integration and middleware support.
+
+Framework-specific documentation provides detailed implementation patterns for each target environment.
+
+## Architectural Implications
+
+**Deterministic Generation**: Identical OpenAPI specifications produce identical generated code. No manual intervention or configuration affects output consistency.
+
+**Build-Time Validation**: API contract changes prevent successful compilation when breaking changes occur. This property eliminates a class of integration failures that traditional approaches detect at runtime.
+
+**Contract Traceability**: Generated code maintains direct mapping to OpenAPI operations. Each generated hook or function corresponds to a specific endpoint definition.
+
+**Separation of Concerns**: Generated code compiles to `node_modules`, maintaining clear boundaries between application code and generated integration layer.
+
+## Key Properties
+
+**Compile-time contract validation**: Breaking changes in API contracts prevent successful builds, shifting error detection left in the development cycle.
+
+**Specification-driven development**: OpenAPI specifications function as executable contracts rather than documentation artifacts.
+
+**Automated synchronization**: Manual coordination is replaced with deterministic code generation from authoritative specifications.
+
+**Type safety without overhead**: Complete TypeScript integration without manual type maintenance or defensive runtime checks.
+
+[Implementation guide: Getting Started →](./getting-started.md)

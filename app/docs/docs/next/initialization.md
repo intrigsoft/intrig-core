@@ -1,66 +1,84 @@
-# Initialization
+# Next.js Initialization
 
-This guide walks you through setting up Intrig in a Next.js application, from installation to configuration for App Router.
+Configuration and setup procedures for Intrig Next.js integration. Documents package installation, project initialization, and IntrigLayout configuration for App Router applications.
 
-## 1. Install @intrig/core
+---
 
-First, install the Intrig core package as a development dependency in your Next.js project:
+## Package Installation
+
+Install Intrig core and Next.js framework packages:
 
 ```bash
-npm install --save-dev @intrig/core
+npm install @intrig/core @intrig/next
+# or
+yarn add @intrig/core @intrig/next
+# or
+pnpm add @intrig/core @intrig/next
 ```
 
-The `@intrig/core` package provides the CLI tools and core functionality needed to generate type-safe API clients for your Next.js application.
+**Package roles:**
+- `@intrig/core`: CLI tools, code generation, and synchronization
+- `@intrig/next`: Next.js-specific server functions, client hooks, and middleware
 
-## 2. Initialize Intrig
+---
 
-Run the initialization command in your project root:
+## Project Initialization
+
+Initialize Intrig configuration from the project root:
 
 ```bash
 intrig init
 ```
 
-### What happens during initialization
+### Initialization Process
 
-When you run `intrig init`, the following steps occur automatically:
+The initialization command performs these operations:
 
-1. **Plugin Detection & Selection**: Intrig analyzes your `package.json` to detect your project type and suggests compatible plugins. For Next.js projects, it will recommend the Next.js plugin (`@intrig/plugin-next`).
+**Configuration File Creation**: Generates `intrig.config.json` with Next.js settings:
 
-2. **Plugin Installation**: The selected plugin and `@intrig/core` are installed as development dependencies in your project.
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/intrigsoft/intrig-registry/refs/heads/main/schema.json",
+  "sources": [],
+  "generator": "next"
+}
+```
 
-3. **Configuration Setup**: 
-   - Creates an `intrig.config.json` file in your project root with basic configuration
-   - Generates a JSON schema file at `.intrig/schema.json` for IDE support and validation
-   - Updates your `.gitignore` to exclude generated files
-   - Configures for App Router projects
+**Repository Configuration**: Updates `.gitignore` to exclude generated artifacts:
 
-4. **File Generation**: Sets up the directory structure for generated API clients, server functions, and type definitions optimized for Next.js.
+```
+# Intrig
+.intrig/cache/
+.intrig/daemon/
+node_modules/@intrig/
+```
 
-The initialization process is interactive and will guide you through any necessary configuration options specific to your Next.js setup.
+**Framework Detection**: Identifies Next.js projects through `package.json` dependencies and configures the Next.js generator.
 
-## 3. Post-initialization Steps
+---
 
-After running `intrig init`, you need to integrate Intrig into your Next.js application:
+## IntrigLayout Setup
 
-### App Router Setup
+Configure IntrigLayout in the root layout to enable client-side Intrig functionality.
 
-For Next.js App Router, wrap your root layout with `IntrigLayout`:
+### App Router Configuration
 
 ```tsx
 // app/layout.tsx
 import { IntrigLayout } from '@intrig/next';
+import { ReactNode } from 'react';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
         <IntrigLayout
           configs={{
-            
+            baseURL: process.env.NEXT_PUBLIC_API_URL,
+            timeout: 5000,
+            headers: {
+              'Content-Type': 'application/json'
+            }
           }}
         >
           {children}
@@ -71,10 +89,27 @@ export default function RootLayout({
 }
 ```
 
+### Configuration Options
 
-### Server-Side Configuration
+IntrigLayout accepts a `configs` prop for client-side configuration:
 
-For API routes and server components, configure your API endpoints using environment variables:
+| Property | Type | Description |
+|----------|------|-------------|
+| `baseURL` | `string` | Base URL for client-side API requests |
+| `timeout` | `number` | Request timeout in milliseconds |
+| `headers` | `Record<string, string>` | Default headers for client requests |
+| `requestInterceptor` | `function` | Request preprocessing function |
+| `responseInterceptor` | `function` | Response postprocessing function |
+
+Complete configuration options documented in [IntrigLayout API Reference](./api/intrig-layout.md).
+
+---
+
+## Server-Side Configuration
+
+Server functions use environment variables for configuration.
+
+### Environment Variables
 
 ```env
 # .env.local
@@ -83,35 +118,213 @@ USERS_API_URL=https://users-api.example.com
 ANALYTICS_API_URL=https://analytics.example.com
 ```
 
-For authentication headers and other dynamic headers, use Intrig middleware:
+### Environment Variable Naming
 
-```ts
+- **Pattern**: `{SOURCE_ID}_API_URL` (uppercase)
+- **Example**: For source `userApi` → `USERAPI_API_URL`
+- **Fallback**: `DEFAULT_API_URL` when source-specific URL not provided
+
+---
+
+## Middleware Configuration
+
+Configure middleware for authentication and header injection:
+
+```tsx
 // middleware.ts
 import { createIntrigMiddleware } from '@intrig/next';
 
 export const middleware = createIntrigMiddleware(async (request) => {
-  // Return headers that will be available to server functions
   return {
     'Authorization': `Bearer ${process.env.API_TOKEN}`,
-    'X-User-ID': request.headers.get('x-user-id') || '',
-    // Add other dynamic headers as needed
+    'X-User-ID': request.headers.get('x-user-id') || ''
   };
 });
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: '/api/:path*'
 };
 ```
 
+Middleware runs before API routes and server components, enabling centralized request preprocessing.
 
-## Next Steps
+---
 
-Once initialization is complete and `IntrigLayout` is set up:
+## Post-Initialization Steps
 
-1. Add API sources to your `intrig.config.json`
-2. Run `intrig sync` to fetch API specifications
-3. Run `intrig generate` to create type-safe API clients and server functions
-4. Start using the generated hooks in components and server functions in API routes
-5. Configure middleware if needed for authentication or request processing
+After initialization and configuration:
 
-For more information on these next steps, see the [Getting Started guide](../getting-started.md).
+### 1. Configure API Sources
+
+Add OpenAPI specification sources:
+
+```bash
+intrig sources add
+```
+
+Interactive prompts request:
+- Source identifier (camelCase, e.g., `userApi`)
+- OpenAPI specification URL
+
+### 2. Synchronize Specifications
+
+Fetch OpenAPI specifications:
+
+```bash
+intrig sync --all
+```
+
+### 3. Generate SDK
+
+Generate type-safe server functions and client hooks:
+
+```bash
+intrig generate
+```
+
+### 4. Use Generated Code
+
+**Server-side**:
+```tsx
+// app/api/users/route.ts
+import { getUserAction } from '@intrig/next/userApi/users/getUser/action';
+
+export async function GET() {
+  const user = await getUserAction({ id: '123' });
+  return Response.json(user);
+}
+```
+
+**Client-side**:
+```tsx
+// components/UserProfile.tsx
+'use client';
+import { useGetUser } from '@intrig/next/userApi/users/getUser/client';
+
+export function UserProfile({ userId }: { userId: string }) {
+  const [userState, getUser] = useGetUser({
+    fetchOnMount: true,
+    params: { id: userId }
+  });
+  // Implementation
+}
+```
+
+---
+
+## Verification
+
+Confirm successful initialization:
+
+```bash
+# Verify configuration exists
+cat intrig.config.json
+
+# Check Intrig CLI accessibility
+intrig --version
+
+# Verify gitignore updates
+grep "# Intrig" .gitignore
+
+# Test SDK generation
+intrig generate
+```
+
+---
+
+## Configuration Management
+
+### Environment-Specific Settings
+
+Use environment variables for deployment-specific configuration:
+
+**Client-side** (requires `NEXT_PUBLIC_` prefix):
+```tsx
+<IntrigLayout
+  configs={{
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+    timeout: parseInt(process.env.NEXT_PUBLIC_TIMEOUT || '5000')
+  }}
+>
+  {children}
+</IntrigLayout>
+```
+
+**Server-side** (no prefix required):
+```env
+# .env.local
+USERAPI_API_URL=https://api.example.com
+API_TOKEN=your-secret-token
+```
+
+### Dynamic Configuration
+
+Update configuration based on runtime conditions:
+
+```tsx
+// app/layout.tsx
+export default function RootLayout({ children }: { children: ReactNode }) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  const configs = {
+    baseURL: isDevelopment
+      ? 'http://localhost:3000'
+      : process.env.NEXT_PUBLIC_API_URL,
+    timeout: isDevelopment ? 30000 : 5000
+  };
+
+  return (
+    <IntrigLayout configs={configs}>
+      {children}
+    </IntrigLayout>
+  );
+}
+```
+
+---
+
+## Troubleshooting
+
+### Configuration File Not Created
+
+**Symptom**: `intrig.config.json` missing after initialization
+
+**Resolution**:
+- Confirm current directory contains `package.json`
+- Verify write permissions in project directory
+- Run `intrig init` from project root
+
+### Wrong Generator Configured
+
+**Symptom**: Generated code incompatible with Next.js
+
+**Resolution**:
+- Manually edit `intrig.config.json` and set `"generator": "next"`
+- Regenerate SDK with `intrig generate`
+
+### Environment Variables Not Found
+
+**Symptom**: Server functions fail with missing URL error
+
+**Resolution**:
+- Verify environment variables in `.env.local`
+- Check naming matches pattern: `{SOURCE_ID}_API_URL`
+- Restart development server after adding variables
+
+### IntrigLayout Not Found
+
+**Symptom**: Import error for IntrigLayout
+
+**Resolution**:
+- Verify `@intrig/next` installation: `npm list @intrig/next`
+- Reinstall if missing: `npm install @intrig/next`
+- Check import path: `import { IntrigLayout } from '@intrig/next';`
+
+---
+
+## Related Documentation
+
+- [IntrigLayout API](./api/intrig-layout.md) - Complete configuration reference
+- [Server Functions](./api/server-functions.md) - Server-side API integration
+- [Middleware](./api/middleware.md) - Request preprocessing configuration
+- [Getting Started](../getting-started.md) - Comprehensive setup tutorial

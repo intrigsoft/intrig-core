@@ -3,37 +3,42 @@
 # It is intentionally concise and linked from the root of the sidebar
 ---
 
-# Welcome to Intrig
+# Intrig Documentation
 
-Intrig is an end‑to‑end API development toolkit that makes building and consuming APIs simple and efficient. It connects your backend (OpenAPI sources) to a type‑safe, framework‑friendly SDK and documentation experience.
+Intrig is a TypeScript SDK generator that creates type-safe, framework-specific client code from OpenAPI/Swagger specifications. Generated SDKs compile to `node_modules`, providing immediate integration with existing TypeScript projects while maintaining complete type safety and compile-time validation of API contracts.
 
-## Get started
+## Core Capabilities
 
-Ready to dive in? Start with the [Getting Started Guide](./getting-started.md) to set up Intrig and create your first SDK.
+**SDK Generation**: Compiles generated code to `node_modules`, maintaining clean project separation and standard import patterns.
 
-## What is Intrig?
+**Insight Tool**: Daemon-powered searchable API documentation with generated code examples for rapid endpoint discovery and implementation.
 
-Intrig bridges the gap between your backend APIs and frontend applications by:
+**Synchronization**: Automated API contract synchronization with compile-time validation. Breaking changes surface as TypeScript compilation errors rather than runtime failures.
 
-- Generating type‑safe SDKs from your OpenAPI specifications
-- Providing ergonomic React hooks for seamless API integration
-- Offering real‑time documentation with Intrig Insight
-- Supporting multiple frameworks like React, Next.js, and more
+**Type Safety**: Full TypeScript integration with breaking change detection at build time. API schema changes trigger immediate type-checking feedback.
 
-## Workflow at a glance
+## Standard Workflow
 
-Follow this typical Intrig workflow:
+1. Install Intrig and initialize configuration
+2. Add API sources from OpenAPI specifications
+3. Synchronize API definitions and generate SDK
+4. Import and use generated hooks in application code
 
-1. Install Intrig in your project
-2. Initialize your configuration
-3. Add API sources from your OpenAPI specs
-4. Restart the Intrig application to apply backend changes
-5. Sync the API and generate the SDK
-   - Run: `intrig sync --all && intrig generate`
-6. Use the generated hooks and SDK in your application
+```bash
+# Sync and generate
+intrig sync --all && intrig generate
+```
 
-Tip: When navigating the generated SDK, use the CLI helpers:
-- `intrig search "query" --no-interactive` to find resources
-- `intrig view <id> --no-interactive --type "schema|endpoint"` to inspect details
+## Resource Discovery
 
-[Get started now →](./getting-started.md)
+Navigate the generated SDK using CLI tools:
+
+```bash
+# Search for endpoints or schemas
+intrig search "query" --no-interactive
+
+# Inspect resource details
+intrig view <id> --no-interactive --type "schema|endpoint"
+```
+
+**Next steps**: [Getting Started Guide](./getting-started.md)

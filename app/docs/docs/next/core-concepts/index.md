@@ -44,14 +44,6 @@ Read more → [Middleware Integration](/docs/next/core-concepts/middleware-integ
 
 ---
 
-## Hydration Patterns
-
-Managing the transition from server-rendered content to client-interactive applications requires careful consideration of state consistency, preventing layout shifts, and ensuring smooth user experiences during the hydration process.
-
-Read more → [Hydration Patterns](/docs/next/core-concepts/hydration-patterns)
-
----
-
 **Next Steps:**
 
 * Start with [Server-Client Architecture](/docs/next/core-concepts/server-client-architecture) to understand the fundamental separation of concerns.

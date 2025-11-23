@@ -255,66 +255,6 @@ function UsersList() {
 }
 ```
 
-### Conditional Rendering Helper
-
-```tsx
-function createStateRenderer<T, E = unknown>(
-  init: () => React.ReactNode,
-  pending: (state: PendingState<T, E>) => React.ReactNode,
-  success: (state: SuccessState<T, E>) => React.ReactNode,
-  error: (state: ErrorState<T, E>) => React.ReactNode,
-) {
-  return (state: NetworkState<T, E>) => {
-    if (isInit(state)) return init();
-    if (isPending(state)) return pending(state);
-    if (isSuccess(state)) return success(state);
-    if (isError(state)) return error(state);
-    return null;
-  };
-}
-
-// Usage
-const renderUsers = createStateRenderer(
-  () => React.createElement('button', null, 'Load Users'),
-  () => React.createElement('div', null, 'Loading...'),
-  (state) => React.createElement(UserList, { users: state.data }),
-  (state) => React.createElement(ErrorMessage, { error: state.error })
-);
-```
-
-### Progress Tracking
-
-```jsx
-function FileUpload() {
-  const [uploadState, uploadFile] = useUploadFile({ fetchOnMount: false });
-
-  const renderProgress = () => {
-    if (isPending(uploadState) && uploadState.progress) {
-      const { loaded, total, type } = uploadState.progress;
-      const percentage = total ? Math.round((loaded / total) * 100) : 0;
-      
-      return (
-        <div className="upload-progress">
-          <div>
-            {type === 'upload' ? 'Uploading' : 'Processing'}: {percentage}%
-          </div>
-          <progress value={loaded} max={total} />
-          <div>{loaded} / {total} bytes</div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  return (
-    <div>
-      {renderProgress()}
-      {/* Other UI elements */}
-    </div>
-  );
-}
-```
-
 ### Error Classification
 
 ```tsx
@@ -350,30 +290,6 @@ interface ErrorWithContext<T = unknown, E = unknown> extends ErrorState<T, E> {
   key: string;         // Unique error identifier
 }
 ```
-
-### NetworkAction
-
-Represents a network action with metadata:
-
-```tsx
-interface NetworkAction<T, E> {
-  key: string;
-  source: string;
-  operation: string;
-  state: NetworkState<T, E>;
-  handled?: boolean;
-}
-```
-
-## Type Safety Benefits
-
-NetworkState provides several TypeScript advantages:
-
-1. **Exhaustive Checking**: TypeScript ensures all states are handled
-2. **Type Narrowing**: Type guards provide exact type information
-3. **Compile-time Safety**: Impossible to access properties that don't exist
-4. **Intellisense**: Full autocomplete support for each state variant
-5. **Refactoring Safety**: Changes to state structure are caught at compile time
 
 ## Best Practices
 

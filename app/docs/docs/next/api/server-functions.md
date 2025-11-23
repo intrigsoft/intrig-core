@@ -138,42 +138,13 @@ interface AsyncRequestOptions {
 import { getUserAction } from '@intrig/next/server/userApi/getUser/action';
 
 export default async function ProfilePage({ params }) {
-  // Fetch data on server and make it available to client
+  // Fetch on server and hydrate for client-side access
   const user = await getUserAction(
     { id: params.userId },
-    { 
-      hydrate: true,
-      key: `user-${params.userId}` 
-    }
+    { hydrate: true, key: `user-${params.userId}` }
   );
 
-  return (
-    <div>
-      <h1>{user.name}</h1>
-      <ClientProfile userId={params.userId} />
-    </div>
-  );
-}
-```
-
-```tsx
-// components/ClientProfile.tsx - Client Component
-'use client';
-import { useGetUser } from '@intrig/next/client/userApi/getUser/useStateful';
-
-export function ClientProfile({ userId }) {
-  // This will use the hydrated data from the server
-  const [userState] = useGetUser({ 
-    key: `user-${userId}`,
-    fetchOnMount: false // Don't fetch, use hydrated data
-  });
-
-  // Client-side interactions can now access the same data
-  return (
-    <button onClick={() => updateUser()}>
-      Update {userState.data?.name}
-    </button>
-  );
+  return <div><h1>{user.name}</h1></div>;
 }
 ```
 
@@ -249,7 +220,7 @@ export async function GET() {
 // app/actions.ts
 'use server';
 
-import { createUserAction, updateUserAction } from '@intrig/next/server';
+import { createUserAction } from '@intrig/next/server';
 import { revalidatePath } from 'next/cache';
 
 export async function createUser(formData: FormData) {
@@ -260,138 +231,16 @@ export async function createUser(formData: FormData) {
     };
 
     const user = await createUserAction(userData);
-    
-    // Revalidate the users page
     revalidatePath('/users');
-    
+
     return { success: true, user };
   } catch (error) {
-    return { 
-      success: false, 
-      error: error.message 
-    };
-  }
-}
-
-export async function updateUser(userId: string, formData: FormData) {
-  try {
-    const updates = {
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-    };
-
-    const user = await updateUserAction(
-      updates,
-      { id: userId }
-    );
-    
-    revalidatePath(`/users/${userId}`);
-    
-    return { success: true, user };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error.message 
-    };
-  }
-}
-```
-
-### Pages Router API Routes
-
-```tsx
-// pages/api/users/[id].ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getUserAction, updateUserAction, deleteUserAction } from '@intrig/next/server';
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const { id } = req.query;
-
-  if (typeof id !== 'string') {
-    return res.status(400).json({ error: 'Invalid user ID' });
-  }
-
-  try {
-    switch (req.method) {
-      case 'GET':
-        const user = await getUserAction({ id });
-        return res.status(200).json(user);
-
-      case 'PUT':
-        const updatedUser = await updateUserAction(req.body, { id });
-        return res.status(200).json(updatedUser);
-
-      case 'DELETE':
-        await deleteUserAction({ id });
-        return res.status(204).end();
-
-      default:
-        res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-        return res.status(405).end(`Method ${req.method} Not Allowed`);
-    }
-  } catch (error) {
-    console.error('API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-}
-```
-
-### Environment-Based Configuration
-
-```tsx
-// Server functions automatically use environment variables
-// .env.local
-// USERS_API_URL=https://api.users.com
-// PRODUCTS_API_URL=https://api.products.com
-
-// app/api/multi-source/route.ts
-import { getUserAction } from '@intrig/next/server/usersApi/getUser/action';
-import { getProductAction } from '@intrig/next/server/productsApi/getProduct/action';
-
-export async function GET() {
-  try {
-    // Each function uses its respective API endpoint
-    const [user, product] = await Promise.all([
-      getUserAction({ id: '123' }),      // Uses USERS_API_URL
-      getProductAction({ id: '456' }),   // Uses PRODUCTS_API_URL
-    ]);
-
-    return Response.json({ user, product });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return { success: false, error: error.message };
   }
 }
 ```
 
 ## Type Safety
-
-### Generated Types
-
-Intrig generates TypeScript types for all server functions based on your API specifications:
-
-```tsx
-// Generated types are available for import
-import type { 
-  GetUserParams,
-  GetUserResponse,
-  CreateUserRequestBody,
-  CreateUserResponse 
-} from '@intrig/next/server/userApi/types';
-
-// Use in your application code
-function processUser(user: GetUserResponse): string {
-  return `User: ${user.name} (${user.email})`;
-}
-
-async function createNewUser(userData: CreateUserRequestBody) {
-  return await createUserAction(userData);
-}
-```
-
-### Request/Response Validation
 
 Server functions automatically validate responses against generated schemas:
 
@@ -455,71 +304,45 @@ export default async function Dashboard() {
 }
 ```
 
-### Response Caching
-
-```tsx
-// app/api/cached/route.ts
-import { getUserAction } from '@intrig/next/server/userApi/getUser/action';
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  try {
-    const user = await getUserAction({ id: userId });
-    
-    return Response.json(user, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
-      },
-    });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
-}
-
-// Enable static generation for predictable routes
-export const revalidate = 300; // Revalidate every 5 minutes
-```
-
-## Error Types
+## Error Handling
 
 Server functions can throw several types of errors:
 
-### Network Errors
 ```tsx
-// HTTP errors, connection issues, timeouts
-catch (error) {
-  if (isAxiosError(error)) {
-    console.log('HTTP Status:', error.response?.status);
-    console.log('Response:', error.response?.data);
-  }
-}
-```
+// app/api/users/route.ts
+import { getUserAction } from '@intrig/next/server/userApi/getUser/action';
+import { isAxiosError } from 'axios';
 
-### Validation Errors
-```tsx
-// Response doesn't match expected schema
-catch (error) {
-  if (error.name === 'ValidationError') {
-    console.log('Schema validation failed:', error.message);
-  }
-}
-```
+export async function GET() {
+  try {
+    const user = await getUserAction({ id: '123' });
+    return Response.json(user);
+  } catch (error) {
+    // Network errors (HTTP errors, connection issues, timeouts)
+    if (isAxiosError(error)) {
+      const status = error.response?.status || 500;
+      return Response.json({ error: error.response?.data }, { status });
+    }
 
-### Configuration Errors
-```tsx
-// Missing environment variables or invalid config
-catch (error) {
-  if (error.message.includes('API_URL is not defined')) {
-    console.log('Environment configuration error');
+    // Validation errors (response doesn't match schema)
+    if (error.name === 'ValidationError') {
+      return Response.json({ error: 'Invalid API response' }, { status: 502 });
+    }
+
+    // Configuration errors (missing environment variables)
+    if (error.message.includes('API_URL is not defined')) {
+      return Response.json({ error: 'Configuration error' }, { status: 500 });
+    }
+
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 ```
 
 ## Best Practices
 
-### 1. Error Boundary Pattern
+### Error Boundary Pattern
+
 ```tsx
 async function safeApiCall<T>(
   apiCall: () => Promise<T>,
@@ -538,55 +361,6 @@ const user = await safeApiCall(
   () => getUserAction({ id: '123' }),
   { name: 'Unknown User', email: '' }
 );
-```
-
-### 2. Request Timeout Configuration
-```tsx
-// Configure timeouts via environment or middleware
-const user = await getUserAction(
-  { id: '123' },
-  { timeout: 5000 }
-);
-```
-
-### 3. Retry Logic
-```tsx
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3
-): Promise<T> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => 
-        setTimeout(resolve, Math.pow(2, attempt) * 1000)
-      );
-    }
-  }
-  throw new Error('Max retries exceeded');
-}
-
-// Usage
-const user = await withRetry(
-  () => getUserAction({ id: '123' })
-);
-```
-
-### 4. Environment Separation
-```tsx
-// .env.local
-NODE_ENV=development
-USERS_API_URL=http://localhost:8080
-DEBUG_API_CALLS=true
-
-// .env.production
-NODE_ENV=production
-USERS_API_URL=https://api.production.com
-DEBUG_API_CALLS=false
 ```
 
 ## Related

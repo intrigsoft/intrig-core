@@ -1,107 +1,267 @@
-# Initialization
+# React Initialization
 
-This guide walks you through setting up Intrig in a React application, from installation to configuration.
+Configuration and setup procedures for Intrig React integration. Documents package installation, project initialization, and IntrigProvider configuration.
 
-## 1. Install @intrig/core
+---
 
-First, install the Intrig core package as a development dependency in your React project:
+## Package Installation
+
+Install Intrig core and React framework packages:
 
 ```bash
-npm install --save-dev @intrig/core
+npm install @intrig/core @intrig/react
+# or
+yarn add @intrig/core @intrig/react
+# or
+pnpm add @intrig/core @intrig/react
 ```
 
-The `@intrig/core` package provides the CLI tools and core functionality needed to generate type-safe API clients for your React application.
+**Package roles:**
+- `@intrig/core`: CLI tools, code generation, and synchronization
+- `@intrig/react`: React-specific hooks, components, and state management
 
-## 2. Initialize Intrig
+---
 
-Run the initialization command in your project root:
+## Project Initialization
+
+Initialize Intrig configuration from the project root:
 
 ```bash
 intrig init
 ```
 
-### What happens during initialization
+### Initialization Process
 
-When you run `intrig init`, the following steps occur automatically:
+The initialization command performs these operations:
 
-1. **Plugin Detection & Selection**: Intrig analyzes your `package.json` to detect your project type and suggests compatible plugins. For React projects, it will recommend the React plugin (`@intrig/plugin-react`).
+**Configuration File Creation**: Generates `intrig.config.json` with base settings:
 
-2. **Plugin Installation**: The selected plugin and `@intrig/core` are installed as development dependencies in your project.
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/intrigsoft/intrig-registry/refs/heads/main/schema.json",
+  "sources": [],
+  "generator": "react"
+}
+```
 
-3. **Configuration Setup**: 
-   - Creates an `intrig.config.json` file in your project root with basic configuration
-   - Generates a JSON schema file at `.intrig/schema.json` for IDE support and validation
-   - Updates your `.gitignore` to exclude generated files
+**Repository Configuration**: Updates `.gitignore` to exclude generated artifacts:
 
-4. **File Generation**: Sets up the directory structure for generated API clients and type definitions.
+```
+# Intrig
+.intrig/cache/
+.intrig/daemon/
+node_modules/@intrig/
+```
 
-The initialization process is interactive and will guide you through any necessary configuration options specific to your project setup.
+**Framework Detection**: Identifies React projects through `package.json` dependencies and configures the React generator.
 
-## 3. Post-initialization Steps
+---
 
-After running `intrig init`, you need to integrate Intrig into your React application:
+## IntrigProvider Setup
 
-### Add IntrigProvider to your component hierarchy
+Configure the provider at the application root to enable Intrig functionality throughout the component tree.
 
-Wrap your root React component with `IntrigProvider` to enable Intrig functionality throughout your application:
+### Basic Configuration
 
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+```tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { IntrigProvider } from '@intrig/react';
 import App from './App';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-
-root.render(
-  <IntrigProvider
-    configs={{
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <IntrigProvider configs={{
       default: {
-        baseURL: 'https://api.yourservice.com',
-        timeout: 5000,
+        baseURL: 'https://api.example.com',
+        timeout: 5000
       }
-    }}
-  >
-    <App />
-  </IntrigProvider>
+    }}>
+      <App />
+    </IntrigProvider>
+  </StrictMode>
 );
 ```
 
-The `IntrigProvider` should be placed at the root of your React component hierarchy to ensure all child components have access to Intrig's functionality.
+### Multi-Source Configuration
 
-### Configuration Options
+Configure multiple API sources with independent settings:
 
-You can configure multiple API sources and customize behavior:
-
-```jsx
-<IntrigProvider
-  configs={{
-    userAPI: {
-      baseURL: 'https://users-api.example.com',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 3000,
+```tsx
+<IntrigProvider configs={{
+  userApi: {
+    baseURL: 'https://users-api.example.com',
+    headers: {
+      'Content-Type': 'application/json'
     },
-    analyticsAPI: {
-      baseURL: 'https://analytics.example.com',
-      debounceDelay: 500,
-    },
-  }}
->
+    timeout: 3000
+  },
+  analyticsApi: {
+    baseURL: 'https://analytics.example.com',
+    timeout: 10000
+  }
+}}>
   <App />
 </IntrigProvider>
 ```
 
-For more detailed information about `IntrigProvider` configuration options, refer to the [IntrigProvider documentation](./api/intrig-provider.md).
+### Configuration Options
 
-## Next Steps
+IntrigProvider accepts `configs` object where keys are source identifiers matching `intrig.config.json` sources. Each source configuration supports:
 
-Once initialization is complete and `IntrigProvider` is set up:
+| Property | Type | Description |
+|----------|------|-------------|
+| `baseURL` | `string` | Base URL for API requests |
+| `timeout` | `number` | Request timeout in milliseconds |
+| `headers` | `Record<string, string>` | Default headers for all requests |
+| `requestInterceptor` | `function` | Request preprocessing function |
+| `responseInterceptor` | `function` | Response postprocessing function |
 
-1. Add API sources to your `intrig.config.json`
-2. Run `intrig sync` to fetch API specifications
-3. Run `intrig generate` to create type-safe API clients
-4. Start using the generated hooks and clients in your React components
+Complete configuration options documented in [IntrigProvider API Reference](./api/intrig-provider.md).
 
-For more information on these next steps, see the [Getting Started guide](../getting-started.md).
+---
+
+## Post-Initialization Steps
+
+After initialization and provider setup:
+
+### 1. Configure API Sources
+
+Add OpenAPI specification sources to `intrig.config.json`:
+
+```bash
+intrig sources add
+```
+
+Interactive prompts will request:
+- Source identifier (camelCase, e.g., `userApi`)
+- OpenAPI specification URL
+
+### 2. Synchronize Specifications
+
+Fetch OpenAPI specifications:
+
+```bash
+intrig sync --all
+```
+
+### 3. Generate SDK
+
+Generate type-safe hooks and utilities:
+
+```bash
+intrig generate
+```
+
+### 4. Import Generated Hooks
+
+Use generated hooks in components:
+
+```tsx
+import { useGetUser } from '@intrig/react/userApi/users/getUser/useGetUser';
+
+function UserProfile() {
+  const [userState, getUser] = useGetUser();
+  // Implementation
+}
+```
+
+---
+
+## Verification
+
+Confirm successful initialization:
+
+```bash
+# Verify configuration exists
+cat intrig.config.json
+
+# Check Intrig CLI accessibility
+intrig --version
+
+# Verify gitignore updates
+grep "# Intrig" .gitignore
+
+# Test SDK generation
+intrig generate
+```
+
+---
+
+## Configuration Management
+
+### Environment-Specific Settings
+
+Use environment variables for deployment-specific configuration:
+
+```tsx
+<IntrigProvider configs={{
+  userApi: {
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000',
+    timeout: parseInt(process.env.REACT_APP_TIMEOUT || '5000')
+  }
+}}>
+  <App />
+</IntrigProvider>
+```
+
+### Dynamic Configuration
+
+Update configuration based on runtime conditions:
+
+```tsx
+function Root() {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  return (
+    <IntrigProvider configs={{
+      userApi: {
+        baseURL: isDevelopment
+          ? 'http://localhost:3000'
+          : 'https://api.production.com',
+        timeout: isDevelopment ? 30000 : 5000
+      }
+    }}>
+      <App />
+    </IntrigProvider>
+  );
+}
+```
+
+---
+
+## Troubleshooting
+
+### Configuration File Not Created
+
+**Symptom**: `intrig.config.json` missing after initialization
+
+**Resolution**:
+- Confirm current directory contains `package.json`
+- Verify write permissions in project directory
+- Run `intrig init` from project root
+
+### Wrong Generator Configured
+
+**Symptom**: Generated code incompatible with React
+
+**Resolution**:
+- Manually edit `intrig.config.json` and set `"generator": "react"`
+- Regenerate SDK with `intrig generate`
+
+### Provider Not Found
+
+**Symptom**: Import error for IntrigProvider
+
+**Resolution**:
+- Verify `@intrig/react` installation: `npm list @intrig/react`
+- Reinstall if missing: `npm install @intrig/react`
+- Check import path: `import { IntrigProvider } from '@intrig/react';`
+
+---
+
+## Related Documentation
+
+- [IntrigProvider API](./api/intrig-provider.md) - Complete configuration reference
+- [Getting Started](../getting-started.md) - Comprehensive setup tutorial
+- [How Intrig Works: Initialization](../how-intrig-works/initialization.md) - Detailed initialization process

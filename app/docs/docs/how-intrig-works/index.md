@@ -1,27 +1,51 @@
 # How Intrig Works
 
-Intrig is built to make frontend–backend integration **API-first** and **generation-driven**.
-Instead of writing types and API calls by hand, Intrig uses your **OpenAPI/Swagger definition** to automatically create a ready-to-use, fully typed SDK — keeping your code in sync with the backend at all times.
+Intrig transforms OpenAPI specifications into type-safe, framework-specific SDKs through a deterministic generation pipeline. This section documents the core workflow components and their integration in the development process.
+
+## Workflow Components
+
+### [Initialization](./initialization.md)
+
+Project setup and configuration initialization. Creates base configuration files, configures package integration, and prepares the project structure for SDK generation.
+
+### [Source Management](./source-management.md)
+
+API source configuration and management. Defines OpenAPI specification locations and manages the registry of backend services that will generate SDK code.
+
+### [Synchronization](./synchronization.md)
+
+OpenAPI specification fetching and normalization. Retrieves current API contracts from configured sources and prepares them for code generation. Breaking changes in specifications are detected during subsequent compilation.
+
+### [Code Generation](./code-generation.md)
+
+SDK generation and compilation to `node_modules`. Transforms normalized OpenAPI specifications into framework-specific TypeScript code with complete type safety and runtime validation schemas.
+
+### [Daemon and Insight](./daemon-insight.md)
+
+Background service management and API documentation interface. The daemon enables the Insight tool, providing searchable documentation for generated code and endpoint discovery during development.
+
+### [Complete Development Workflow](./workflow.md)
+
+End-to-end integration workflow from backend API changes through SDK regeneration, type checking, and implementation. Documents the feedback loop between specification changes and compile-time validation.
 
 ---
 
-## Core Workflow
+## Architecture Overview
 
-1. **[Synchronization](./synchronization.md)**
-   Pull the latest API definition from your backend and update your local Intrig configuration. This ensures your SDK always matches the current backend contract, catching breaking changes at compile time.
+Intrig operates through a deterministic pipeline:
 
-2. **[Code Generation](./code-generation.md)**
-   Transform the API definition into typed hooks, async functions, and DTOs. Intrig publishes these directly into your project so you can import and use them immediately.
+```
+OpenAPI Spec → Sync → Normalize → Generate → Compile → Publish to node_modules
+```
 
----
+Each step is idempotent. Identical specifications produce identical generated code. The SDK compiles to `node_modules/@intrig/{framework}`, enabling standard import patterns without project configuration changes.
 
-## Why This Matters
+## Key Properties
 
-* **Fewer Integration Errors** – Changes in the backend flow directly into the generated code.
-* **Type Safety by Default** – Mismatched parameters and missing fields are caught instantly.
-* **No Boilerplate** – Ready-to-use hooks and types are generated for you.
-* **Searchable SDK** – Find endpoints quickly by method, `operationId`, or path.
+**Deterministic Generation**: Identical OpenAPI specifications always produce identical SDK artifacts.
 
----
+**Compile-Time Validation**: API contract changes trigger TypeScript compilation errors before runtime.
 
-Once you understand these two steps — **synchronize** when the API changes, and **generate** to update your SDK — you’ll be working in a cleaner, faster, and more reliable integration workflow.
+**Framework Isolation**: Generated code is framework-specific but data types remain framework-agnostic.
+
+**Standard Integration**: Published SDKs integrate as standard npm packages with no build tool configuration required.
