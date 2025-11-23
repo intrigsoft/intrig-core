@@ -1,38 +1,65 @@
-# Intrig Quickstart Guide
+# Getting Started with Intrig
 
-This guide walks you through setting up **Intrig**, generating your first SDK, and making your first API call from a **React** project. For other frameworks like Next.js, Remix, and Vue, see the [Other Framework Guides](#) *(placeholder link)*.
+Implementation of a complete Intrig-powered React application with OpenAPI SDK generation, type-safe hooks, and API integration.
+
+**Implementation scope:**
+- Intrig installation and project initialization
+- API source configuration from OpenAPI specifications
+- SDK generation and compilation to `node_modules`
+- Integration of generated hooks in React components
+
+**Technical concepts covered:**
+- OpenAPI specification synchronization
+- Type-safe SDK generation
+- React hook integration patterns
+- NetworkState handling
+- IntrigProvider configuration
+
+**Prerequisites:**
+- Node.js 16+ and npm/yarn/pnpm installed
+- React application (existing or new via `create-react-app` or Vite)
+- Access to OpenAPI/Swagger specification URL
+- Understanding of React hooks and TypeScript
+
+**Estimated time**: 15 minutes
 
 ---
 
-## **1. Install Intrig**
+## Step 1: Install Intrig
 
-For React projects, simply install the required Intrig packages locally:
+Install the core Intrig packages:
 
 ```bash
 npm install @intrig/core @intrig/react
 # or
 yarn add @intrig/core @intrig/react
+# or
+pnpm add @intrig/core @intrig/react
 ```
 
-⚠️ **Warning:** Do **not** use `npx intrig` at this time, as it refers to an older iteration of the tool. This issue will be fixed soon.
+:::warning Legacy Package Conflict
+Do not use `npx intrig` at this time. The npm registry entry refers to a deprecated version. Use the locally installed CLI via `npx` from your project directory or install globally with `npm install -g @intrig/core`.
+:::
+
+**Verification**: Confirm installation with `npx intrig --version`
 
 ---
 
-## **2. Initialize Intrig in Your Project**
+## Step 2: Initialize Intrig Configuration
 
-From your React project root:
+From your React project root, initialize Intrig:
 
 ```bash
 intrig init
 ```
 
-Running `intrig init` will:
+This command performs three operations:
 
-1. Ensure that the related SDK placeholder library (`@intrig/react`) is installed.
-2. Create an `intrig.config.json` file with a basic setup.
-3. Update `.gitignore` to prevent temporary directories from being committed.
+1. Verifies `@intrig/react` installation
+2. Creates `intrig.config.json` with base configuration
+3. Updates `.gitignore` to exclude temporary directories
 
-**Basic `intrig.config.json` structure:**
+**Generated configuration structure:**
 
 ```json
 {
@@ -42,81 +69,68 @@ Running `intrig init` will:
 }
 ```
 
----
-
-## **3. (Optional) Run the Demo Backend**
-
-For a ready-to-use API to test Intrig, clone and run the **[intrig-demo-backend](https://github.com/intrigsoft/intrig-demo-backend)** — a public NestJS-based backend that generates a genuine Swagger document and provides working endpoints.
-
-```bash
-git clone https://github.com/intrigsoft/intrig-demo-backend.git
-cd intrig-demo-backend
-npm install
-npm run start
-```
-
-Once running, the Swagger documentation will be available at:
-
-```
-http://localhost:5001/swagger.json
-```
+**Verification**: Confirm `intrig.config.json` exists in project root
 
 ---
 
-## **4. Add API Sources**
+## Step 3: Configure API Source
 
-Once initialized, add your API source:
+Add your OpenAPI specification as a source:
 
 ```bash
 intrig sources add
 ```
 
-This command is interactive — you will be prompted to provide:
+The interactive prompt requests:
 
-* **id**: A path name–compliant identifier for the source (prefer simple `camelCase`, e.g., `productApi`).
-* **OpenAPI/Swagger documentation URL**: For the demo backend, use `http://localhost:5001/swagger.json`.
+- **id**: Source identifier in `camelCase` (e.g., `productApi`)
+- **OpenAPI URL**: Location of OpenAPI/Swagger specification
 
-After completion, a new entry will be added to the `sources` array in your `intrig.config.json`.
+**Technical rationale**: The source identifier becomes the import path namespace. Choose identifiers that clearly represent the API domain.
 
----
+**Example configuration:**
 
-## **5. Generate and Publish SDK**
-
-Run:
-
-```bash
-intrig generate
+```json
+{
+  "sources": [
+    {
+      "id": "productApi",
+      "url": "https://api.example.com/swagger.json"
+    }
+  ]
+}
 ```
 
-This will:
+:::note Demo Backend
+For testing, use the [intrig-demo-backend](https://github.com/intrigsoft/intrig-demo-backend) NestJS application. Clone and run with `npm install && npm start`. The Swagger specification will be available at `http://localhost:5001/swagger.json`.
+:::
 
-1. Generate the source code of the SDK.
-2. Compile the SDK codebase.
-3. Publish the SDK codebase into `node_modules` so it’s ready for use.
-
-After this step, your code is ready to be imported and used in your React project.
+**Verification**: Confirm source entry appears in `intrig.config.json`
 
 ---
 
-## **6. (Optional) Explore with Intrig Insight**
+## Step 4: Generate SDK
 
-To explore the generated SDK in a documentation site:
+Synchronize the API specification and generate the SDK:
 
 ```bash
-intrig insight
+intrig sync --all && intrig generate
 ```
 
-This will open **Intrig Insight**, where you can:
+**Process breakdown:**
 
-* Search and browse generated hooks.
-* View detailed documentation for request/response types.
-* Learn about available data types and usage patterns.
+1. `intrig sync --all` fetches and normalizes OpenAPI specifications
+2. `intrig generate` generates TypeScript code, compiles it, and publishes to `node_modules`
+
+The generated SDK is now available for import using the configured source identifier.
+
+**Verification**: Check `node_modules/@intrig/react` for generated code
 
 ---
 
-## **7. Add IntrigProvider to Your Project Root**
+## Step 5: Configure IntrigProvider
 
-Wrap your application with `IntrigProvider` to configure backend integration:
+Wrap your application root with `IntrigProvider` to configure backend integration:
 
 ```tsx
 import { StrictMode } from 'react'
@@ -129,10 +143,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <IntrigProvider configs={{
       productApi: {
-        // Configure baseUrls, headers, and other backend integration settings here
-      },
-      defaults: {
-        // Configure default settings such as Auth headers here.
+        baseURL: 'https://api.example.com',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
     }}>
       <App />
@@ -141,58 +155,100 @@ createRoot(document.getElementById('root')!).render(
 )
 ```
 
-In the `configs` prop, you can set **base URLs**, **headers**, and other integration options related to your backend. See the [Intrig Configuration Reference](#) for all available options.
+**Technical rationale**: IntrigProvider establishes global configuration for API sources. The `configs` object keys must match source identifiers from `intrig.config.json`.
+
+**Verification**: Application should compile without errors
 
 ---
 
-## **8. Use the Generated Hook**
+## Step 6: Implement Generated Hook
 
-Here’s a typical usage pattern (stateful hooks return `[state, call]`):
+Integrate a generated hook in a React component:
 
 ```tsx
-import {useGetEmployee} from '@intrig/react/employeeApi/Employee/getEmployee/useGetEmployee'
-import {useEffect} from 'react';
-import {isSuccess} from '@intrig/react';
-import {isError} from '@intrig/react/network-state';
+import { useGetEmployee } from '@intrig/react/productApi/Employee/getEmployee/useGetEmployee'
+import { useEffect } from 'react';
+import { isSuccess, isError } from '@intrig/react';
 
-function MyComponent() {
-  const [getEmployeeResp, getEmployee] = useGetEmployee({ clearOnUnmount: true });
+function EmployeeProfile({ employeeId }: { employeeId: number }) {
+  const [employeeState, getEmployee] = useGetEmployee({ clearOnUnmount: true });
 
   useEffect(() => {
-    getEmployee({ id: 1 });
-  }, []);
-  
-  if (isError(getEmployeeResp)) return (
-    <div>Error fetching employee</div>
-  );
+    getEmployee({ id: employeeId });
+  }, [employeeId]);
 
-  return (
-    <>
-      {isSuccess(getEmployeeResp) && (
-        <div>{getEmployeeResp.data.name}</div>
-      )}
-    </>
-  );
+  if (isError(employeeState)) {
+    return <div>Error: {employeeState.error.message}</div>;
+  }
+
+  if (isSuccess(employeeState)) {
+    return <div>Employee: {employeeState.data.name}</div>;
+  }
+
+  return <div>Loading...</div>;
 }
 
-export default MyComponent;
+export default EmployeeProfile;
 ```
 
-You can easily discover generated hooks and their usage examples in **Intrig Insight** (`intrig insight`).
+**Technical rationale**:
+- `useGetEmployee` is a stateful hook that maintains request state in the global store
+- `clearOnUnmount: true` resets state when the component unmounts
+- Type guards (`isSuccess`, `isError`) provide type-safe access to state-specific fields
+
+**Verification**: Component should render employee data or error state
 
 ---
 
-## **9. Regenerate on API Changes**
+## Step 7: Synchronize API Changes
 
-If there’s any API change:
+When the backend API changes, update the SDK:
 
-1. Run `intrig sync` to fetch the updated API specification.
-2. Run `intrig generate` to regenerate and publish the updated SDK.
+```bash
+intrig sync --all && intrig generate
+```
+
+Breaking changes in the API will surface as TypeScript compilation errors, enabling detection at build time rather than runtime.
+
+**Verification**: Run `npm run build` or `tsc` to validate type compatibility
 
 ---
 
-## **Next Steps**
+## Optional: Explore with Intrig Insight
 
-* [📄 Full Documentation](https://intrig.dev) *(placeholder link)*
-* [Other Framework Guides](#)
-* [Intrig Configuration Reference](#)
+Launch the Insight documentation browser:
+
+```bash
+intrig insight
+```
+
+Insight provides searchable documentation for:
+- Generated hooks with complete type signatures
+- Request and response schemas
+- Endpoint parameters and descriptions
+
+Access the interface at `http://localhost:5050`
+
+---
+
+## Implementation Summary
+
+This implementation demonstrates:
+- OpenAPI-driven SDK generation with type safety
+- React hook integration with NetworkState handling
+- Global configuration through IntrigProvider
+- Compile-time validation of API contracts
+- Development workflow for API synchronization
+
+## Extension Possibilities
+
+- Implement authentication with token management
+- Add error handling patterns with retry logic
+- Configure multiple API sources
+- Integrate with Next.js server components
+- Implement optimistic updates for mutations
+
+**Related documentation:**
+- [Core Concepts](./core-concepts.md)
+- [React Hook Conventions](./react/core-concepts/hook-conventions.md)
+- [NetworkState Specification](./react/api/network-state.md)
