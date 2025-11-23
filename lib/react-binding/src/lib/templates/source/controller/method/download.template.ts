@@ -111,7 +111,7 @@ export async function reactDownloadHookTemplate({source,
 
   const imports = new Set<string>();
   imports.add(`import { z } from 'zod'`)
-  imports.add(`import { useCallback, useEffect } from 'react'`)
+  imports.add(`import { useCallback, useEffect, useRef } from 'react'`)
   imports.add(`import {useNetworkState, NetworkState, DispatchState, pending, success, error, init, successfulDispatch, validationError, encode, isSuccess, requestValidationError} from "@intrig/react"`)
 
   const { hookShape, optionsShape } = extractHookShapeAndOptionsShape(response, requestBody, imports);
@@ -162,12 +162,17 @@ export async function reactDownloadHookTemplate({source,
     const source = "${source}"
 
     function use${pascalCase(operationId)}Hook(options: ${optionsShape} = {}): [NetworkState<Response>, (${paramType}) => DispatchState<any>, () => void] {
-      let [state, dispatch, clear, dispatchState] = useNetworkState<Response>({
+      const [state, dispatch, clear, dispatchState] = useNetworkState<Response>({
         key: options?.key ?? 'default',
         operation,
         source,
         schema,
         errorSchema
+      });
+      
+      const optionsRef = useRef(options);
+      useEffect(() => {
+        optionsRef.current = options;
       });
       
       useEffect(() => {
@@ -202,10 +207,10 @@ export async function reactDownloadHookTemplate({source,
           document.body.removeChild(a);
           dispatchState(init())
         }
-      }, [state])
+      }, [state, dispatchState])
 
-      let doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
-        let { ${paramExplode}} = p
+      const doExecute = useCallback<(${paramType}) => DispatchState<any>>((${paramExpression}) => {
+        const { ${paramExplode}} = p
 
           ${requestBody ? `
           const validationResult = requestBodySchema.safeParse(data);
@@ -228,19 +233,19 @@ export async function reactDownloadHookTemplate({source,
             ${(responseTypePart())}
           })
           return successfulDispatch();
-      }, [dispatch])
+      }, [dispatch, dispatchState]) 
       
       useEffect(() => {
-        if (options.fetchOnMount) {
-          doExecute(${[requestBody ? `options.body!` : undefined, "options.params!"].filter(a => a).join(",")});
+        if (optionsRef.current.fetchOnMount) {
+          doExecute(${[requestBody ? `optionsRef.current.body!` : undefined, "optionsRef.current.params!"].filter(a => a).join(",")});
         }
 
         return () => {
-          if (options.clearOnUnmount) {
+          if (optionsRef.current.clearOnUnmount) {
             clear();
           }
         }
-      }, [])
+      }, [doExecute, clear])  // Added proper dependencies
 
       return [
         state,

@@ -9,6 +9,7 @@ export function providerHooksTemplate() {
   useMemo,
   useState,
   useRef,
+  useEffect,
 } from 'react';
 import {
   ErrorState,
@@ -52,6 +53,16 @@ export function useNetworkState<T>({
   const context = useContext(Context);
 
   const [abortController, setAbortController] = useState<AbortController>();
+  
+  const contextRef = useRef(context);
+  const schemaRef = useRef(schema);
+  const errorSchemaRef = useRef(errorSchema);
+  
+  useEffect(() => {
+    contextRef.current = context;
+    schemaRef.current = schema;
+    errorSchemaRef.current = errorSchema;
+  });
 
   const networkState = useMemo(() => {
     logger.info(${"`Updating status ${key} ${operation} ${source}`"});
@@ -60,7 +71,7 @@ export function useNetworkState<T>({
       (context.state?.[${"`${source}:${operation}:${key}`"}] as NetworkState<T>) ??
       init()
     );
-  }, [JSON.stringify(context.state?.[${"`${source}:${operation}:${key}`"}])]);
+  }, [context.state, key, operation, source]);
 
   const dispatch = useCallback(
     (state: NetworkState<T>) => {
@@ -108,30 +119,30 @@ export function useNetworkState<T>({
         signal: abortController.signal,
       };
 
-      await context.execute(
+      await contextRef.current.execute(
         requestConfig,
         dispatch,
-        schema,
-        errorSchema as any,
+        schemaRef.current,
+        errorSchemaRef.current as any,
       );
     },
-    [networkState, context.dispatch],
+    [dispatch, key, operation, source],
   );
 
   const deboundedExecute = useMemo(
-    () => debounce(execute, debounceDelay ?? 0),
-    [execute],
+    () => debounce(execute, debounceDelay),
+    [execute, debounceDelay],
   );
 
   const clear = useCallback(() => {
     logger.info(${"`Clearing request ${key} ${operation} ${source}`"});
     dispatch(init());
-    setAbortController((abortController) => {
+    setAbortController((prev) => {
       logger.info(${"`Aborting request ${key} ${operation} ${source}`"});
-      abortController?.abort();
+      prev?.abort();
       return undefined;
     });
-  }, [dispatch, abortController]);
+  }, [dispatch, key, operation, source]);
 
   return [networkState, deboundedExecute, clear, dispatch];
 }
@@ -148,6 +159,14 @@ export function useTransitionCall<T>({
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController | undefined>(undefined);
+  
+  const schemaRef = useRef(schema);
+  const errorSchemaRef = useRef(errorSchema);
+  
+  useEffect(() => {
+    schemaRef.current = schema;
+    errorSchemaRef.current = errorSchema;
+  });
 
   const call = useCallback(
     async (request: RequestType) => {
@@ -165,12 +184,12 @@ export function useTransitionCall<T>({
               reject(state.error);
             }
           },
-          schema,
-          errorSchema,
+          schemaRef.current,
+          errorSchemaRef.current,
         );
       });
     },
-    [ctx, schema, errorSchema],
+    [ctx],
   );
 
   const abort = useCallback(() => {

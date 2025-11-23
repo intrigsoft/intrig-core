@@ -6,7 +6,6 @@ import {IntrigOpenapiService} from "openapi-source";
 import {SourceStats} from "../models/source-stats";
 import {DataStats} from "../models/data-stats";
 import _ from "lodash";
-import { LazyCodeAnalyzerService } from "../../utils/lazy-code-analyzer.service";
 
 export interface SearchOptions {
   /** fuzzy tolerance: 0–1 */
@@ -50,8 +49,7 @@ export class SearchService implements OnModuleInit {
 
   constructor(
     private configService: IntrigConfigService,
-    private openApiService: IntrigOpenapiService,
-    private codeAnalyzer: LazyCodeAnalyzerService
+    private openApiService: IntrigOpenapiService
   ) {
     this.mini = new MiniSearch({
       fields: [
@@ -80,7 +78,6 @@ export class SearchService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      // Try to get config, but don't fail if it doesn't exist
       const config = this.configService.get();
       const sources = config?.sources || [];
       
@@ -88,32 +85,9 @@ export class SearchService implements OnModuleInit {
         const {descriptors} = await this.openApiService.getResourceDescriptors(source.id);
         descriptors.forEach(descriptor => this.addDescriptor(descriptor));
       }
-      
-      // Update the CodeAnalyzer with all descriptors
-      this.updateCodeAnalyzer();
-      
-      // Perform initial code analysis
-      this.reindexCodebase();
-    } catch (e) { 
-      // Silently ignore config loading errors during startup
-      // Services will work with empty state until config is available
+    } catch (e: any) {
+
     }
-  }
-  
-  /**
-   * Update the CodeAnalyzer with the current descriptors
-   */
-  private updateCodeAnalyzer(): void {
-    const descriptors = Array.from(this.descriptors.values());
-    this.codeAnalyzer.setResourceDescriptors(descriptors);
-  }
-  
-  /**
-   * Trigger reindexing of the codebase
-   */
-  public reindexCodebase(): void {
-    // Focus analysis on app/insight directory where React components are likely to be
-    this.codeAnalyzer.reindex(['app/insight/src/**/*.ts', 'app/insight/src/**/*.tsx']);
   }
 
 
@@ -123,9 +97,6 @@ export class SearchService implements OnModuleInit {
   addDescriptor<T>(desc: ResourceDescriptor<T>) {
     this.descriptors.set(desc.id, desc);
     this.indexDescriptor(desc);
-    
-    // Update the CodeAnalyzer with the updated descriptors
-    this.updateCodeAnalyzer();
   }
 
   /**
@@ -157,9 +128,6 @@ export class SearchService implements OnModuleInit {
         this.mini.remove(base);
       }
     }
-    
-    // Update the CodeAnalyzer with the updated descriptors
-    this.updateCodeAnalyzer();
   }
 
   /**

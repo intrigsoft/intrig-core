@@ -1,3 +1,19 @@
+## 0.0.15-14 (2025-11-02)
+
+### 🚀 Features
+
+- remove unused modules and placeholder documentation ([cabb3eb](https://github.com/intrigsoft/intrig-core/commit/cabb3eb))
+- **cli, plugins:** add generator options collection and refactor plugin initialization ([126f57f](https://github.com/intrigsoft/intrig-core/commit/126f57f))
+- **cli, plugins-next:** streamline plugin initialization with generator options support ([35c894c](https://github.com/intrigsoft/intrig-core/commit/35c894c))
+- **docs:** enhance navigation, add sponsor link, and restructure sidebar ([d60a892](https://github.com/intrigsoft/intrig-core/commit/d60a892))
+- **docs:** restructure Next.js API and concepts, simplify sidebar navigation ([4198f26](https://github.com/intrigsoft/intrig-core/commit/4198f26))
+- **next, docs:** remove React `IntrigProvider`, add Next.js docs and post-init steps ([c5ceae7](https://github.com/intrigsoft/intrig-core/commit/c5ceae7))
+- **react, next, cli:** add post-initialization support for plugins and improve documentation ([373d50a](https://github.com/intrigsoft/intrig-core/commit/373d50a))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-13 (2025-09-07)
 
 ### 🚀 Features

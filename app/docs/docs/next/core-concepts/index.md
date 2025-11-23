@@ -6,23 +6,23 @@ Intrig's **Core Concepts** for Next.js define the mental model for building full
 
 ## Server-Client Architecture
 
-Next.js applications with Intrig follow a clear separation between server-side functions and client-side hooks. Server functions handle data fetching in API routes and server components, while client hooks manage state and user interactions. Understanding this separation is crucial for building efficient Next.js applications.
+Next.js applications with Intrig follow a fundamental separation between server-side functions and client-side hooks. This dual-mode approach allows you to choose the optimal execution environment for each operation, leading to better performance and user experience.
 
 Read more → [Server-Client Architecture](/docs/next/core-concepts/server-client-architecture)
 
 ---
 
-## App Router vs Pages Router
+## Configuration Management
 
-Intrig supports both Next.js routing patterns with specific optimizations for each. The App Router provides server component integration and streaming capabilities, while the Pages Router offers traditional API routes and client-side rendering patterns.
+Intrig uses different configuration approaches for server and client environments. Server-side functions rely on environment variables, while client-side hooks use the IntrigLayout component for configuration. Understanding this separation is crucial for proper setup.
 
-Read more → [App Router vs Pages Router](/docs/next/core-concepts/app-router-vs-pages-router)
+Read more → [Configuration Management](/docs/next/core-concepts/configuration-management)
 
 ---
 
 ## Server-Side Functions
 
-Server-side functions are async functions that run in API routes and server components. They provide direct backend access without the overhead of client-side state management, making them ideal for data fetching, mutations, and server-side processing.
+Server-side functions are async functions that run in Node.js environments (API routes and server components). They provide direct backend access without client-side state management overhead, making them ideal for data fetching, mutations, and server-side processing.
 
 Read more → [Server-Side Functions](/docs/next/core-concepts/server-side-functions)
 
@@ -30,30 +30,30 @@ Read more → [Server-Side Functions](/docs/next/core-concepts/server-side-funct
 
 ## Client-Side Hooks
 
-Client-side hooks in Next.js work similarly to React hooks but are optimized for hydration and server-side rendering scenarios. They handle client-side state, user interactions, and dynamic data updates after the initial page load.
+Client-side hooks manage state and user interactions in the browser. They're optimized for Next.js hydration patterns and provide reactive state management, loading states, and error handling for dynamic user interfaces.
 
 Read more → [Client-Side Hooks](/docs/next/core-concepts/client-side-hooks)
 
 ---
 
-## Hydration and SSR Patterns
-
-Managing state consistency between server and client is crucial in Next.js applications. Intrig provides patterns for handling hydration, preventing layout shifts, and ensuring smooth transitions from server-rendered to client-interactive states.
-
-Read more → [Hydration and SSR Patterns](/docs/next/core-concepts/hydration-ssr-patterns)
-
----
-
 ## Middleware Integration
 
-Next.js middleware can be enhanced with Intrig for authentication, request/response transformation, and edge-side processing. Understanding how to integrate Intrig with middleware enables powerful pre-processing capabilities.
+Next.js middleware enhanced with Intrig enables centralized request processing at the edge. This includes authentication header injection, rate limiting, request transformation, and other preprocessing capabilities before requests reach your API routes or server components.
 
 Read more → [Middleware Integration](/docs/next/core-concepts/middleware-integration)
 
 ---
 
+## Hydration Patterns
+
+Managing the transition from server-rendered content to client-interactive applications requires careful consideration of state consistency, preventing layout shifts, and ensuring smooth user experiences during the hydration process.
+
+Read more → [Hydration Patterns](/docs/next/core-concepts/hydration-patterns)
+
+---
+
 **Next Steps:**
 
-* Explore each concept in detail through the linked pages.
-* Apply these patterns in your Next.js components to make the most of Intrig's server and client capabilities.
-* Start with server-client architecture to understand the fundamental separation of concerns.
+* Start with [Server-Client Architecture](/docs/next/core-concepts/server-client-architecture) to understand the fundamental separation of concerns.
+* Learn about [Configuration Management](/docs/next/core-concepts/configuration-management) to properly set up your application.
+* Explore server and client concepts to understand when to use each approach.

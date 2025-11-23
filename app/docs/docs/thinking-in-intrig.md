@@ -71,20 +71,10 @@ No boilerplate, no manual type definitions — just instant integration.
 
 ---
 
-### 4. Patterns and Constraints That Matter
+### 4. Framework-Specific Patterns
 
-Intrig encourages certain patterns that help you get the most out of the SDK. Knowing them early will make your code cleaner and easier to maintain:
-
-* **[Storage Behavior](patterns/storage-behavior)** – Intrig maintains a global store of each API endpoint’s state outside of any component, allowing multiple components to access the same network state without knowing about each other.
-* **[Keys for Distinct Responses](patterns/keyed-calls)** – Reuse the same endpoint for multiple states at once (e.g., product comparison) by adding a key to the hook, ensuring each state remains separate.
-* **[Stateful vs. Stateless Hooks](patterns/stateful-vs-stateless)** – Use stateful hooks when you want results cached in Intrig’s store (like search results or product details). Use stateless hooks for temporary or one-off operations such as form submissions.
-* **[Active Lifecycle Binding vs. Passive Observation](patterns/lifecycle-vs-passive)** – Lifecycle binding triggers load/unload with the component to prevent stale flashes; passive observation displays data loaded by another component without triggering its own fetch.
-* **[Hierarchical Component Thinking](patterns/hierarchical-thinking)** – Place data-fetching hooks higher in the component tree and let child components observe. For example, load product data in a page-level component and let children reuse it without re-fetching. This works especially well if your file structure mirrors the component hierarchy (e.g., Next.js style), making it easier to identify the true “root” for active hook binding compared to a flat pages/components/utils separation.
-
-**Layout guidance:** While not mandatory, a route- or feature-based directory structure (such as Next.js) tends to make Intrig’s hierarchical hook binding pattern easier to apply. By colocating the page-level “owner” component with its related child components, you can clearly identify where active hooks should be bound, reducing accidental duplicate fetches and improving cohesion.
+Intrig promotes patterns that optimize integration depending on your target framework (e.g., React, Next.js). Each framework has its own best practices for state management, hook usage, and lifecycle behavior. Refer to the framework-specific documentation for these patterns to learn how to apply them effectively.
 
 ---
 
 **In short:** Thinking in Intrig is about designing APIs first, letting the code generation handle the repetitive work, and adopting patterns that keep frontend and backend in sync. Once you internalize this workflow, you’ll find development faster, cleaner, and less error-prone.
-
----

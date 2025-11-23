@@ -9,7 +9,6 @@ import {LastVisitService} from "../services/last-visit.service";
 import {EntityView} from "../models/entity-view.model";
 import {PinItemDto} from "../models/pin-item.dto";
 import {FileListResponseDto} from "../models/file-list-response.dto";
-import { LazyCodeAnalyzerService } from "../../utils/lazy-code-analyzer.service";
 
 @Controller('data')
 @ApiExtraModels(ResourceDescriptor, Page, SchemaDocumentation, RestDocumentation, SourceStats, DataStats, SearchQuery, EntityView, PinItemDto, FileListResponseDto)
@@ -18,7 +17,6 @@ export class DataSearchController {
   constructor(
     private dataSearchService: DataSearchService,
     private lastVisitService: LastVisitService,
-    private codeAnalyzer: LazyCodeAnalyzerService
   ) {
   }
 
@@ -177,6 +175,12 @@ export class DataSearchController {
     return { success, message: `Item ${id} unpinned successfully` };
   }
 
+  /**
+   * @deprecated
+   * @param sourceId
+   * @param type
+   * @param id
+   */
   @Get("/files")
   @ApiOperation({summary: 'Get list of files per endpoint/datatype'})
   @ApiResponse({status: 200, description: 'Returns list of files where the endpoint/datatype is used', type: FileListResponseDto})
@@ -192,8 +196,7 @@ export class DataSearchController {
     if (!sourceId || !type || !id) {
       throw new NotFoundException('Missing required parameters: sourceId, type, and id are required');
     }
-    
-    const files = this.codeAnalyzer.getFileList(sourceId, type, id);
-    return new FileListResponseDto(files);
+
+    return new FileListResponseDto([]);
   }
 }

@@ -1,5 +1,5 @@
 import {Inject, Injectable, Logger} from '@nestjs/common';
-import type {GenerateEventContext, IIntrigSourceConfig, IntrigConfig} from "common";
+import {GenerateEventContext, IIntrigSourceConfig, IntrigConfig, SourceManagementService} from "common";
 import {
   // GeneratorBinding,
   IntrigSourceConfig,
@@ -38,6 +38,7 @@ export class OperationsService {
               private config: ConfigService,
               private searchService: SearchService,
               private lazyPluginService: LazyPluginService,
+              private sourceManagementService: SourceManagementService,
   ) {
   }
 
@@ -282,18 +283,20 @@ export class OperationsService {
   private async generateContent(ctx: GenerateEventContext, sources: IntrigSourceConfig[], descriptors: ResourceDescriptor<any>[]) {
     const _generatorDir = this.generateDir
     const plugin = await this.lazyPluginService.getPlugin();
+    const rootDir = this.config.get('rootDir') ?? process.cwd();
+    const dump = this.sourceManagementService.dump;
     return plugin.generate({
       sources,
       restDescriptors: descriptors.filter(d => d.type === 'rest') as ResourceDescriptor<RestData>[],
       schemaDescriptors: descriptors.filter(d => d.type === 'schema') as ResourceDescriptor<Schema>[],
       async dump(compilerContent: Promise<CompiledContent>) {
         const {content, path: _path} = await compilerContent
-        this.dump(Promise.resolve({
+        await dump(Promise.resolve({
           content,
-          path: path.resolve(_generatorDir, _path)
+          path: path.resolve(_generatorDir, path.relative(rootDir, _path))
         }))
       },
-      rootDir: this.config.get('rootDir') ?? process.cwd(),
+      rootDir: rootDir,
     });
   }
 
