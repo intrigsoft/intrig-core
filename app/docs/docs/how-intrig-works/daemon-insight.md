@@ -266,9 +266,9 @@ lsof -ti:5050 | xargs kill
 ## Performance Characteristics
 
 **Indexing Time**:
-- Small APIs (<50 endpoints): <1 second
+- Small APIs (< 50 endpoints): < 1 second
 - Medium APIs (50-200 endpoints): 1-3 seconds
-- Large APIs (>500 endpoints): 3-5 seconds
+- Large APIs (> 500 endpoints): 3-5 seconds
 
 **Memory Usage**:
 - Base daemon: ~30-50MB
@@ -276,8 +276,8 @@ lsof -ti:5050 | xargs kill
 - Typical project: 50-100MB total
 
 **Search Performance**:
-- Average query response: <50ms
-- Complex pattern matches: <200ms
+- Average query response: < 50ms
+- Complex pattern matches: < 200ms
 
 ---
 

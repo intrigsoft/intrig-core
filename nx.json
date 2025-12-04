@@ -158,7 +158,8 @@
       "@intrig/esbuild",
       "@intrig/plugin-sdk",
       "@intrig/plugin-react",
-      "@intrig/plugin-next"
+      "@intrig/plugin-next",
+      "@intrig/plugin-nest"
     ],
     "npmPackages": [
       {
@@ -184,6 +185,10 @@
       {
         "packageRoot": "dist/plugins/react",
         "packageName": "@intrig/plugin-react"
+      },
+      {
+        "packageRoot": "dist/plugins/nest",
+        "packageName": "@intrig/plugin-nest"
       }
     ]
   },
