@@ -1,5 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function getPkgJson(pkgDir) {
   const pkgPath = path.join(pkgDir, 'package.json');
@@ -9,7 +12,7 @@ function getPkgJson(pkgDir) {
   return {};
 }
 
-const pkg = getPkgJson(new URL('.', import.meta.url).pathname);
+const pkg = getPkgJson(__dirname);
 const rootPkg = getPkgJson(path.resolve(__dirname, '../..'));
 
 const deps = new Set([
