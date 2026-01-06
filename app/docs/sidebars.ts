@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'how-intrig-works/synchronization',
         'how-intrig-works/code-generation',
+        'how-intrig-works/mcp-integration',
       ],
     },
     'cli-reference',
