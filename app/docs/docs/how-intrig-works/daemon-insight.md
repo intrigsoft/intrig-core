@@ -295,6 +295,14 @@ Do not start the daemon in CI environments. Generation and synchronization work 
 
 ---
 
+## AI-Assisted Development
+
+For developers using Claude Desktop or MCP-compatible IDEs, the Intrig MCP server provides direct access to API documentation within the AI conversation. The MCP server discovers running daemons and proxies documentation requests, enabling endpoint search and type inspection without context-switching to the browser.
+
+See [MCP Integration](./mcp-integration.md) for setup and usage.
+
+---
+
 ## Related Documentation
 
 - [Synchronization](./synchronization.md) - Keeping specifications current

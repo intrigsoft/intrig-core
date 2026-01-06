@@ -24,6 +24,10 @@ SDK generation and compilation to `node_modules`. Transforms normalized OpenAPI 
 
 Background service management and API documentation interface. The daemon enables the Insight tool, providing searchable documentation for generated code and endpoint discovery during development.
 
+### [MCP Integration](./mcp-integration.md)
+
+Model Context Protocol server for AI-assisted development. Enables Claude Desktop and MCP-compatible IDEs to query API documentation, search endpoints, and retrieve type information directly within the development conversation.
+
 ### [Complete Development Workflow](./workflow.md)
 
 End-to-end integration workflow from backend API changes through SDK regeneration, type checking, and implementation. Documents the feedback loop between specification changes and compile-time validation.

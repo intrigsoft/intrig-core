@@ -53,6 +53,9 @@
     },
     {
       "path": "./plugins/nest"
+    },
+    {
+      "path": "./app/intrig-mcp"
     }
   ]
 }

@@ -1,0 +1,115 @@
+{
+  "name": "@intrig/mcp",
+  "version": "0.0.1",
+  "description": "MCP server for Intrig - exposes API documentation and search capabilities to Claude Desktop and MCP-compatible IDEs",
+  "type": "module",
+  "main": "./dist/main.js",
+  "bin": {
+    "intrig-mcp": "./dist/main.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "intrig",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "api-documentation",
+    "openapi",
+    "cli"
+  ],
+  "author": "Intrig <contact@intrig.io>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intrigsoft/intrig.git",
+    "directory": "app/intrig-mcp"
+  },
+  "homepage": "https://intrig.io",
+  "bugs": {
+    "url": "https://github.com/intrigsoft/intrig/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "tcp-port-used": "^1.0.2"
+  },
+  "nx": {
+    "name": "intrig-mcp",
+    "sourceRoot": "app/intrig-mcp/src",
+    "projectType": "application",
+    "tags": ["mcp-server"],
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "app/intrig-mcp/dist",
+          "format": [
+            "esm"
+          ],
+          "bundle": true,
+          "main": "app/intrig-mcp/src/main.ts",
+          "tsConfig": "app/intrig-mcp/tsconfig.app.json",
+          "assets": [
+            "app/intrig-mcp/src/assets"
+          ],
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "intrig-mcp:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "intrig-mcp:build:development"
+          },
+          "production": {
+            "buildTarget": "intrig-mcp:build:production"
+          }
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "outputs": [
+          "{workspaceRoot}/test-output/vitest/coverage"
+        ],
+        "options": {
+          "command": "vitest run",
+          "cwd": "app/intrig-mcp"
+        }
+      }
+    }
+  }
+}
