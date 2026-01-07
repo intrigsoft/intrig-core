@@ -44,6 +44,48 @@ const FIELD_BOOSTS = {
 } as const;
 
 /**
+ * HTTP methods recognized for method-only search
+ */
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as const;
+
+/**
+ * Custom tokenizer that splits on whitespace, punctuation, and camelCase boundaries.
+ * This enables "Request" to match "CreateUserRequest" and "User" to match "getUserProfile".
+ *
+ * Includes both original tokens and split tokens to preserve exact match ranking.
+ * For example, "getUser" produces: ["getuser", "get", "user"]
+ */
+function camelCaseTokenizer(text: string): string[] {
+  if (!text) return [];
+
+  const tokens: string[] = [];
+
+  // First split on whitespace, hyphens, underscores, slashes, and braces
+  const baseTokens = text.split(/[\s\-_/{}]+/).filter(t => t.length > 0);
+
+  for (const token of baseTokens) {
+    const lower = token.toLowerCase();
+
+    // Always include the full token for exact matching
+    tokens.push(lower);
+
+    // Split on camelCase boundaries
+    const parts = token.split(/(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/);
+
+    // If it was split, add the individual parts too
+    if (parts.length > 1) {
+      for (const part of parts) {
+        if (part.length > 0) {
+          tokens.push(part.toLowerCase());
+        }
+      }
+    }
+  }
+
+  return tokens;
+}
+
+/**
  * Detects query intent based on patterns in the search string
  * Priority order: Path Pattern → HTTP Method → CamelCase → Generic
  */
@@ -198,7 +240,6 @@ export class SearchService implements OnModuleInit {
         'package',
         'summary',
         'description',
-        '__all__',
         'dataTypes'
       ],
       storeFields: [
@@ -213,10 +254,11 @@ export class SearchService implements OnModuleInit {
         'summary',
         'description',
         'lastAccessed',
-        '__all__',
         'dataTypes',
       ],
       idField: 'id',
+      // Custom tokenizer for camelCase splitting
+      tokenize: camelCaseTokenizer,
       // Field-specific boost weights applied during search
       boost: {
         operationId: FIELD_BOOSTS.operationId,
@@ -225,6 +267,10 @@ export class SearchService implements OnModuleInit {
         method: FIELD_BOOSTS.method,
         summary: FIELD_BOOSTS.summary,
         description: FIELD_BOOSTS.description,
+      },
+      // Apply same tokenizer to search queries
+      searchOptions: {
+        tokenize: camelCaseTokenizer,
       },
     });
   }
@@ -274,28 +320,15 @@ export class SearchService implements OnModuleInit {
    * Completely remove a descriptor from both the lookup map and the search index.
    */
   removeDescriptor(id: string) {
-    // 1) Get descriptor before removing
-    const desc = this.descriptors.get(id);
-
-    // 2) Remove from the in-memory map
+    // 1) Remove from the in-memory map
     this.descriptors.delete(id);
 
-    // 3) Remove from MiniSearch
-    if (desc) {
-      const base = {
-        id: desc.id,
-        name: desc.name,
-        type: desc.type,
-        source: desc.source,
-        path: desc.path,
-        lastAccessed: desc.lastAccessed ?? 0,
-      };
-      if (this.mini.has(base)) {
-        this.mini.remove(base);
-      }
+    // 2) Remove from MiniSearch by ID using discard()
+    if (this.mini.has(id)) {
+      this.mini.discard(id);
     }
 
-    // 4) Rebuild cache to reflect removal
+    // 3) Rebuild cache to reflect removal
     this.exactMatchCache.rebuild(this.descriptors);
   }
 
@@ -312,14 +345,16 @@ export class SearchService implements OnModuleInit {
    * Internal: extract the fields we care about and feed MiniSearch.
    */
   private indexDescriptor<T>(desc: ResourceDescriptor<T>) {
-    const base = {
+    const base: Record<string, any> = {
       id:           desc.id,
       name:         desc.name,
       type:         desc.type,
       source:       desc.source,
       path:         desc.path,
       lastAccessed: desc.lastAccessed ?? 0,
-      __all__: '__all__'
+      // Ensure these are never undefined (MiniSearch may skip undefined fields)
+      summary:      '',
+      description:  '',
     };
 
     // enrich with REST-specific fields
@@ -329,11 +364,11 @@ export class SearchService implements OnModuleInit {
         .filter(a => !!a)
         .map(a => a as string);
       Object.assign(base, {
-        method:      d.method,
-        package:     d.paths?.join('/'),
-        operationId: d.operationId,
-        summary:     d.summary,
-        description: d.description,
+        method:      d.method ?? '',
+        package:     d.paths?.join('/') ?? '',
+        operationId: d.operationId ?? '',
+        summary:     d.summary ?? '',
+        description: d.description ?? '',
         dataTypes
       });
     }
@@ -341,20 +376,20 @@ export class SearchService implements OnModuleInit {
     // enrich with Schema-specific fields
     if (isSchemaDescriptor(desc)) {
       const s = desc.data as Schema;
-      // note: override base.name if you want
       Object.assign(base, { name: s.name });
     }
 
-    // remove old index (if present) then add
-    if (this.mini.has(base)) {
-      this.mini.remove(base);
+    // Remove old index entry by ID if present, then add new
+    // Use discard() for removal by ID (not remove() which requires full document)
+    if (this.mini.has(desc.id)) {
+      this.mini.discard(desc.id);
     }
 
     this.mini.add(base);
   }
 
   /**
-   * Call this whenever a user “uses” (opens/invokes) a descriptor.
+   * Call this whenever a user "uses" (opens/invokes) a descriptor.
    * Updates lastAccessed and re-indexes.
    */
   touchDescriptor(id: string) {
@@ -365,15 +400,109 @@ export class SearchService implements OnModuleInit {
   }
 
   /**
+   * List all descriptors with optional filtering, sorting by recency, and pagination.
+   * Used for empty queries and HTTP method-only queries (bypasses MiniSearch).
+   */
+  private listAllWithFilters(opts: SearchOptions & { method?: string } = {}): ResourceDescriptor<any>[] {
+    const now = Date.now();
+    const offset = opts.offset ?? 0;
+    const limit = opts.limit ?? 20;
+
+    // Get all descriptors and apply filters
+    let filtered = Array.from(this.descriptors.values()).filter(desc => {
+      const restData = isRestDescriptor(desc) ? desc.data as RestData : null;
+
+      // Type filter
+      if (opts.type && desc.type !== opts.type) return false;
+
+      // Package filter
+      if (opts.pkg && restData?.paths?.join('/') !== opts.pkg) return false;
+
+      // Source filter
+      if (opts.source && desc.source !== opts.source) return false;
+
+      // DataTypes filter
+      if (opts.dataTypes && opts.dataTypes.length > 0) {
+        if (!restData) return false;
+        const descriptorDataTypes = [
+          restData.requestBody,
+          restData.response,
+          ...(restData.variables?.map(v => v.ref.split('/').pop()) ?? [])
+        ].filter(Boolean);
+        if (_.intersection(opts.dataTypes, descriptorDataTypes).length === 0) return false;
+      }
+
+      // Names filter
+      if (opts.names && !opts.names.includes(desc.name)) return false;
+
+      // HTTP method filter (for method-only queries)
+      if (opts.method && restData?.method !== opts.method) return false;
+
+      return true;
+    });
+
+    // Sort by recency (most recent first)
+    filtered.sort((a, b) => {
+      const aTime = a.lastAccessed ?? 0;
+      const bTime = b.lastAccessed ?? 0;
+      return bTime - aTime;
+    });
+
+    // Apply pagination
+    return filtered.slice(offset, offset + limit);
+  }
+
+  /**
+   * Count all descriptors matching filters (for getTotalCount with empty/method queries).
+   */
+  private countAllWithFilters(opts: Omit<SearchOptions, 'limit' | 'offset'> & { method?: string } = {}): number {
+    return Array.from(this.descriptors.values()).filter(desc => {
+      const restData = isRestDescriptor(desc) ? desc.data as RestData : null;
+
+      if (opts.type && desc.type !== opts.type) return false;
+      if (opts.pkg && restData?.paths?.join('/') !== opts.pkg) return false;
+      if (opts.source && desc.source !== opts.source) return false;
+      if (opts.dataTypes && opts.dataTypes.length > 0) {
+        if (!restData) return false;
+        const descriptorDataTypes = [
+          restData.requestBody,
+          restData.response,
+          ...(restData.variables?.map(v => v.ref.split('/').pop()) ?? [])
+        ].filter(Boolean);
+        if (_.intersection(opts.dataTypes, descriptorDataTypes).length === 0) return false;
+      }
+      if (opts.names && !opts.names.includes(desc.name)) return false;
+      if (opts.method && restData?.method !== opts.method) return false;
+
+      return true;
+    }).length;
+  }
+
+  /**
    * Get the total count of search results without applying pagination
    * @param query Search query
    * @param opts Search options (excluding pagination)
    * @returns Total count of matching results
    */
   getTotalCount(query: string, opts: Omit<SearchOptions, 'limit' | 'offset'> = {}): number {
+    const trimmed = query.trim();
     const fuzzy = opts.fuzzy ?? 0.2;
-    const q = query.trim().length ? query.trim() : '__all__';
-    const rawHits = this.mini.search(q, { prefix: true, fuzzy,
+
+    // Handle empty query - bypass MiniSearch entirely
+    if (!trimmed) {
+      return this.countAllWithFilters(opts);
+    }
+
+    // Handle HTTP method-only query (e.g., "GET", "POST")
+    const upperQuery = trimmed.toUpperCase();
+    if (HTTP_METHODS.includes(upperQuery as typeof HTTP_METHODS[number])) {
+      return this.countAllWithFilters({ ...opts, method: upperQuery });
+    }
+
+    // Standard MiniSearch query
+    const rawHits = this.mini.search(trimmed, {
+      prefix: true,
+      fuzzy,
       filter(doc) {
         return (!opts.type || doc.type === opts.type) &&
           (!opts.pkg || doc.package === opts.pkg) &&
@@ -382,7 +511,7 @@ export class SearchService implements OnModuleInit {
           (!opts.names || opts.names.includes(doc.name));
       }
     });
-    
+
     return rawHits.length;
   }
 
@@ -394,27 +523,39 @@ export class SearchService implements OnModuleInit {
   search(query: string, opts: SearchOptions = {}): ResourceDescriptor<any>[] {
     const now = Date.now();
     const fuzzy = opts.fuzzy ?? 0.2;
-    const q = query.trim().length ? query.trim() : '__all__';
+    const trimmed = query.trim();
+
+    // Handle empty query - bypass MiniSearch entirely
+    if (!trimmed) {
+      return this.listAllWithFilters(opts);
+    }
+
+    // Handle HTTP method-only query (e.g., "GET", "POST")
+    const upperQuery = trimmed.toUpperCase();
+    if (HTTP_METHODS.includes(upperQuery as typeof HTTP_METHODS[number])) {
+      return this.listAllWithFilters({ ...opts, method: upperQuery });
+    }
 
     // Detect query intent to determine scoring strategy
-    const intent = detectIntent(q);
+    const intent = detectIntent(trimmed);
 
     // Prepare search query based on intent
-    let searchQuery = q;
+    let searchQuery = trimmed;
     if (intent.type === 'http_method') {
       // Strip HTTP method prefix from query (with optional whitespace)
-      searchQuery = q.replace(/^(GET|POST|PUT|PATCH|DELETE)\s*/i, '').trim();
+      searchQuery = trimmed.replace(/^(GET|POST|PUT|PATCH|DELETE)\s*/i, '').trim();
       if (!searchQuery) {
-        searchQuery = '__all__'; // If only method was provided, search all
+        // Only method was provided - use listAllWithFilters with method filter
+        return this.listAllWithFilters({ ...opts, method: intent.method });
       }
     } else if (intent.type === 'camelcase') {
       // Strip common React hook prefix "use" if present
       // e.g., "useGetUser" -> "getUser"
-      searchQuery = q.replace(/^use([A-Z])/, '$1');
+      searchQuery = trimmed.replace(/^use([A-Z])/, '$1');
     }
 
-    // Try exact match cache first (only for non-empty, non-__all__ queries)
-    if (searchQuery !== '__all__' && searchQuery.length > 0) {
+    // Try exact match cache first (only for non-empty queries)
+    if (searchQuery.length > 0) {
       const cachedResults = this.exactMatchCache.lookup(searchQuery);
       if (cachedResults && cachedResults.length > 0) {
         // Apply filters to cached results
