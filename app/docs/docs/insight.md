@@ -247,6 +247,6 @@ When TypeScript shows a type you don't recognize:
 
 ## Related Documentation
 
-- [Daemon Management](./daemon-insight.md) - Daemon lifecycle and troubleshooting
-- [Synchronization](./synchronization.md) - Keeping specifications current
-- [CLI Reference](../cli-reference.mdx) - Complete command documentation
+- [Daemon Management](./how-intrig-works/daemon-insight.md) - Daemon lifecycle and troubleshooting
+- [Synchronization](./how-intrig-works/synchronization.md) - Keeping specifications current
+- [CLI Reference](./cli-reference.mdx) - Complete command documentation
