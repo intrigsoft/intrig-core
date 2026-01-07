@@ -1,3 +1,20 @@
+## 0.0.15-15 (2026-01-07)
+
+### 🚀 Features
+
+- add type guards documentation, daemon API types, and new discovery service tests ([086af8d](https://github.com/intrigsoft/intrig-core/commit/086af8d))
+- add local registry configuration, rollup update, and Insight assets documentation ([547fad3](https://github.com/intrigsoft/intrig-core/commit/547fad3))
+- **docs:** add comprehensive documentation style guide ([f0f31dc](https://github.com/intrigsoft/intrig-core/commit/f0f31dc))
+- **docs:** add detailed project context and problem space documentation ([6862fb9](https://github.com/intrigsoft/intrig-core/commit/6862fb9))
+- **docs:** add Insight documentation and update sidebar navigation ([e6dcbac](https://github.com/intrigsoft/intrig-core/commit/e6dcbac))
+- **docs:** update Insight links for new folder structure ([2ac074d](https://github.com/intrigsoft/intrig-core/commit/2ac074d))
+- **nest-plugin:** introduce NestJS plugin for Intrig ([e343dfd](https://github.com/intrigsoft/intrig-core/commit/e343dfd))
+- **search:** enhance search with camelCase tokenizer and HTTP method filters ([3402487](https://github.com/intrigsoft/intrig-core/commit/3402487))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-14 (2025-11-02)
 
 ### 🚀 Features
