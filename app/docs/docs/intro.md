@@ -17,6 +17,13 @@ Intrig is a TypeScript SDK generator that creates type-safe, framework-specific 
 
 **Type Safety**: Full TypeScript integration with breaking change detection at build time. API schema changes trigger immediate type-checking feedback.
 
+## SDK Reference
+
+The generated SDK's API surface depends on your target framework. For hook signatures, configuration options, state management, and usage patterns, see your framework's documentation:
+
+- [React](/docs/react/)
+- [Next.js](/docs/next/)
+
 ## Standard Workflow
 
 1. Install Intrig and initialize configuration

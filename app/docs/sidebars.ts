@@ -30,6 +30,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'cli-reference',
+    'ci-cd-integration',
     'insight',
     {
       type: 'category',
@@ -71,7 +72,9 @@ const sidebars: SidebarsConfig = {
             'react/api/stateless-hook',
             'react/api/download-hook'
           ]
-        }
+        },
+        'react/authentication',
+        'react/error-handling',
       ]
     },
     {
@@ -115,7 +118,9 @@ const sidebars: SidebarsConfig = {
             'next/api/is-pending',
             'next/api/is-init'
           ]
-        }
+        },
+        'next/authentication',
+        'next/error-handling',
       ]
     },
   ],

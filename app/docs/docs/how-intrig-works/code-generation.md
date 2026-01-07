@@ -192,3 +192,15 @@ npm run build
 - [Synchronization](./synchronization.md) - Fetching and normalizing specifications
 - [Complete Workflow](./workflow.md) - End-to-end development process
 - Framework-specific guides - Integration patterns per framework
+
+## Framework-Specific Reference
+
+The code generation output varies by plugin. Each framework has distinct patterns:
+
+- **React**: Hooks returning `[state, execute, clear]` tuples
+- **Next.js**: React hooks with SSR/RSC considerations
+
+For complete API reference including configuration options, state management, and usage patterns:
+
+- [React SDK Reference](/docs/react/)
+- [Next.js SDK Reference](/docs/next/)

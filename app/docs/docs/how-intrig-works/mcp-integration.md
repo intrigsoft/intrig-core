@@ -40,6 +40,7 @@ Key properties:
 - **Proxy architecture**: Discovers and delegates to daemon REST APIs
 - **Auto-start**: Automatically starts daemons when needed
 - **Global instance**: Single MCP server serves all Intrig projects on the machine
+- **MCP client compatibility**: Works with any MCP-compatible client including Claude Desktop, Claude Code, Cursor, and other IDE integrations supporting the Model Context Protocol
 
 ---
 
@@ -61,16 +62,11 @@ After global installation, the `intrig-mcp` command becomes available.
 
 ---
 
-## Claude Desktop Configuration
+## Configuration
 
-Configure Claude Desktop to use the Intrig MCP server by editing the Claude configuration file.
+Configure your MCP client to use the Intrig MCP server.
 
-**Configuration file location**:
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- Linux: `~/.config/Claude/claude_desktop_config.json`
-
-**Using npx**:
+**Using npx (recommended)**:
 ```json
 {
   "mcpServers": {
@@ -93,7 +89,7 @@ Configure Claude Desktop to use the Intrig MCP server by editing the Claude conf
 }
 ```
 
-Restart Claude Desktop after modifying the configuration.
+Refer to your MCP client's documentation for configuration file location and restart requirements.
 
 ---
 
@@ -188,35 +184,119 @@ Retrieves full documentation for an endpoint or schema, including inlined type d
 
 ---
 
-## Usage Examples
+## Scope and Limitations
 
-### Discovering Available APIs
+The MCP server provides read-only access to API documentation derived from OpenAPI specifications. Understanding its scope helps set appropriate expectations.
 
-Query Claude with:
-> "What Intrig projects are available on this machine?"
+### What MCP Provides
 
-Claude uses `list_projects` to return all registered projects and their status.
+- Endpoint discovery by name, path, HTTP method
+- Schema exploration with full type definitions
+- Generated code examples for each endpoint
+- Cross-referencing between related types and endpoints
+- Multi-project and multi-source navigation
 
-### Finding Endpoints
+### What MCP Does Not Provide
 
-Query Claude with:
-> "Search for user-related endpoints in my-react-app"
+- **Runtime information**: No access to actual API responses, logs, or metrics
+- **Code modification**: Cannot create, edit, or delete files in your project
+- **Specification editing**: Cannot modify OpenAPI specs or Intrig configuration
+- **Test execution**: Cannot invoke endpoints or validate responses
+- **Full-text search on descriptions**: Search targets identifiers (names, paths, types), not prose descriptions
+- **Semantic search**: Keyword matching, not natural language understanding of intent
 
-Claude uses `search` with `query: "user"` to find matching endpoints and schemas.
+### Search Behavior
 
-### Getting Implementation Details
+Search uses keyword matching against:
+- Endpoint operation IDs and paths
+- HTTP methods
+- Schema names
+- Parameter names
 
-Query Claude with:
-> "Show me the documentation for the createUser endpoint"
+For best results, use specific terms that appear in the OpenAPI specification. Generic queries like "get data" may return limited results compared to specific queries like "getEmployee" or "/api/users".
 
-Claude uses `get_documentation` to retrieve complete endpoint documentation including request/response types and generated hook examples.
+### Large API Surfaces
 
-### Multi-Source Projects
+For APIs with hundreds of endpoints, search results are limited (default: 15). Use source filters and specific queries to narrow results. Multiple searches may be needed to fully explore a large API.
 
-For projects with multiple API sources:
-> "Search for authentication endpoints in the auth-api source"
+---
 
-Claude uses `search` with `source: "auth-api"` to filter results to a specific backend.
+## Developer Workflows
+
+The MCP server supports common development scenarios where API discovery accelerates implementation.
+
+### Implementing a New Feature
+
+You're building an employee management form and need to understand the available API operations.
+
+**Step 1: Discover the API structure**
+> "What API sources are available in this project?"
+
+Claude lists configured sources (e.g., `employee_api`, `auth_api`).
+
+**Step 2: Find relevant endpoints**
+> "Search for employee endpoints in employee_api"
+
+Claude returns matching endpoints: `getEmployee`, `createEmployee`, `updateEmployee`, `deleteEmployee`.
+
+**Step 3: Get implementation details**
+> "Show me the createEmployee endpoint documentation"
+
+Claude provides:
+- HTTP method and path
+- Request body schema with all fields and types
+- Response schema
+- Generated hook code example
+- Related types for imports
+
+**Step 4: Understand validation**
+> "What fields are required for creating an employee?"
+
+Claude references the schema to identify required vs optional fields and their constraints.
+
+### Understanding Error Responses
+
+When implementing error handling, you need to know what errors an endpoint can return.
+
+> "What error responses can createEmployee return?"
+
+Claude retrieves the endpoint documentation including error response schemas defined in the OpenAPI spec.
+
+### Exploring Type Definitions
+
+When working with complex nested types:
+
+> "Show me the Employee schema"
+
+Claude returns the full type definition with all properties, nested types inlined for immediate understanding.
+
+> "What types reference Employee?"
+
+Claude searches for schemas that include Employee, revealing related types like `EmployeeListResponse` or `CreateEmployeeRequest`.
+
+### Working with Multiple API Sources
+
+For projects integrating multiple backends:
+
+> "Search for authentication endpoints across all sources"
+
+Claude searches all API sources, indicating which source each result belongs to.
+
+> "Show me the login endpoint from auth_api"
+
+Claude retrieves documentation scoped to the specific source.
+
+### Discovering Available Operations
+
+When joining a project or exploring an unfamiliar API:
+
+> "What operations are available for orders?"
+
+Claude searches endpoints and schemas, providing an overview of the order-related API surface.
+
+> "Show me all POST endpoints in the payments source"
+
+Claude filters search results by HTTP method and source.
 
 ---
 
