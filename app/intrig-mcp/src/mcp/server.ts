@@ -15,6 +15,7 @@ import { listProjectsTool, handleListProjects } from './tools/list-projects.js';
 import { getProjectTool, handleGetProject } from './tools/get-project.js';
 import { searchTool, handleSearch } from './tools/search.js';
 import { getDocumentationTool, handleGetDocumentation } from './tools/get-documentation.js';
+import { SERVER_INSTRUCTIONS } from '../instructions.js';
 
 /**
  * All registered tools with their schemas.
@@ -39,6 +40,7 @@ export function createServer(): Server {
       capabilities: {
         tools: {},
       },
+      instructions: SERVER_INSTRUCTIONS,
     }
   );
 
