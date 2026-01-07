@@ -49,7 +49,7 @@ jobs:
 
       # If your docs are an Nx target, use that; otherwise npm script.
       - name: Build docs (Nx)
-        run: npx nx run docs:build
+        run: npx nx run @intrig-core/docs:build
         # If not Nx: run: npm run build --workspace=@your/docs-app
 
       - name: Configure Pages

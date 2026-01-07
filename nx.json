@@ -182,6 +182,7 @@
     },
     "projects": [
       "app/intrig",
+      "app/intrig-mcp",
       "lib/next-client",
       "lib/react-client",
       "@intrig/vite",
@@ -197,6 +198,10 @@
       {
         "packageRoot": "dist/app/intrig",
         "packageName": "@intrig/core"
+      },
+      {
+        "packageRoot": "app/intrig-mcp",
+        "packageName": "@intrig/mcp"
       },
       {
         "packageRoot": "dist/lib/next-client",
