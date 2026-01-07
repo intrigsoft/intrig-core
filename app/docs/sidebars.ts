@@ -30,6 +30,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'cli-reference',
+    'insight',
     {
       type: 'category',
       label: "React",
