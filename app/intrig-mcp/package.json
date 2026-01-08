@@ -1,6 +1,6 @@
 {
   "name": "@intrig/mcp",
-  "version": "0.0.15-16",
+  "version": "0.0.15-17",
   "description": "MCP server for Intrig - exposes API documentation and search capabilities to Claude Desktop and MCP-compatible IDEs",
   "type": "module",
   "main": "./dist/main.js",
