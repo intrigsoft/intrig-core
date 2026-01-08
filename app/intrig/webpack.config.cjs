@@ -30,8 +30,8 @@ class CreateMinimalPackageJsonPlugin {
       try {
         const sourcePkg = JSON.parse(fs.readFileSync(sourcePkgPath, 'utf8'));
 
-        // Create minimal package.json - only ESM-only modules that must be dynamic imports
-        // These are the only true runtime dependencies
+        // Create minimal package.json with ZERO dependencies
+        // All dependencies are now bundled!
         const minimalPkg = {
           name: '@intrig/core',
           version: sourcePkg.version,
@@ -43,12 +43,8 @@ class CreateMinimalPackageJsonPlugin {
           publishConfig: {
             access: 'public',
           },
-          // Only include dependencies that MUST be external (ESM-only dynamic imports)
-          dependencies: {
-            lowdb: '^7.0.0',
-            nypm: '^0.6.0',
-            open: '^10.0.0',
-          },
+          // No dependencies - everything is bundled!
+          dependencies: {},
         };
 
         fs.writeFileSync(destPkgPath, JSON.stringify(minimalPkg, null, 2));
@@ -60,7 +56,7 @@ class CreateMinimalPackageJsonPlugin {
   }
 }
 
-// Helper function to create a dynamic import wrapper
+// Helper function to create a dynamic import wrapper (for any remaining external ESM modules)
 const createDynamicImportWrapper = () => {
   return {
     apply(compiler) {
@@ -85,20 +81,6 @@ const createDynamicImportWrapper = () => {
                 return `const ${name}_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("${path}");`;
               }
             );
-
-            // Handle lowdb as a dynamic import
-            content = content.replace(
-              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb"\)/g,
-              `await import("lowdb")`
-            );
-            content = content.replace(
-              /__WEBPACK_EXTERNAL_createRequire\(import\.meta\.url\)\("lowdb\/node"\)/g,
-              `await import("lowdb/node")`
-            );
-
-            content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("nypm")`, `await import("nypm")`)
-            content = content.replace(`__WEBPACK_EXTERNAL_createRequire(import.meta.url)("open")`, `await import("open")`)
-            content = content.replaceAll(`external_open_default()(`, `external_open_default().default(`)
 
             // Update the asset
             compilation.updateAsset('main.js', new webpack.sources.RawSource(content));
@@ -143,7 +125,11 @@ module.exports = {
     new webpack.BannerPlugin({
       banner: `#!/usr/bin/env node
       import { createRequire } from 'module';
+      import { fileURLToPath } from 'url';
+      import { dirname } from 'path';
       const require = createRequire(import.meta.url);
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
       `,
       raw: true,
       entryOnly: true,
@@ -161,7 +147,7 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: false,  // We'll create our own minimal package.json
       sourceMap: true,
-      // List specific modules to externalize - @intrig/plugin-sdk will be bundled
+      // List specific modules to externalize - everything else will be bundled
       externalDependencies: [
         // Optional NestJS modules that aren't installed
         '@nestjs/websockets',
@@ -170,11 +156,6 @@ module.exports = {
         '@nestjs/microservices/microservices-module',
         // Class-transformer optional import
         'class-transformer/storage',
-        // ESM-only modules that need to be externalized
-        'lowdb',
-        'lowdb/node',
-        'nypm',
-        'open',
         // Old RxJS that has bundling issues
         'rx',
         'rx.binding',
