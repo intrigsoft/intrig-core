@@ -1,3 +1,13 @@
+## 0.0.15-18 (2026-01-08)
+
+### 🚀 Features
+
+- **cli:** improve plugin installation fallback with peer dependency handling ([4ae91ee](https://github.com/intrigsoft/intrig-core/commit/4ae91ee))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-17 (2026-01-08)
 
 This was a version bump only, there were no code changes.
