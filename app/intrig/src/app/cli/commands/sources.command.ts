@@ -1,4 +1,4 @@
-import {Command, CommandRunner, SubCommand} from "nest-commander";
+import {Command, CommandRunner, Option, SubCommand} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
 import inquirer from 'inquirer';
 import {HttpService} from '@nestjs/axios'
@@ -7,6 +7,10 @@ import chalk from 'chalk';
 import {LazyPluginService} from "../../plugins/lazy-plugin.service";
 import {ConfigService} from '@nestjs/config';
 
+interface SourcesAddOptions {
+  id?: string;
+}
+
 @SubCommand({
   name: 'add',
   description: 'Add a new source',
@@ -14,7 +18,7 @@ import {ConfigService} from '@nestjs/config';
 export class SourcesAddCommand extends CommandRunner {
 
   constructor(
-    private pm: ProcessManagerService, 
+    private pm: ProcessManagerService,
     private httpService: HttpService,
     private lazyPluginService: LazyPluginService,
     private configService: ConfigService
@@ -22,7 +26,15 @@ export class SourcesAddCommand extends CommandRunner {
     super();
   }
 
-  override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
+  @Option({
+    flags: '--id <id>',
+    description: 'Specify source ID directly (letters/numbers/-/_)',
+  })
+  parseIdOption(val: string): string {
+    return val;
+  }
+
+  override async run(passedParams: string[], options?: SourcesAddOptions): Promise<void> {
     const metadata = await this.pm.getMetadata();
     if (!metadata) {
       console.error(chalk.red.bold('Error:'), chalk.red('No metadata found.'));
@@ -65,19 +77,31 @@ export class SourcesAddCommand extends CommandRunner {
       `${chalk.green('Spec:')}    ${chalk.white(source.specUrl ?? 'N/A')}`
     );
 
-    // 6) Ask for ID
-    const { id } = await inquirer.prompt<{ id: string }>([
-      {
-        type: 'input',
-        name: 'id',
-        message: chalk.yellow(
-          'Enter an ID for this source (letters/numbers/-/_):'
-        ),
-        validate: (v: string) =>
-          /^[\w-]+$/.test(v) ||
-          'ID must contain only letters, numbers, hyphens, or underscores',
-      },
-    ]);
+    // 6) Get ID from option or prompt
+    let id: string;
+    if (options?.id) {
+      // Validate the provided ID
+      if (!/^[\w-]+$/.test(options.id)) {
+        console.error(chalk.red.bold('Error:'), chalk.red('ID must contain only letters, numbers, hyphens, or underscores'));
+        process.exit(1);
+      }
+      id = options.id;
+      console.log(chalk.blue(`ℹ️  Using provided ID: ${id}`));
+    } else {
+      const { id: promptedId } = await inquirer.prompt<{ id: string }>([
+        {
+          type: 'input',
+          name: 'id',
+          message: chalk.yellow(
+            'Enter an ID for this source (letters/numbers/-/_):'
+          ),
+          validate: (v: string) =>
+            /^[\w-]+$/.test(v) ||
+            'ID must contain only letters, numbers, hyphens, or underscores',
+        },
+      ]);
+      id = promptedId;
+    }
     source.id = id;
 
     // 7) Add endpoint
@@ -156,6 +180,11 @@ export class SourceListCommand extends CommandRunner {
   }
 }
 
+interface SourcesRemoveOptions {
+  id?: string;
+  yes?: boolean;
+}
+
 @SubCommand({
   name: 'rm',
   description: 'Remove a source',
@@ -163,7 +192,7 @@ export class SourceListCommand extends CommandRunner {
 export class SourceRemoveCommand extends CommandRunner {
 
   constructor(
-    private pm: ProcessManagerService, 
+    private pm: ProcessManagerService,
     private httpService: HttpService,
     private lazyPluginService: LazyPluginService,
     private configService: ConfigService
@@ -171,7 +200,23 @@ export class SourceRemoveCommand extends CommandRunner {
     super();
   }
 
-  override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
+  @Option({
+    flags: '--id <id>',
+    description: 'Specify source ID to remove directly',
+  })
+  parseIdOption(val: string): string {
+    return val;
+  }
+
+  @Option({
+    flags: '-y, --yes',
+    description: 'Skip confirmation prompt',
+  })
+  parseYesOption(): boolean {
+    return true;
+  }
+
+  override async run(passedParams: string[], options?: SourcesRemoveOptions): Promise<void> {
     // 1) fetch metadata
     const metadata = await this.pm.getMetadata();
     if (!metadata) {
@@ -190,35 +235,56 @@ export class SourceRemoveCommand extends CommandRunner {
       return;
     }
 
-    // 3) prompt user to choose one
-    const choices = sources.map((src: any) => ({
-      name: `${src.id} — ${src.name ?? 'N/A'} (${src.specUrl})`,
-      value: src.id,
-    }));
-    const { id } = await inquirer.prompt<{ id: string }>([
-      {
-        type: 'list',
-        name: 'id',
-        message: chalk.yellow('Select a source to remove:'),
-        choices,
-      },
-    ]);
+    // 3) Get source ID from option or prompt
+    let id: string;
+    if (options?.id) {
+      // Validate the ID exists in sources
+      const sourceExists = sources.some((src: any) => src.id === options.id);
+      if (!sourceExists) {
+        console.error(chalk.red.bold('Error:'), chalk.red(`Source with ID "${options.id}" not found.`));
+        console.log(chalk.yellow('Available sources:'));
+        sources.forEach((src: any) => {
+          console.log(`  - ${src.id}`);
+        });
+        process.exit(1);
+      }
+      id = options.id;
+      console.log(chalk.blue(`ℹ️  Using provided ID: ${id}`));
+    } else {
+      const choices = sources.map((src: any) => ({
+        name: `${src.id} — ${src.name ?? 'N/A'} (${src.specUrl})`,
+        value: src.id,
+      }));
+      const { id: promptedId } = await inquirer.prompt<{ id: string }>([
+        {
+          type: 'list',
+          name: 'id',
+          message: chalk.yellow('Select a source to remove:'),
+          choices,
+        },
+      ]);
+      id = promptedId;
+    }
 
     // Store the source details before deletion for lifecycle method
     const selectedSource = sources.find((src: any) => src.id === id);
 
-    // 4) confirm deletion
-    const { confirm } = await inquirer.prompt<{ confirm: boolean }>([
-      {
-        type: 'confirm',
-        name: 'confirm',
-        message: chalk.red(`Are you sure you want to delete "${id}"?`),
-        default: false,
-      },
-    ]);
-    if (!confirm) {
-      console.log(chalk.gray('Aborted.'));
-      return;
+    // 4) Confirm deletion (skip if --yes flag is set)
+    if (!options?.yes) {
+      const { confirm } = await inquirer.prompt<{ confirm: boolean }>([
+        {
+          type: 'confirm',
+          name: 'confirm',
+          message: chalk.red(`Are you sure you want to delete "${id}"?`),
+          default: false,
+        },
+      ]);
+      if (!confirm) {
+        console.log(chalk.gray('Aborted.'));
+        return;
+      }
+    } else {
+      console.log(chalk.blue(`ℹ️  Skipping confirmation (--yes flag set)`));
     }
 
     // 5) call DELETE /remove/:id

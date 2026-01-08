@@ -1,4 +1,4 @@
-import { Command, CommandRunner } from 'nest-commander';
+import { Command, CommandRunner, Option } from 'nest-commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fsx from 'fs-extra';
@@ -32,10 +32,31 @@ interface PluginChoice {
   value: ApprovedPlugin;
 }
 
+interface InitCommandOptions {
+  plugin?: string;
+  yes?: boolean;
+}
+
 @Command({ name: 'init', description: 'Initialize Intrig setup' })
 export class InitCommand extends CommandRunner {
 
-  override async run(passedParams: string[], options?: Record<string, any>): Promise<void> {
+  @Option({
+    flags: '-p, --plugin <plugin>',
+    description: 'Specify plugin name directly (e.g., @intrig/plugin-react)',
+  })
+  parsePluginOption(val: string): string {
+    return val;
+  }
+
+  @Option({
+    flags: '-y, --yes',
+    description: 'Accept defaults and skip interactive prompts',
+  })
+  parseYesOption(): boolean {
+    return true;
+  }
+
+  override async run(passedParams: string[], options?: InitCommandOptions): Promise<void> {
     console.log(chalk.blue('🚀 Initializing Intrig setup...'));
 
     const rootDir = process.cwd();
@@ -53,21 +74,52 @@ export class InitCommand extends CommandRunner {
       
       // Check for existing plugin dependency matching the plugin regex format
       const existingPlugin = this.checkForExistingPlugin(packageJson);
-      
+
       let selectedPlugin: ApprovedPlugin;
-      if (existingPlugin) {
+
+      // Priority: 1. CLI --plugin option, 2. Existing plugin in package.json, 3. Interactive prompt (or best match with --yes)
+      if (options?.plugin) {
+        console.log(chalk.blue(`ℹ️  Using plugin from CLI option: ${options.plugin}`));
+        selectedPlugin = {
+          type: 'generator',
+          generator: 'custom',
+          name: options.plugin,
+          compat: {
+            latest: {
+              dependencies: {}
+            }
+          }
+        };
+      } else if (existingPlugin) {
         console.log(chalk.green(`✅ Found existing plugin dependency: ${existingPlugin.name}`));
         selectedPlugin = existingPlugin;
       } else {
         // Fetch approved plugins from GitHub
         const approvedPlugins = await this.fetchApprovedPlugins();
-        
-        // Prompt user to select plugin (show all plugins with best match as default)
-        selectedPlugin = await this.promptUserForPlugin(approvedPlugins, packageJson);
+
+        // If --yes flag is set, use the best matching plugin automatically
+        if (options?.yes) {
+          const projectDependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+          const pluginsWithScores = approvedPlugins.map(plugin => ({
+            plugin,
+            score: this.calculateCompatibilityScore(plugin, projectDependencies)
+          })).sort((a, b) => b.score - a.score);
+
+          const bestMatch = pluginsWithScores[0]?.plugin;
+          if (bestMatch) {
+            console.log(chalk.blue(`ℹ️  Auto-selecting best matching plugin: ${bestMatch.name} (score: ${pluginsWithScores[0].score})`));
+            selectedPlugin = bestMatch;
+          } else {
+            throw new Error('No plugins available and --yes flag was set. Please specify a plugin with --plugin option.');
+          }
+        } else {
+          // Prompt user to select plugin (show all plugins with best match as default)
+          selectedPlugin = await this.promptUserForPlugin(approvedPlugins, packageJson);
+        }
       }
       
       // Load and initialize the selected plugin
-      const { pluginInstance, generatorOptions, postInitFunction } = await this.loadAndInitializePlugin(selectedPlugin);
+      const { pluginInstance, generatorOptions, postInitFunction } = await this.loadAndInitializePlugin(selectedPlugin, options?.yes);
       
       // Check if plugin loading failed
       if (!pluginInstance) {
@@ -302,7 +354,7 @@ export class InitCommand extends CommandRunner {
     return selectedPlugin;
   }
 
-  private async loadAndInitializePlugin(plugin: ApprovedPlugin): Promise<{pluginInstance: any, generatorOptions: any, postInitFunction?: () => Promise<void> | void}> {
+  private async loadAndInitializePlugin(plugin: ApprovedPlugin, skipPrompts?: boolean): Promise<{pluginInstance: any, generatorOptions: any, postInitFunction?: () => Promise<void> | void}> {
     const installSpinner = ora(`Installing plugin: ${plugin.name}`).start();
     
     try {
@@ -361,7 +413,7 @@ export class InitCommand extends CommandRunner {
           // Stop the spinner before collecting interactive input to prevent interference
           loadSpinner.stop();
           
-          generatorOptions = await this.collectGeneratorOptions(pluginInstance.$generatorSchema, plugin.name);
+          generatorOptions = await this.collectGeneratorOptions(pluginInstance.$generatorSchema, plugin.name, skipPrompts);
 
           console.log("Generator options", generatorOptions)
 
@@ -426,9 +478,9 @@ export class InitCommand extends CommandRunner {
     }
   }
 
-  private async collectGeneratorOptions(generatorSchema: any, pluginName: string): Promise<any> {
+  private async collectGeneratorOptions(generatorSchema: any, pluginName: string, skipPrompts?: boolean): Promise<any> {
     const options: any = {};
-    
+
     if (!generatorSchema.properties) {
       return options;
     }
@@ -436,6 +488,18 @@ export class InitCommand extends CommandRunner {
     // Use schinquirer to generate questions from schema
     if (generatorSchema.properties && Object.keys(generatorSchema.properties).length > 0) {
       try {
+        // If --yes flag is set, use defaults from schema
+        if (skipPrompts) {
+          console.log(chalk.blue(`ℹ️  Using default generator options (--yes flag set)`));
+          for (const [key, prop] of Object.entries(generatorSchema.properties) as [string, any][]) {
+            if (prop.default !== undefined) {
+              options[key] = prop.default;
+            }
+          }
+          console.log(chalk.blue(`ℹ️  You can configure generator options later in intrig.config.json`));
+          return options;
+        }
+
         // Check if we're in a non-interactive environment
         if (!process.stdin.isTTY) {
           console.log(chalk.yellow(`⚠️  Non-interactive environment detected. Skipping generator configuration for plugin ${pluginName}.`));
@@ -453,7 +517,7 @@ export class InitCommand extends CommandRunner {
           schinquirer.prompt(generatorSchema.properties),
           timeoutPromise
         ]);
-        
+
         Object.assign(options, answers);
       } catch (error: any) {
         console.log(chalk.yellow(`⚠️  Failed to collect generator configuration for plugin ${pluginName}: ${error.message}`));

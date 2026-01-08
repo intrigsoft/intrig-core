@@ -25,7 +25,12 @@ export class SpecManagementService {
     try {
       // Ensure directory exists
       fs.mkdirSync(this.specsDir, {recursive: true});
-      
+
+      // Create the file if it doesn't exist (proper-lockfile requires the file to exist)
+      if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, '', 'utf-8');
+      }
+
       // Acquire lock for the file
       release = await lockfile.lock(filePath, {
         retries: {
@@ -123,17 +128,21 @@ export class SpecManagementService {
   private async readWithoutLock(apiName: string): Promise<OpenAPIV3_1.Document | undefined> {
     const fileName = `${apiName}-latest.json`
     const specPath = path.join(this.specsDir, fileName);
-    
+
     if (fs.existsSync(specPath)) {
       try {
         const content = fs.readFileSync(specPath, 'utf-8');
+        // Handle empty files (created for locking purposes)
+        if (!content || content.trim() === '') {
+          return undefined;
+        }
         return JSON.parse(content);
       } catch (error: any) {
         this.logger.error(`Failed to parse JSON for ${apiName}: ${error.message}`);
         throw new Error(`Invalid JSON in spec file for ${apiName}: ${error.message}`);
       }
     }
-    
+
     return undefined;
   }
 }
