@@ -1,3 +1,19 @@
+## 0.0.15-16 (2026-01-08)
+
+### 🚀 Features
+
+- **cli:** add plugin and source management options with --yes and --id flags ([eb127b1](https://github.com/intrigsoft/intrig-core/commit/eb127b1))
+- **docs:** add comprehensive error handling and authentication documentation ([394c23c](https://github.com/intrigsoft/intrig-core/commit/394c23c))
+- **mcp:** add detailed server instructions for CLI and MCP usage ([3c4028d](https://github.com/intrigsoft/intrig-core/commit/3c4028d))
+
+### 🩹 Fixes
+
+- add @intrig/mcp to release config and fix docs deployment ([3bad4cd](https://github.com/intrigsoft/intrig-core/commit/3bad4cd))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-15 (2026-01-07)
 
 ### 🚀 Features

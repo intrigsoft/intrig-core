@@ -1,6 +1,6 @@
 {
   "name": "@intrig/core",
-  "version": "0.0.15-15",
+  "version": "0.0.15-16",
   "private": false,
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@intrig/plugin-sdk": "^0.0.15-15",
+    "@intrig/plugin-sdk": "^0.0.15-16",
     "cross-spawn": "^7.0.6"
   }
 }
