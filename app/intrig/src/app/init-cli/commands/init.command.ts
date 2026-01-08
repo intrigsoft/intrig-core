@@ -6,8 +6,45 @@ import inquirer from 'inquirer';
 import * as semver from 'semver';
 import chalk from 'chalk';
 import ora from 'ora';
-import * as schinquirer from 'schinquirer';
 import { schemaTemplate } from '../templates/schema.template';
+
+/**
+ * Converts JSON schema properties to inquirer questions and prompts the user.
+ * This is a replacement for the 'schinquirer' package which has problematic dependencies.
+ */
+async function promptFromSchema(schemaProperties: Record<string, any>): Promise<Record<string, any>> {
+  const questions: any[] = [];
+
+  for (const [key, prop] of Object.entries(schemaProperties)) {
+    const question: any = {
+      name: key,
+      message: prop.description || `Enter ${key}:`,
+      default: prop.default,
+    };
+
+    // Determine question type based on schema
+    if (prop.enum) {
+      question.type = 'list';
+      question.choices = prop.enum;
+    } else if (prop.type === 'boolean') {
+      question.type = 'confirm';
+    } else if (prop.type === 'number' || prop.type === 'integer') {
+      question.type = 'number';
+    } else if (prop.type === 'array') {
+      question.type = 'checkbox';
+      if (prop.items?.enum) {
+        question.choices = prop.items.enum;
+      }
+    } else {
+      // Default to input for strings and unknown types
+      question.type = 'input';
+    }
+
+    questions.push(question);
+  }
+
+  return inquirer.prompt(questions);
+}
 
 interface BasicIntrigConfig {
   $schema: string;
@@ -524,7 +561,7 @@ export class InitCommand extends CommandRunner {
       return options;
     }
 
-    // Use schinquirer to generate questions from schema
+    // Generate questions from schema properties
     if (generatorSchema.properties && Object.keys(generatorSchema.properties).length > 0) {
       try {
         // If --yes flag is set, use defaults from schema
@@ -553,7 +590,7 @@ export class InitCommand extends CommandRunner {
 
         // Race between the prompt and timeout
         const answers = await Promise.race([
-          schinquirer.prompt(generatorSchema.properties),
+          promptFromSchema(generatorSchema.properties),
           timeoutPromise
         ]);
 

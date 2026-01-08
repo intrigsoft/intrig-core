@@ -156,10 +156,6 @@ module.exports = {
         '@nestjs/microservices/microservices-module',
         // Class-transformer optional import
         'class-transformer/storage',
-        // Old RxJS that has bundling issues
-        'rx',
-        'rx.binding',
-        'rx.virtualtime',
       ],
     }),
     new MakeExecutablePlugin(),
