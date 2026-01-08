@@ -1,3 +1,14 @@
+## 0.0.15-19 (2026-01-08)
+
+### 🚀 Features
+
+- **build:** introduce esbuild support and minimal package.json generation ([525ec17](https://github.com/intrigsoft/intrig-core/commit/525ec17))
+- **core:** replace external dependencies with custom implementations ([82a748c](https://github.com/intrigsoft/intrig-core/commit/82a748c))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-18 (2026-01-08)
 
 ### 🚀 Features

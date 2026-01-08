@@ -1,6 +1,6 @@
 {
   "name": "@intrig/webpack",
-  "version": "0.0.15-18",
+  "version": "0.0.15-19",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "./dist/index.d.ts",
