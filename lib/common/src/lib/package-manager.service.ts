@@ -1,27 +1,50 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {promisify} from "util";
 import {exec} from "child_process";
-// import {PackageManager, detectPackageManager} from "nypm";
+import {existsSync} from "fs";
+import {join} from "path";
 
 const execAsync = promisify(exec);
 
-type PackageManager = any;
+interface PackageManager {
+  name: 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno';
+  version?: string;
+}
+
+/**
+ * Detects the package manager by checking for lockfiles (bundleable replacement for 'nypm')
+ */
+function detectPackageManager(cwd: string): PackageManager {
+  if (existsSync(join(cwd, 'bun.lockb'))) {
+    return { name: 'bun' };
+  }
+  if (existsSync(join(cwd, 'pnpm-lock.yaml'))) {
+    return { name: 'pnpm' };
+  }
+  if (existsSync(join(cwd, 'yarn.lock'))) {
+    return { name: 'yarn' };
+  }
+  if (existsSync(join(cwd, 'deno.lock'))) {
+    return { name: 'deno' };
+  }
+  // Default to npm (package-lock.json or no lockfile)
+  return { name: 'npm' };
+}
 
 @Injectable()
 export class PackageManagerService {
   private readonly logger = new Logger(PackageManagerService.name);
   private pm!: PackageManager;
 
-  /** Detect (and cache) the project’s package manager via nypm */
+  /** Detect (and cache) the project's package manager */
   private async getPM(): Promise<PackageManager> {
     if (!this.pm) {
-      const {detectPackageManager} = await import(/* webpackIgnore: true */ 'nypm');
-      const detectedPM = await detectPackageManager(process.cwd());
+      const detectedPM = detectPackageManager(process.cwd());
       if (!detectedPM) {
         throw new Error('Failed to detect package manager');
       }
       this.pm = detectedPM;
-      this.logger.log(`Detected package manager: ${this.pm.name}@${this.pm.version}`);
+      this.logger.log(`Detected package manager: ${this.pm.name}`);
     }
     if (!this.pm) {
       throw new Error('Failed to detect package manager');

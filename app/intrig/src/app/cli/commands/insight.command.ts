@@ -1,12 +1,40 @@
 import {Command, CommandRunner, Option} from "nest-commander";
 import {Logger} from "@nestjs/common";
-import * as express from 'express';
+import express from 'express';
 import {loadInsightAssets} from "../../insight-assets";
-// import open from 'open'
 import * as net from 'net';
 import chalk from 'chalk';
 import {ProcessManagerService} from "../process-manager.service";
 import {HttpService} from "@nestjs/axios";
+import {exec} from 'child_process';
+import {platform} from 'os';
+
+/**
+ * Opens a URL in the default browser (bundleable replacement for 'open' package)
+ */
+function openUrl(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let cmd: string;
+    const os = platform();
+
+    if (os === 'darwin') {
+      cmd = `open "${url}"`;
+    } else if (os === 'win32') {
+      cmd = `start "" "${url}"`;
+    } else {
+      // Linux and others
+      cmd = `xdg-open "${url}"`;
+    }
+
+    exec(cmd, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
 
 const INTRIG_INSIGHT = `  ${chalk.bold.yellow('INTRIG INSIGHT')} `
 
@@ -128,8 +156,7 @@ export class InsightCommand extends CommandRunner {
 
     // Only open the browser if the silent flag is not set
     if (!options?.silent) {
-      const open = (await import(/* webpackIgnore: true */ 'open')).default;
-      await open(`http://localhost:${port}`);
+      await openUrl(`http://localhost:${port}`);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

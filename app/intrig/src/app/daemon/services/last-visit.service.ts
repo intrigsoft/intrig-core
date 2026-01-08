@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
-import { ensureDirSync } from 'fs-extra';
-// import { Low } from 'lowdb';
-// import { JSONFile } from 'lowdb/node';
+import { ensureDirSync, readFileSync, writeFileSync, existsSync } from 'fs-extra';
 import { EntityView } from '../models/entity-view.model';
 
 // Define the database structure
@@ -12,23 +10,38 @@ interface LastVisitDB {
   pinnedItems: EntityView[];
 }
 
-export interface Adapter<T> {
-  read: () => Promise<T | null>;
-  write: (data: T) => Promise<void>;
-}
-
-export interface Low<T = unknown> {
-  adapter: Adapter<T>;
+/**
+ * Simple JSON file database (bundleable replacement for 'lowdb')
+ */
+class JsonFileDB<T> {
   data: T;
-  read(): Promise<void>;
-  write(): Promise<void>;
-  update(fn: (data: T) => unknown): Promise<void>;
+
+  constructor(private filePath: string, private defaultData: T) {
+    this.data = defaultData;
+  }
+
+  async read(): Promise<void> {
+    try {
+      if (existsSync(this.filePath)) {
+        const content = readFileSync(this.filePath, 'utf8');
+        this.data = JSON.parse(content);
+      } else {
+        this.data = this.defaultData;
+      }
+    } catch {
+      this.data = this.defaultData;
+    }
+  }
+
+  async write(): Promise<void> {
+    writeFileSync(this.filePath, JSON.stringify(this.data, null, 2), 'utf8');
+  }
 }
 
 @Injectable()
 export class LastVisitService {
   private readonly logger = new Logger(LastVisitService.name);
-  private db: Low<LastVisitDB>;
+  private db: JsonFileDB<LastVisitDB>;
   private readonly configDir: string;
   private readonly dbFile: string;
   private readonly MAX_ITEMS = 50; // Maximum number of items to keep in history
@@ -37,21 +50,19 @@ export class LastVisitService {
     const rootDir = this.configService.get('rootDir')!;
     this.configDir = join(rootDir, '.intrig', '.config');
     this.dbFile = join(this.configDir, 'last-visit.json');
-    
+
     // Ensure the config directory exists
     ensureDirSync(this.configDir);
-    
+
+    // Initialize the database
+    this.db = new JsonFileDB<LastVisitDB>(this.dbFile, { items: [], pinnedItems: [] });
+
     // Load the database
     this.loadDb().catch(e => console.error('Failed to load last visit database', e));
   }
 
   private async loadDb(): Promise<void> {
-    const { JSONFile } = await import(/* webpackIgnore: true */ 'lowdb/node');
-    const adapter = new JSONFile<LastVisitDB>(this.dbFile);
-    const { Low } = await import(/* webpackIgnore: true */ 'lowdb');
-    this.db = new Low<LastVisitDB>(adapter, { items: [], pinnedItems: [] });
     try {
-
       await this.db.read();
       // Initialize if data is null
       this.db.data = this.db.data || { items: [], pinnedItems: [] };
