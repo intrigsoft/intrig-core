@@ -365,22 +365,61 @@ export class InitCommand extends CommandRunner {
       
       try {
         // Use npm to install the plugin in the project directory as dev dependency
-        execSync(`npm install --save-dev ${plugin.name}`, { 
-          cwd: rootDir, 
-          stdio: 'pipe' 
+        execSync(`npm install --save-dev ${plugin.name}`, {
+          cwd: rootDir,
+          stdio: 'pipe'
         });
-        installSpinner.text = `Installing @intrig/core as dev dependency...`;
-        
-        // Install @intrig/core as a dev dependency
-        execSync('npm install --save-dev @intrig/core', { 
-          cwd: rootDir, 
-          stdio: 'pipe' 
-        });
-        installSpinner.succeed(`Plugin ${plugin.name} and @intrig/core installed successfully`);
+        installSpinner.succeed(`Plugin ${plugin.name} installed successfully`);
       } catch (npmError: any) {
-        installSpinner.fail(`Failed to install plugin ${plugin.name}`);
-        console.log(chalk.red('❌ Error:'), npmError?.message);
-        throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
+        const errorMessage = npmError?.stderr?.toString() || npmError?.message || '';
+
+        // Check if this is a peer dependency conflict (ERESOLVE error)
+        if (errorMessage.includes('ERESOLVE') || errorMessage.includes('--legacy-peer-deps')) {
+          installSpinner.warn(`Peer dependency conflict detected while installing ${plugin.name}`);
+
+          console.log(chalk.yellow('\n⚠️  This is usually caused by conflicting package versions in your project.'));
+          console.log(chalk.yellow('   Using --legacy-peer-deps may resolve this, but could cause runtime issues.\n'));
+
+          let shouldRetry = skipPrompts; // Auto-accept if --yes flag is set
+
+          if (!skipPrompts) {
+            const { confirmRetry } = await inquirer.prompt([
+              {
+                type: 'confirm',
+                name: 'confirmRetry',
+                message: 'Retry with --legacy-peer-deps?',
+                default: false
+              }
+            ]);
+            shouldRetry = confirmRetry;
+          } else {
+            console.log(chalk.blue('ℹ️  --yes flag set, automatically retrying with --legacy-peer-deps'));
+          }
+
+          if (shouldRetry) {
+            const retrySpinner = ora(`Retrying installation with --legacy-peer-deps...`).start();
+            try {
+              execSync(`npm install --save-dev ${plugin.name} --legacy-peer-deps`, {
+                cwd: rootDir,
+                stdio: 'pipe'
+              });
+              retrySpinner.succeed(`Plugin ${plugin.name} installed successfully (with --legacy-peer-deps)`);
+              console.log(chalk.yellow('⚠️  Note: Installed with --legacy-peer-deps. Verify your application works correctly.'));
+            } catch (retryError: any) {
+              retrySpinner.fail(`Failed to install plugin ${plugin.name} even with --legacy-peer-deps`);
+              throw new Error(`Failed to install plugin ${plugin.name}: ${retryError?.message}`);
+            }
+          } else {
+            console.log(chalk.blue('\nℹ️  Installation cancelled. To resolve manually:'));
+            console.log(chalk.blue('   1. Fix the conflicting dependencies in your project, or'));
+            console.log(chalk.blue(`   2. Run: npm install --save-dev ${plugin.name} --legacy-peer-deps\n`));
+            throw new Error(`Installation cancelled due to peer dependency conflict`);
+          }
+        } else {
+          installSpinner.fail(`Failed to install plugin ${plugin.name}`);
+          console.log(chalk.red('❌ Error:'), npmError?.message);
+          throw new Error(`Failed to install plugin ${plugin.name}: ${npmError?.message}`);
+        }
       }
       
       // Now use createRequire to load the plugin
