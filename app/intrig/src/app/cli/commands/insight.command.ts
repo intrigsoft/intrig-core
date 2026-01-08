@@ -1,6 +1,6 @@
 import {Command, CommandRunner, Option} from "nest-commander";
 import {Logger} from "@nestjs/common";
-import * as express from 'express';
+import express from 'express';
 import {loadInsightAssets} from "../../insight-assets";
 // import open from 'open'
 import * as net from 'net';

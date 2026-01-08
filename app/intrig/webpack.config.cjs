@@ -19,6 +19,47 @@ class MakeExecutablePlugin {
   }
 }
 
+// Plugin to create minimal package.json with only truly external dependencies
+class CreateMinimalPackageJsonPlugin {
+  apply(compiler) {
+    compiler.hooks.afterEmit.tap('CreateMinimalPackageJsonPlugin', () => {
+      const outDir = compiler.options.output.path;
+      const sourcePkgPath = path.join(__dirname, 'package.json');
+      const destPkgPath = path.join(outDir, 'package.json');
+
+      try {
+        const sourcePkg = JSON.parse(fs.readFileSync(sourcePkgPath, 'utf8'));
+
+        // Create minimal package.json - only ESM-only modules that must be dynamic imports
+        // These are the only true runtime dependencies
+        const minimalPkg = {
+          name: '@intrig/core',
+          version: sourcePkg.version,
+          private: false,
+          type: 'module',
+          bin: {
+            intrig: './main.js',
+          },
+          publishConfig: {
+            access: 'public',
+          },
+          // Only include dependencies that MUST be external (ESM-only dynamic imports)
+          dependencies: {
+            lowdb: '^7.0.0',
+            nypm: '^0.6.0',
+            open: '^10.0.0',
+          },
+        };
+
+        fs.writeFileSync(destPkgPath, JSON.stringify(minimalPkg, null, 2));
+        console.log(`✔️ Created minimal package.json with ${Object.keys(minimalPkg.dependencies).length} dependencies`);
+      } catch (e) {
+        console.warn(`⚠️ Could not create package.json:`, e.message);
+      }
+    });
+  }
+}
+
 // Helper function to create a dynamic import wrapper
 const createDynamicImportWrapper = () => {
   return {
@@ -118,7 +159,7 @@ module.exports = {
       ],
       optimization: false,
       outputHashing: 'none',
-      generatePackageJson: true,
+      generatePackageJson: false,  // We'll create our own minimal package.json
       sourceMap: true,
       // List specific modules to externalize - @intrig/plugin-sdk will be bundled
       externalDependencies: [
@@ -141,6 +182,7 @@ module.exports = {
       ],
     }),
     new MakeExecutablePlugin(),
+    new CreateMinimalPackageJsonPlugin(),
     createDynamicImportWrapper(),
   ],
 };

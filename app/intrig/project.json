@@ -19,10 +19,16 @@
       },
       "configurations": {
         "development": {
-          "command": "webpack-cli build --config ./webpack.config.cjs --node-env development"
+          "command": "webpack-cli build --config ./webpack.config.cjs --node-env development",
+          "cwd": "app/intrig"
         },
         "production": {
-          "command": "webpack-cli build --config ./webpack.config.cjs --node-env production"
+          "command": "webpack-cli build --config ./webpack.config.cjs --node-env production",
+          "cwd": "app/intrig"
+        },
+        "esbuild": {
+          "command": "node esbuild.config.mjs",
+          "cwd": "app/intrig"
         }
       }
     },
