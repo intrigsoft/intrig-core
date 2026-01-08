@@ -82,11 +82,6 @@ module.exports = {
     outputModule: true,
   },
   externalsType: 'module',
-  externals: {
-    // Explicitly mark lowdb as non-external to bundle it with the application
-    'lowdb': 'module lowdb',
-    'lowdb/node': 'module lowdb/node',
-  },
   module: {
     rules: [
       { resourceQuery: /raw/, type: 'asset/source' },
@@ -125,6 +120,25 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMap: true,
+      // List specific modules to externalize - @intrig/plugin-sdk will be bundled
+      externalDependencies: [
+        // Optional NestJS modules that aren't installed
+        '@nestjs/websockets',
+        '@nestjs/websockets/socket-module',
+        '@nestjs/microservices',
+        '@nestjs/microservices/microservices-module',
+        // Class-transformer optional import
+        'class-transformer/storage',
+        // ESM-only modules that need to be externalized
+        'lowdb',
+        'lowdb/node',
+        'nypm',
+        'open',
+        // Old RxJS that has bundling issues
+        'rx',
+        'rx.binding',
+        'rx.virtualtime',
+      ],
     }),
     new MakeExecutablePlugin(),
     createDynamicImportWrapper(),

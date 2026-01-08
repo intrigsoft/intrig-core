@@ -10,7 +10,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@intrig/plugin-sdk": "^0.0.15-16",
     "cross-spawn": "^7.0.6"
   }
 }
