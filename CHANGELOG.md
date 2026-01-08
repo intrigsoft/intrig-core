@@ -1,3 +1,13 @@
+## 0.0.15-20 (2026-01-08)
+
+### 🚀 Features
+
+- **init:** replace schinquirer with custom prompt implementation ([22bfbff](https://github.com/intrigsoft/intrig-core/commit/22bfbff))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-19 (2026-01-08)
 
 ### 🚀 Features
