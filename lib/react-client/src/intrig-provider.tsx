@@ -2,8 +2,10 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -14,6 +16,7 @@ import {
   IntrigHook,
   isError,
   isPending,
+  isSuccess,
   NetworkAction,
   NetworkState,
   pending,
@@ -566,4 +569,61 @@ export function useCentralPendingState() {
   }, [ctx.filteredState]);
 
   return result;
+}
+
+/**
+ * A hook for making transient calls that can be aborted and validated against schemas.
+ * Returns a promise-based call function and an abort function.
+ *
+ * @param schema - Optional Zod schema for validating the response
+ * @param errorSchema - Optional Zod schema for validating error responses
+ * @returns A tuple of [call function, abort function]
+ */
+export function useTransitionCall<T>({
+  schema,
+  errorSchema,
+}: {
+  schema?: ZodSchema<T>;
+  errorSchema?: ZodSchema<any>;
+}): [(request: RequestType) => Promise<T>, () => void] {
+  const ctx = useContext(Context);
+  const controller = useRef<AbortController | undefined>(undefined);
+
+  const schemaRef = useRef(schema);
+  const errorSchemaRef = useRef(errorSchema);
+
+  useEffect(() => {
+    schemaRef.current = schema;
+    errorSchemaRef.current = errorSchema;
+  });
+
+  const call = useCallback(
+    async (request: RequestType) => {
+      controller.current?.abort();
+      const abort = new AbortController();
+      controller.current = abort;
+
+      return new Promise<T>((resolve, reject) => {
+        ctx.execute(
+          { ...request, signal: abort.signal },
+          (state) => {
+            if (isSuccess(state)) {
+              resolve(state.data as T);
+            } else if (isError(state)) {
+              reject(state.error);
+            }
+          },
+          schemaRef.current,
+          errorSchemaRef.current,
+        );
+      });
+    },
+    [ctx],
+  );
+
+  const abort = useCallback(() => {
+    controller.current?.abort();
+  }, []);
+
+  return [call, abort];
 }
