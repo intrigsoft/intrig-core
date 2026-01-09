@@ -1,3 +1,13 @@
+## 0.0.15-25 (2026-01-09)
+
+### 🚀 Features
+
+- **daemon:** add verbose mode and improve plugin module handling ([e8885ca](https://github.com/intrigsoft/intrig-core/commit/e8885ca))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-24 (2026-01-09)
 
 ### 🩹 Fixes
