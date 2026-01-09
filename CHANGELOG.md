@@ -1,3 +1,13 @@
+## 0.0.15-23 (2026-01-09)
+
+### 🚀 Features
+
+- **api:** auto-detect missing path parameters and standardize HTTP method processing ([4f10a7b](https://github.com/intrigsoft/intrig-core/commit/4f10a7b))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-22 (2026-01-09)
 
 ### 🩹 Fixes
