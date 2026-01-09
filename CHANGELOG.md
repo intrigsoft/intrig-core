@@ -1,3 +1,13 @@
+## 0.0.15-22 (2026-01-09)
+
+### 🩹 Fixes
+
+- **api:** enhance parameter handling and improve schema compatibility ([68242c5](https://github.com/intrigsoft/intrig-core/commit/68242c5))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-21 (2026-01-09)
 
 This was a version bump only, there were no code changes.
