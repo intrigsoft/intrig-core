@@ -1,6 +1,6 @@
 {
   "name": "@intrig/plugin-nest",
-  "version": "0.0.15-27",
+  "version": "0.0.15-28",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -15,7 +15,7 @@
     }
   },
   "dependencies": {
-    "@intrig/plugin-sdk": "^0.0.15-27",
+    "@intrig/plugin-sdk": "^0.0.15-28",
     "@swc/helpers": "~0.5.11",
     "fs-extra": "^11.2.0"
   },

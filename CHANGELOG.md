@@ -1,3 +1,13 @@
+## 0.0.15-28 (2026-01-09)
+
+### 🚀 Features
+
+- **react:** introduce `useTransitionCall` hook and improve import consistency ([d379b26](https://github.com/intrigsoft/intrig-core/commit/d379b26))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-27 (2026-01-09)
 
 ### 🚀 Features
