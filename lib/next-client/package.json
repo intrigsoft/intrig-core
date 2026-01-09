@@ -33,7 +33,6 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "development": "./src/index.ts",
       "types": "./index.esm.d.ts",
       "import": "./index.esm.js",
       "default": "./index.esm.js"

@@ -18,7 +18,7 @@ import {
   UnaryProduceHook,
   UnitHook,
   UnitHookOptions,
-} from '@intrig/react/network-state';
+} from './network-state';
 import {
   useCallback,
   useEffect,
@@ -27,7 +27,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useIntrigContext } from '@intrig/react/intrig-context';
+import { useIntrigContext } from './intrig-context';
 
 /**
  * Converts a given hook into a promise-based function.
