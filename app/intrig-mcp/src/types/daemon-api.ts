@@ -81,8 +81,8 @@ export interface RelatedEndpoint {
 export interface Variable {
   name: string;
   in: string;
-  ref: string;
-  relatedType: RelatedType;
+  ref?: string;
+  relatedType?: RelatedType;
 }
 
 // ============================================================================

@@ -16,21 +16,51 @@ export class ExtractRequestsService {
     const requests: RestData[] = [];
     const skippedEndpoints: Array<{endpoint: string, reason: string}> = [];
 
+    const httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
+
     for (const [path, pathData] of Object.entries(spec.paths!)) {
       this.logger.debug(`Processing path: ${path}`);
+
+      // Extract path-level parameters
+      const pathItem = pathData as OpenAPIV3_1.PathItemObject;
+      const pathLevelParams = (pathItem.parameters ?? [])
+        .map(p => deref(spec)<OpenAPIV3_1.ParameterObject>(p))
+        .filter((p): p is OpenAPIV3_1.ParameterObject => !!p);
+
       for (const [method, methodData] of Object.entries(pathData!)) {
+        // Skip non-HTTP method properties (parameters, summary, description, servers, $ref)
+        if (!httpMethods.includes(method.toLowerCase())) {
+          continue;
+        }
+
         const operation = deref(spec)<any>(methodData);
         if (this.isOperationObject(operation)) {
           this.logger.debug(`Processing operation: ${method.toUpperCase()} ${path} (${operation.operationId})`);
-          const variables = operation.parameters
-            ?.map(p => p as OpenAPIV3_1.ParameterObject)
-            ?.map((param: OpenAPIV3_1.ParameterObject) => {
+
+          // Merge path-level and operation-level parameters (operation params override path params)
+          const operationParams = (operation.parameters ?? [])
+            .map((p: OpenAPIV3_1.ParameterObject | OpenAPIV3_1.ReferenceObject) =>
+              deref(spec)<OpenAPIV3_1.ParameterObject>(p))
+            .filter((p: OpenAPIV3_1.ParameterObject | null): p is OpenAPIV3_1.ParameterObject => !!p);
+
+          const mergedParams = [...pathLevelParams];
+          for (const opParam of operationParams) {
+            const existingIndex = mergedParams.findIndex(p => p.name === opParam.name && p.in === opParam.in);
+            if (existingIndex >= 0) {
+              mergedParams[existingIndex] = opParam; // Override path-level param
+            } else {
+              mergedParams.push(opParam);
+            }
+          }
+
+          const variables = mergedParams.map((param: OpenAPIV3_1.ParameterObject) => {
             return {
               name: param.name,
               in: param.in,
-              ref: isRef(param.schema) ? param.schema.$ref : "any"
+              // Use undefined for inline schemas instead of "any" to avoid reserved keyword issues
+              ref: isRef(param.schema) ? param.schema.$ref : undefined
             }
-          }) ?? [];
+          });
 
           let params: RestData = {
             paths: ([operation.tags?.[0]]?.filter(Boolean) ?? []) as string[],

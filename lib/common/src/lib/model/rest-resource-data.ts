@@ -9,13 +9,13 @@ export class Variable {
   @ApiProperty({description: 'Location of the variable'})
   in: string;
 
-  @ApiProperty({description: 'Reference of the variable'})
-  ref: string;
+  @ApiProperty({description: 'Reference of the variable', required: false})
+  ref?: string;
 
   @ApiProperty({description: 'Related type of the variable'})
   relatedType?: RelatedType;
 
-  constructor(name: string, in_: string, ref: string) {
+  constructor(name: string, in_: string, ref?: string) {
     this.name = name;
     this.in = in_;
     this.ref = ref;

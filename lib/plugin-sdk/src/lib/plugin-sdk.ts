@@ -96,7 +96,7 @@ export interface Schema {
   schema: OpenAPIV3_1.SchemaObject;
 }
 
-export type Variable = { name: string; in: string; ref: string };
+export type Variable = { name: string; in: string; ref?: string };
 export type ErrorResponse = { response?: string; responseType?: string };
 export type RelatedType = { name: string; id: string };
 export type Tab = { name: string; content: string };

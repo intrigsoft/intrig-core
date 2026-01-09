@@ -1,19 +1,24 @@
 import {ErrorResponse, RestData, Variable} from "../model/rest-resource-data";
 
-export function getVariableName(ref: string) {
+export function getVariableName(ref: string | undefined) {
+  if (!ref) return undefined;
   return ref.split('/').pop()
 }
 
 export function getVariableImports(variables: Variable[], source: string, prefix: string) {
   return variables
+    .filter(a => a.ref) // Skip variables without schema refs
     .map(a => getVariableName(a.ref))
+    .filter((ref): ref is string => !!ref)
     .map((ref) => `import { ${ref} } from "${prefix}/${source}/components/schemas/${ref}"`)
     .join("\n");
 }
 
 export function getVariableTypes(variables: Variable[]) {
-  return variables.map((p) => `${p.name}${p.in === "path" ? "": "?"}: ${getVariableName(p.ref)}`)
-    .join("\n")
+  return variables.map((p) => {
+    const typeName = getVariableName(p.ref) ?? 'any'; // Use 'any' for inline schemas
+    return `${p.name}${p.in === "path" ? "": "?"}: ${typeName}`;
+  }).join("\n")
 }
 
 export function isParamMandatory(variables: Variable[]) {

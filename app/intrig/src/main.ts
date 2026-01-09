@@ -49,6 +49,33 @@ async function bootstrapDaemon() {
   const intrigConfig = app.get(IntrigConfigService).get();
   discovery.register(actualPort, url, intrigConfig.generator);
 
+  // Handle crashes and cleanup discovery file
+  let isCleaningUp = false;
+  const cleanupAndExit = (reason: string, err?: Error) => {
+    if (isCleaningUp) return; // Prevent re-entrancy
+    isCleaningUp = true;
+
+    logger?.error(`Daemon crash (${reason}):`, err?.stack || err);
+
+    // Synchronously cleanup discovery file - don't rely on async app.close()
+    try {
+      discovery.onApplicationShutdown(reason);
+    } catch (cleanupErr) {
+      logger?.error('Failed to cleanup discovery file:', cleanupErr);
+    }
+
+    // Give logs time to flush, then exit
+    setImmediate(() => process.exit(1));
+  };
+
+  process.on('uncaughtException', (err) => {
+    cleanupAndExit('uncaughtException', err);
+  });
+
+  process.on('unhandledRejection', (reason: any) => {
+    cleanupAndExit('unhandledRejection', reason instanceof Error ? reason : new Error(String(reason)));
+  });
+
   logger?.log(`🚀 Application is running on: ${url}/${globalPrefix}`);
   logger?.log(`📖 Swagger docs available at: ${url}/docs`);
 }
