@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "intrig-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/tiran-intrigsoft/IdeaProjects/intrig-core/app/intrig-mcp/dist/main.js",
+        "--rootDir",
+        "/home/tiran-intrigsoft/IdeaProjects/intrig-core"
+      ],
+      "env": {}
+    }
+  }
+}

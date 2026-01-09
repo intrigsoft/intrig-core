@@ -4,6 +4,11 @@ import * as fs from 'fs';
 import * as path from 'node:path';
 import type { IntrigGeneratorPlugin } from '@intrig/plugin-sdk';
 
+// Dynamic import that bypasses webpack transformation
+// This is necessary because webpack transforms import() into __webpack_require__()
+// which can't handle truly external modules from user's node_modules
+const dynamicImport = new Function('modulePath', 'return import(modulePath)') as (modulePath: string) => Promise<any>;
+
 @Injectable()
 export class LazyPluginService {
   private readonly logger = new Logger(LazyPluginService.name);
@@ -98,26 +103,26 @@ export class LazyPluginService {
     this.logger.debug(`Plugin is file-based: ${isFileDependency}`);
 
     try {
-      // Create a require function from the current module
-      const { createRequire: nodeCreateRequire } = await import('node:module');
-      const projectRequire = nodeCreateRequire(path.resolve(rootDir, 'package.json'));
+      this.logger.debug(`Attempting to load plugin: ${this.pluginName}`);
 
-      this.logger.debug(`Attempting to load plugin using createRequire: ${this.pluginName}`);
-      
       let mod: any;
-      
+
       if (isFileDependency) {
-        // For file-based dependencies, require from the resolved path
+        // For file-based dependencies, import from the resolved path
         const pluginPath = this.resolvePluginPath(rootDir, pluginVersion);
-        this.logger.debug(`Requiring from file path: ${pluginPath}`);
-        mod = projectRequire(pluginPath);
+        this.logger.debug(`Importing from file path: ${pluginPath}`);
+        mod = await dynamicImport(pluginPath);
       } else {
-        // For npm-based dependencies, require by name (assumes already installed)
-        this.logger.debug(`Requiring npm package: ${this.pluginName}`);
-        mod = projectRequire(this.pluginName);
+        // For npm-based dependencies, resolve the path first then import
+        // This ensures we load from the project's node_modules, not the daemon's
+        const { createRequire: nodeCreateRequire } = await dynamicImport('node:module');
+        const projectRequire = nodeCreateRequire(path.resolve(rootDir, 'package.json'));
+        const resolvedPath = projectRequire.resolve(this.pluginName);
+        this.logger.debug(`Importing npm package from resolved path: ${resolvedPath}`);
+        mod = await dynamicImport(resolvedPath);
       }
-      
-      this.logger.debug(`Module require succeeded`);
+
+      this.logger.debug(`Module import succeeded`);
 
       const factory = this.extractFactory(mod, this.pluginName);
       this.pluginInstance = await Promise.resolve(factory());

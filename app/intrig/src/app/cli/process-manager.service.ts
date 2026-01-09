@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { spawn } from 'cross-spawn';
+import { spawnSync } from 'child_process';
 import { DiscoveryService } from '../discovery/discovery.service';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
@@ -30,6 +31,35 @@ export class ProcessManagerService {
     );
     child.unref();
     this.logger.log(`Spawned daemon (pid=${child.pid})`);
+  }
+
+  /**
+   * Start the daemon in foreground mode with verbose logging.
+   * This blocks until the process exits or is interrupted.
+   */
+  async startForeground(): Promise<void> {
+    if (await this.discovery.isRunning()) {
+      this.logger.log('Daemon already running (via discovery)');
+      return;
+    }
+
+    const result = spawnSync(
+      'intrig',
+      ["run"],
+      {
+        stdio: 'inherit',
+        cwd: this.config.get('rootDir') ?? process.cwd(),
+      },
+    );
+
+    if (result.error) {
+      this.logger.error('Failed to start daemon:', result.error);
+      throw result.error;
+    }
+
+    if (result.status !== 0) {
+      this.logger.error(`Daemon exited with code ${result.status}`);
+    }
   }
 
   async stop() {

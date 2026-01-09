@@ -214,8 +214,10 @@ export class OperationsService {
           ...targetPackage.devDependencies,
           ...sourcePackage.devDependencies
         },
-        exports: sourcePackage.exports ?? targetPackage.exports,
-        typesVersions: sourcePackage.typesVersions ?? targetPackage.typesVersions,
+        // Keep original plugin exports (pointing to dist/) - don't override with generated exports
+        // The generated SDK code goes to src/ but the plugin entry point must remain dist/
+        exports: targetPackage.exports,
+        typesVersions: targetPackage.typesVersions,
       };
 
       await fs.writeJson(targetFile, merged, {spaces: 2});

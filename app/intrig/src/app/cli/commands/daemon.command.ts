@@ -1,5 +1,9 @@
-import {Command, CommandRunner, SubCommand} from "nest-commander";
+import {Command, CommandRunner, Option, SubCommand} from "nest-commander";
 import {ProcessManagerService} from "../process-manager.service";
+
+interface UpCommandOptions {
+  verbose?: boolean;
+}
 
 @SubCommand({name: 'up', description: 'Start the daemon.'})
 export class UpSubCommand extends CommandRunner {
@@ -7,16 +11,30 @@ export class UpSubCommand extends CommandRunner {
     super();
   }
 
-  async run(): Promise<void> {
+  @Option({
+    flags: '-v, --verbose',
+    description: 'Run daemon in foreground with verbose logging',
+  })
+  parseVerbose(): boolean {
+    return true;
+  }
+
+  async run(passedParams: string[], options?: UpCommandOptions): Promise<void> {
     const isRunning = await this.pm.isRunning();
     if (isRunning) {
       console.log('✓ Daemon is already running');
       return;
     }
-    
-    console.log('Starting daemon...');
-    await this.pm.start();
-    console.log('✓ Daemon started successfully');
+
+    if (options?.verbose) {
+      console.log('Starting daemon in verbose mode (foreground)...');
+      console.log('Press Ctrl+C to stop the daemon.\n');
+      await this.pm.startForeground();
+    } else {
+      console.log('Starting daemon...');
+      await this.pm.start();
+      console.log('✓ Daemon started successfully');
+    }
   }
 }
 
