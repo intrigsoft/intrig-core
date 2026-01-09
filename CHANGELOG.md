@@ -1,3 +1,13 @@
+## 0.0.15-24 (2026-01-09)
+
+### 🩹 Fixes
+
+- **react:** update `errorSchema` type to improve flexibility ([e44a174](https://github.com/intrigsoft/intrig-core/commit/e44a174))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-23 (2026-01-09)
 
 ### 🚀 Features
