@@ -6,6 +6,9 @@ import ExampleObject = OpenAPIV3_1.ExampleObject;
 import {deref, isRef} from "./ref-management";
 import {createHash} from 'node:crypto';
 
+// HTTP methods to process during normalization
+const HTTP_METHODS = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'];
+
 // Pipeline types
 type NormalizationStep = (spec: OpenAPIV3_1.Document) => OpenAPIV3_1.Document;
 
@@ -48,7 +51,7 @@ function registerTags(spec: OpenAPIV3_1.Document) {
     for (const pathItem of Object.values(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
           operationOb.tags?.forEach(tag => {
             draft.tags = draft.tags ?? [];
@@ -69,7 +72,7 @@ function generateOperationIds(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document 
     for (const [path, pathItem] of Object.entries(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
           if (!operationOb.operationId) {
             operationOb.operationId = camelCase(`${method.toLowerCase()}_${path.replace("/", "_")}`);
@@ -89,7 +92,7 @@ function normalizeParameters(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document {
     for (const pathItem of Object.values(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
 
           if (operationOb.parameters) {
@@ -124,7 +127,7 @@ function normalizeRequestBodies(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Documen
     for (const pathItem of Object.values(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
 
           if (operationOb.requestBody) {
@@ -166,7 +169,7 @@ function normalizeCallbacks(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document {
     for (const pathItem of Object.values(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
 
           if (operationOb.callbacks) {
@@ -191,7 +194,7 @@ function normalizeResponses(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document {
     for (const pathItem of Object.values(paths)) {
       const pathItemObject = pathItem as OpenAPIV3_1.PathItemObject;
       for (const [method, operation] of Object.entries(pathItemObject)) {
-        if (["get", "post", "put", "delete"].includes(method.toLowerCase())) {
+        if (HTTP_METHODS.includes(method.toLowerCase())) {
           const operationOb = operation as OpenAPIV3_1.OperationObject;
 
           if (operationOb.responses) {

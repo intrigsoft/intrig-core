@@ -62,6 +62,23 @@ export class ExtractRequestsService {
             }
           });
 
+          // Auto-detect path parameters from URL that are missing from parameters array
+          // This handles incomplete swagger specs where {param} is in URL but not defined in parameters
+          const pathParamRegex = /\{([^}]+)\}/g;
+          let match;
+          while ((match = pathParamRegex.exec(path)) !== null) {
+            const paramName = match[1];
+            const alreadyDefined = variables.some(v => v.name === paramName && v.in === 'path');
+            if (!alreadyDefined) {
+              this.logger.debug(`Auto-detected missing path parameter '${paramName}' from URL: ${path}`);
+              variables.push({
+                name: paramName,
+                in: 'path',
+                ref: undefined // No schema available, will use 'any' type
+              });
+            }
+          }
+
           let params: RestData = {
             paths: ([operation.tags?.[0]]?.filter(Boolean) ?? []) as string[],
             variables,
