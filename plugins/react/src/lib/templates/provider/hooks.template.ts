@@ -155,7 +155,7 @@ export function useTransitionCall<T>({
   errorSchema,
 }: {
   schema?: SchemaOf<T>;
-  errorSchema?: SchemaOf<T>;
+  errorSchema?: SchemaOf<any>;
 }): [(request: RequestType) => Promise<T>, () => void] {
   const ctx = useContext(Context);
   const controller = useRef<AbortController | undefined>(undefined);

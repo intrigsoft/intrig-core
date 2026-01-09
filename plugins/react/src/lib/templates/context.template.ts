@@ -40,7 +40,7 @@ export interface ContextType {
   filteredState: GlobalState;
   dispatch: Dispatch<NetworkAction<unknown>>;
   configs: ${configType};
-  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: SchemaOf<T> | undefined, errorSchema: SchemaOf<T> | undefined) => Promise<void>;
+  execute: <T>(request: RequestType, dispatch: (state: NetworkState<T>) => void, schema: SchemaOf<T> | undefined, errorSchema: SchemaOf<any> | undefined) => Promise<void>;
 }
 
 /**
