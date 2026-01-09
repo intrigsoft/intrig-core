@@ -1,3 +1,13 @@
+## 0.0.15-27 (2026-01-09)
+
+### 🚀 Features
+
+- **react:** add `useTransitionCall` hook for transient calls with schema validation ([199ad00](https://github.com/intrigsoft/intrig-core/commit/199ad00))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-26 (2026-01-09)
 
 ### 🚀 Features
