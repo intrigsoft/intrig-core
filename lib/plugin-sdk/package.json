@@ -19,6 +19,7 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
+    "prettier": "^3.4.2",
     "tslib": "^2.3.0"
   },
   "publishConfig": {

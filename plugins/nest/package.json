@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@intrig/plugin-sdk": "^0.0.15-20",
-    "@swc/helpers": "~0.5.11"
+    "@swc/helpers": "~0.5.11",
+    "fs-extra": "^11.2.0"
   },
   "files": [
     "dist",
