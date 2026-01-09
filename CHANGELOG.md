@@ -1,3 +1,13 @@
+## 0.0.15-26 (2026-01-09)
+
+### 🚀 Features
+
+- **sdk:** enhance type imports and improve `LazyPluginService` SDK handling ([78df9fb](https://github.com/intrigsoft/intrig-core/commit/78df9fb))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-25 (2026-01-09)
 
 ### 🚀 Features
