@@ -229,8 +229,8 @@ export class OperationsService {
 
   @WithStatus(event => ({sourceId: '', step: 'copy-to-node-modules'}))
   private async copyContentToNodeModules(ctx: GenerateEventContext, hashes: Record<string, string>) {
-    const pluginName = await this.lazyPluginService.getPluginName();
-    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', pluginName)
+    const targetLibrary = await this.lazyPluginService.getTargetLibrary();
+    const targetLibDir = path.join(this.config.get('rootDir') ?? process.cwd(), 'node_modules', targetLibrary)
 
     try {
       if (await fs.pathExists(path.join(targetLibDir, 'src'))) {

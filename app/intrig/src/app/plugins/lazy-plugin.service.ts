@@ -50,6 +50,16 @@ export class LazyPluginService {
     return this.pluginName!;
   }
 
+  /**
+   * Returns the target library package name where generated SDK content should be copied.
+   * Derived from the plugin's meta().generator field (e.g., 'react' -> '@intrig/react').
+   */
+  async getTargetLibrary(): Promise<string> {
+    const plugin = await this.getPlugin();
+    const meta = plugin.meta();
+    return `@intrig/${meta.generator}`;
+  }
+
   private async loadPlugin(): Promise<void> {
     const rootDir = this.configService.get<string>('rootDir') ?? process.cwd();
     this.logger.debug(`Loading plugin from rootDir: ${rootDir}`);
