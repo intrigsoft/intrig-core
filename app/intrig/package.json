@@ -1,6 +1,6 @@
 {
   "name": "@intrig/core",
-  "version": "0.0.15-29",
+  "version": "0.0.15-30",
   "private": false,
   "type": "module",
   "bin": {

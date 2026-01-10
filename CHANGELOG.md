@@ -1,3 +1,7 @@
+## 0.0.15-30 (2026-01-10)
+
+This was a version bump only, there were no code changes.
+
 ## 0.0.15-29 (2026-01-10)
 
 ### 🚀 Features
