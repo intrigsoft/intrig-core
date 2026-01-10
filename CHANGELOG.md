@@ -1,3 +1,13 @@
+## 0.0.15-29 (2026-01-10)
+
+### 🚀 Features
+
+- **react-client:** enable module preservation and update package structure ([d1fcf5c](https://github.com/intrigsoft/intrig-core/commit/d1fcf5c))
+
+### ❤️ Thank You
+
+- tiran
+
 ## 0.0.15-28 (2026-01-09)
 
 ### 🚀 Features
