@@ -204,18 +204,18 @@ function normalizeResponses(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document {
                 .filter(([_, v]) => v !== undefined)
             );
 
-            Object.values(operationOb.responses!)
-              .filter(Boolean)
-              .map(a => a as OpenAPIV3_1.ResponseObject)
-              .forEach((response: OpenAPIV3_1.ResponseObject) => {
-                if (response.headers) {
-                  response.headers = doDeref(response.headers);
+            Object.entries(operationOb.responses!)
+              .filter(([_, v]) => Boolean(v))
+              .forEach(([statusCode, response]) => {
+                const responseObj = response as OpenAPIV3_1.ResponseObject;
+                if (responseObj.headers) {
+                  responseObj.headers = doDeref(responseObj.headers);
                 }
-                if (response.links) {
-                  response.links = doDeref(response.links);
+                if (responseObj.links) {
+                  responseObj.links = doDeref(responseObj.links);
                 }
-                if (response.content) {
-                  Object.values(response.content).forEach((mto: OpenAPIV3_1.MediaTypeObject) => {
+                if (responseObj.content) {
+                  Object.values(responseObj.content).forEach((mto: OpenAPIV3_1.MediaTypeObject) => {
                     if (mto.examples) {
                       mto.examples = Object.fromEntries(
                         Object.entries(mto.examples)
@@ -225,7 +225,9 @@ function normalizeResponses(spec: OpenAPIV3_1.Document): OpenAPIV3_1.Document {
                     }
 
                     if (!isRef(mto.schema)) {
-                      const paramName = generateTypeName(operationOb, 'ResponseBody');
+                      // Include status code in name to differentiate responses
+                      const postfix = statusCode.startsWith('2') ? 'ResponseBody' : `ResponseBody${statusCode}`;
+                      const paramName = generateTypeName(operationOb, postfix);
                       draft.components = draft.components ?? {};
                       draft.components.schemas = draft.components.schemas ?? {};
                       draft.components.schemas[paramName] = mto.schema as OpenAPIV3_1.SchemaObject;

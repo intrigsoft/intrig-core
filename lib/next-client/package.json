@@ -2,9 +2,9 @@
   "name": "@intrig/next",
   "version": "0.0.15-29",
   "type": "module",
-  "main": "./index.esm.js",
-  "module": "./index.esm.js",
-  "types": "./index.esm.d.ts",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
   "dependencies": {
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
@@ -33,9 +33,21 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./index.esm.d.ts",
-      "import": "./index.esm.js",
-      "default": "./index.esm.js"
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./*": {
+      "types": "./src/*.d.ts",
+      "import": "./src/*.js",
+      "default": "./src/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
     }
   }
 }
