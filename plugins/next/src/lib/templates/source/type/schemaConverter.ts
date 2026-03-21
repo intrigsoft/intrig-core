@@ -8,6 +8,13 @@ export interface SchemaConversionResult {
   binaryish?: boolean;
 }
 
+// Helper to escape string values for use in generated code
+function escapeStringValue(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')  // Escape backslashes first
+    .replace(/'/g, "\\'");   // Escape single quotes
+}
+
 function isRef(schema: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject): schema is OpenAPIV3_1.ReferenceObject {
   return  '$ref' in (schema ?? {});
 }
@@ -58,8 +65,8 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
   const imports = new Set<string>();
   let binaryish = false;
   if (schema.enum) {
-    const enumValues = schema.enum.map(value => `'${value}'`).join(' | ');
-    const zodEnum = `z.enum([${schema.enum.map(value => `'${value}'`).join(', ')}])`;
+    const enumValues = schema.enum.map(value => `'${escapeStringValue(String(value))}'`).join(' | ');
+    const zodEnum = `z.enum([${schema.enum.map(value => `'${escapeStringValue(String(value))}'`).join(', ')}])`;
     return { tsType: enumValues, zodSchema: zodEnum , imports: new Set() };
   }
 
@@ -79,7 +86,7 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
   } else if (schema.format === 'time') {
     zodSchema = 'z.string()';
     if (schema.pattern) {
-      zodSchema += `.regex(new RegExp('${schema.pattern}'))`;
+      zodSchema += `.regex(new RegExp('${escapeStringValue(schema.pattern)}'))`;
     }
   } else if (schema.format === 'date-time' && !schema.pattern) {
     tsType = 'Date';
@@ -134,22 +141,28 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
   } else {
     if (schema.minLength !== undefined) zodSchema += `.min(${schema.minLength})`;
     if (schema.maxLength !== undefined) zodSchema += `.max(${schema.maxLength})`;
-    if (schema.pattern !== undefined) zodSchema += `.regex(new RegExp('${schema.pattern}'))`;
+    if (schema.pattern !== undefined) zodSchema += `.regex(new RegExp('${escapeStringValue(schema.pattern)}'))`;
   }
   return { tsType, zodSchema, imports, binaryish };
 }
 
 function handleNumberSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
   let zodSchema = 'z.number()';
-  if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
-  if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
+  // Handle exclusive bounds (OpenAPI 3.1 style - exclusiveMinimum/Maximum are numbers)
+  if (schema.exclusiveMinimum !== undefined) zodSchema += `.gt(${schema.exclusiveMinimum})`;
+  else if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
+  if (schema.exclusiveMaximum !== undefined) zodSchema += `.lt(${schema.exclusiveMaximum})`;
+  else if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
   return { tsType: 'number', zodSchema, imports: new Set() };
 }
 
 function handleIntegerSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionResult {
   let zodSchema = 'z.number().int()';
-  if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
-  if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
+  // Handle exclusive bounds (OpenAPI 3.1 style - exclusiveMinimum/Maximum are numbers)
+  if (schema.exclusiveMinimum !== undefined) zodSchema += `.gt(${schema.exclusiveMinimum})`;
+  else if (schema.minimum !== undefined) zodSchema += `.min(${schema.minimum})`;
+  if (schema.exclusiveMaximum !== undefined) zodSchema += `.lt(${schema.exclusiveMaximum})`;
+  else if (schema.maximum !== undefined) zodSchema += `.max(${schema.maximum})`;
   return { tsType: 'number', zodSchema, imports: new Set() };
 }
 
@@ -224,8 +237,17 @@ function handleComplexSchema(schema: OpenAPIV3_1.SchemaObject, imports: Set<stri
     const options = schema.allOf.map(subSchema => openApiSchemaToZod(subSchema as OpenAPIV3_1.SchemaObject));
     const zodSchemas = options.map(option => option.zodSchema);
     const tsTypes = options.map(option => option.tsType);
-    if (zodSchemas.length === 1) return { tsType: tsTypes.join(' & '), zodSchema: zodSchemas[0], imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
-    return { tsType: tsTypes.join(' & '), zodSchema: `z.intersection(${zodSchemas.join(', ')})`, imports: new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]) };
+    const allImports = new Set([...imports, ...options.flatMap(option => Array.from(option.imports))]);
+
+    if (zodSchemas.length === 1) {
+      return { tsType: tsTypes[0], zodSchema: zodSchemas[0], imports: allImports };
+    }
+    // Use .and() chaining instead of z.intersection() which only takes 2 arguments
+    const combinedZodSchema = zodSchemas.reduce((acc, schema, index) => {
+      if (index === 0) return schema;
+      return `${acc}.and(${schema})`;
+    });
+    return { tsType: tsTypes.join(' & '), zodSchema: combinedZodSchema, imports: allImports };
   }
   return { tsType: 'any', zodSchema: 'z.any()', imports };
 }

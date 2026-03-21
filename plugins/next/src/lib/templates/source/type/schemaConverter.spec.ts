@@ -140,6 +140,134 @@ describe('openApiSchemaToZod', () => {
     });
   });
 
+  describe('enum with special characters', () => {
+    it('should escape single quotes in enum values', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        enum: ["it's", "won't", "simple"],
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // Single quotes must be escaped to generate valid code
+      expect(result.tsType).toBe("'it\\'s' | 'won\\'t' | 'simple'");
+      expect(result.zodSchema).toBe("z.enum(['it\\'s', 'won\\'t', 'simple'])");
+    });
+
+    it('should escape backslashes in enum values', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        enum: ["path\\to\\file", "normal"],
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // Backslashes must be escaped
+      expect(result.tsType).toBe("'path\\\\to\\\\file' | 'normal'");
+      expect(result.zodSchema).toBe("z.enum(['path\\\\to\\\\file', 'normal'])");
+    });
+  });
+
+  describe('regex pattern with special characters', () => {
+    it('should escape single quotes in regex patterns', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        pattern: "^[a-z]+'s$",  // Pattern containing single quote
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // Single quotes in pattern must be escaped
+      expect(result.zodSchema).toContain("new RegExp('^[a-z]+\\'s$')");
+    });
+
+    it('should escape backslashes in regex patterns', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        pattern: "^\\d+\\.\\d+$",  // Pattern with backslashes
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // Backslashes in pattern must be escaped for string literal
+      expect(result.zodSchema).toContain("new RegExp('^\\\\d+\\\\.\\\\d+$')");
+    });
+  });
+
+  describe('allOf with multiple schemas', () => {
+    it('should handle allOf with exactly 2 schemas', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        allOf: [
+          { type: 'object', properties: { a: { type: 'string' } } },
+          { type: 'object', properties: { b: { type: 'number' } } },
+        ],
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // Should use .and() for chaining, not z.intersection with multiple args
+      expect(result.zodSchema).not.toContain('z.intersection(');
+      expect(result.zodSchema).toContain('.and(');
+    });
+
+    it('should handle allOf with 3+ schemas using chained .and()', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        allOf: [
+          { type: 'object', properties: { a: { type: 'string' } } },
+          { type: 'object', properties: { b: { type: 'number' } } },
+          { type: 'object', properties: { c: { type: 'boolean' } } },
+        ],
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // z.intersection() only takes 2 args, so must chain with .and()
+      // Should NOT generate: z.intersection(A, B, C) - this is invalid!
+      expect(result.zodSchema).not.toContain('z.intersection(');
+      // Should generate: A.and(B).and(C)
+      expect(result.zodSchema).toMatch(/\.and\(.*\)\.and\(/);
+    });
+  });
+
+  describe('number exclusive bounds', () => {
+    it('should handle exclusiveMinimum for numbers', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'number',
+        exclusiveMinimum: 0,
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // exclusiveMinimum means > not >=, so use .gt() not .min()
+      expect(result.zodSchema).toContain('.gt(0)');
+      expect(result.zodSchema).not.toContain('.min(0)');
+    });
+
+    it('should handle exclusiveMaximum for numbers', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'number',
+        exclusiveMaximum: 100,
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      // exclusiveMaximum means < not <=, so use .lt() not .max()
+      expect(result.zodSchema).toContain('.lt(100)');
+      expect(result.zodSchema).not.toContain('.max(100)');
+    });
+
+    it('should handle exclusiveMinimum for integers', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'integer',
+        exclusiveMinimum: 0,
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      expect(result.zodSchema).toContain('.gt(0)');
+    });
+  });
+
   describe('array with constraints', () => {
     it('should apply minItems and maxItems constraints inside preprocess', () => {
       const schema: OpenAPIV3_1.SchemaObject = {
