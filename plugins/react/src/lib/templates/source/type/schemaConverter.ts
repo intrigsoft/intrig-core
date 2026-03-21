@@ -94,11 +94,29 @@ function handleStringSchema(schema: OpenAPIV3_1.SchemaObject): SchemaConversionR
   } else if (schema.format === 'binary') {
     tsType = 'BinaryData';
     zodSchema = 'BinaryDataSchema';
+    // Apply file size constraints using refinements
+    if (schema.minLength !== undefined) {
+      zodSchema += `.refine((blob) => blob.size >= ${schema.minLength}, { message: 'File size must be at least ${schema.minLength} bytes' })`;
+    }
+    if (schema.maxLength !== undefined) {
+      zodSchema += `.refine((blob) => blob.size <= ${schema.maxLength}, { message: 'File size must not exceed ${schema.maxLength} bytes' })`;
+    }
     imports.add(`import { BinaryData, BinaryDataSchema } from '@intrig/react/type-utils'`);
     binaryish = true;
   } else if (schema.format === 'byte') {
     tsType = 'Uint8Array';
     zodSchema = 'z.string().transform((val) => base64ToUint8Array(val))';
+    // Note: For byte (base64), length constraints apply to the decoded data
+    // We can't easily validate before transform, so we validate after
+    if (schema.minLength !== undefined || schema.maxLength !== undefined) {
+      zodSchema = `(${zodSchema})`;
+      if (schema.minLength !== undefined) {
+        zodSchema += `.refine((arr) => arr.length >= ${schema.minLength}, { message: 'Data size must be at least ${schema.minLength} bytes' })`;
+      }
+      if (schema.maxLength !== undefined) {
+        zodSchema += `.refine((arr) => arr.length <= ${schema.maxLength}, { message: 'Data size must not exceed ${schema.maxLength} bytes' })`;
+      }
+    }
     imports.add(`import { base64ToUint8Array } from '@intrig/react/type-utils'`);
     binaryish = true;
   } else if (schema.format === 'email') {

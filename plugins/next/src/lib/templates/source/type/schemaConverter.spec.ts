@@ -81,6 +81,65 @@ describe('openApiSchemaToZod', () => {
     });
   });
 
+  describe('binary file size constraints', () => {
+    it('should apply minLength as file size constraint for binary format', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        format: 'binary',
+        minLength: 1024,
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      expect(result.tsType).toBe('BinaryData');
+      expect(result.zodSchema).toContain('BinaryDataSchema');
+      expect(result.zodSchema).toContain('.refine((blob) => blob.size >= 1024');
+    });
+
+    it('should apply maxLength as file size constraint for binary format', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        format: 'binary',
+        maxLength: 5242880, // 5MB
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      expect(result.tsType).toBe('BinaryData');
+      expect(result.zodSchema).toContain('BinaryDataSchema');
+      expect(result.zodSchema).toContain('.refine((blob) => blob.size <= 5242880');
+    });
+
+    it('should apply both min and max file size constraints for binary format', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        format: 'binary',
+        minLength: 1,
+        maxLength: 10485760, // 10MB
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      expect(result.zodSchema).toContain('.refine((blob) => blob.size >= 1');
+      expect(result.zodSchema).toContain('.refine((blob) => blob.size <= 10485760');
+    });
+
+    it('should apply size constraints for byte format', () => {
+      const schema: OpenAPIV3_1.SchemaObject = {
+        type: 'string',
+        format: 'byte',
+        minLength: 100,
+        maxLength: 1000,
+      };
+
+      const result = openApiSchemaToZod(schema);
+
+      expect(result.tsType).toBe('Uint8Array');
+      expect(result.zodSchema).toContain('.refine((arr) => arr.length >= 100');
+      expect(result.zodSchema).toContain('.refine((arr) => arr.length <= 1000');
+    });
+  });
+
   describe('array with constraints', () => {
     it('should apply minItems and maxItems constraints inside preprocess', () => {
       const schema: OpenAPIV3_1.SchemaObject = {
